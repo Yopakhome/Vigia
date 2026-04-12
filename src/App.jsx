@@ -1095,7 +1095,58 @@ function SuperAdminModule() {
     loadData();
   };
 
-  const tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"create",l:"Crear usuario"}];
+  const tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
+
+  const [setupLog, setSetupLog] = React.useState([]);
+  const [setupRunning, setSetupRunning] = React.useState(false);
+  const [setupDone, setSetupDone] = React.useState(false);
+  const addLog = (msg, type="info") => setSetupLog(p=>[...p,{msg,type,t:new Date().toLocaleTimeString("es-CO")}]);
+
+  const runSetup = async () => {
+    setSetupRunning(true); setSetupLog([]); setSetupDone(false);
+    const SH = {"apikey":SB_SERVICE,"Authorization":"Bearer "+SB_SERVICE,"Content-Type":"application/json"};
+    const sPost = async (path, body, prefer) => {
+      const h = prefer ? {...SH,"Prefer":prefer} : SH;
+      const r = await fetch(SB_ADMIN_URL+path, {method:"POST", headers:h, body:JSON.stringify(body)});
+      return r.json();
+    };
+    const sPatch = async (path, body) => {
+      await fetch(SB_ADMIN_URL+path, {method:"PATCH", headers:SH, body:JSON.stringify(body)});
+    };
+    try {
+      addLog("Creando Energia Renovable Demo S.A.S...");
+      const r1 = await sPost("/rest/v1/organizations",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",fecha_constitucion:"2015-06-20",direccion:"Av. El Dorado No. 92-32 Of. 301",ciudad:"Bogota",departamento:"Cundinamarca",telefono:"+57 601 445 7890",email_corporativo:"contacto@energiademo.co",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",sector:"energia",ciiu:"3510",num_instrumentos_declarado:3,plan:"prueba",plan_inicio:"2026-04-12",plan_renovacion:"2026-07-12",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,version_terminos:"1.0",consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"alto",country:"Colombia"},"resolution=merge-duplicates,return=representation");
+      addLog(Array.isArray(r1)?"Energia Demo OK":"Energia: "+JSON.stringify(r1).slice(0,60), Array.isArray(r1)?"success":"error");
+
+      addLog("Creando Mineria Verde Demo Ltda...");
+      const r2 = await sPost("/rest/v1/organizations",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",fecha_constitucion:"2008-11-03",direccion:"Calle 72 No. 10-07 Of. 802",ciudad:"Medellin",departamento:"Antioquia",telefono:"+57 604 312 5678",email_corporativo:"ambiental@mineriademo.co",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",sector:"mineria",ciiu:"0710",num_instrumentos_declarado:5,plan:"prueba",plan_inicio:"2026-04-12",plan_renovacion:"2026-07-12",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,version_terminos:"1.0",consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico",country:"Colombia"},"resolution=merge-duplicates,return=representation");
+      addLog(Array.isArray(r2)?"Mineria Demo OK":"Mineria: "+JSON.stringify(r2).slice(0,60), Array.isArray(r2)?"success":"error");
+
+      addLog("Actualizando C.I. Energia Solar...");
+      await sPatch("/rest/v1/organizations?id=eq.a1000000-0000-0000-0000-000000000001",{tipo_persona:"juridica",representante_legal:"Javier Restrepo Gomez",fecha_constitucion:"2010-03-15",direccion:"Cra. 53 No. 80-58 Of. 502",ciudad:"Barranquilla",departamento:"Atlantico",telefono:"+57 605 330 1234",email_corporativo:"gerencia@cienergiasolarsas.co",contacto_vigia:"Javier Restrepo",cargo_contacto:"Director de Sostenibilidad",sector:"energia",ciiu:"3510",num_instrumentos_declarado:2,plan:"prueba",plan_inicio:"2026-04-12",plan_renovacion:"2026-07-12",plan_estado:"activo",limite_edis:5,limite_usuarios:3,limite_intake_mes:100,acepta_terminos:true,version_terminos:"1.0",consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"alto"});
+      addLog("C.I. Energia Solar actualizada","success");
+
+      const users = [
+        {email:"admin@enara.co",password:"Vigia2026!",org_id:"a1000000-0000-0000-0000-000000000001",role:"admin"},
+        {email:"consulta1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"viewer"},
+        {email:"onboarding1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"editor"},
+        {email:"consulta2@demo-mineria.co",password:"Vigia2026!",org_id:"b2000000-0000-0000-0000-000000000002",role:"viewer"},
+        {email:"onboarding2@demo-mineria.co",password:"Vigia2026!",org_id:"b2000000-0000-0000-0000-000000000002",role:"editor"},
+      ];
+      for(const u of users) {
+        addLog("Creando "+u.email+"...");
+        const ur = await sPost("/auth/v1/admin/users",{email:u.email,password:u.password,email_confirm:true});
+        if(!ur.id){ addLog("ERROR "+u.email+": "+(ur.message||JSON.stringify(ur).slice(0,60)),"error"); continue; }
+        await sPost("/rest/v1/user_org_map",{user_id:ur.id,org_id:u.org_id,role:u.role},"resolution=merge-duplicates,return=minimal");
+        addLog(u.email+" ("+u.role+") OK","success");
+      }
+      addLog("SETUP COMPLETO - Recarga SuperAdmin para ver los cambios","success");
+      setSetupDone(true);
+      loadData();
+    } catch(e) { addLog("Error: "+e.message,"error"); }
+    setSetupRunning(false);
+  };
+
 
   return (
     <div style={{padding:28,color:A.text}}>
@@ -1185,6 +1236,31 @@ function SuperAdminModule() {
         </div>
       )}
 
+      {tab==="setup"&&(
+        <div style={{maxWidth:520}}>
+          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:24,marginBottom:16}}>
+            <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:8}}>Setup ambiente de prueba</div>
+            <div style={{fontSize:12,color:A.textSec,lineHeight:1.6,marginBottom:16}}>Crea las 2 organizaciones demo y los 5 usuarios con un clic. Password para todos: Vigia2026!</div>
+            <div style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",marginBottom:16}}>
+              {[["admin@enara.co","admin","C.I. Energia Solar"],["consulta1@demo-energia.co","viewer","Energia Demo"],["onboarding1@demo-energia.co","editor","Energia Demo"],["consulta2@demo-mineria.co","viewer","Mineria Demo"],["onboarding2@demo-mineria.co","editor","Mineria Demo"]].map(function(item){
+                return <div key={item[0]} style={{display:"flex",gap:8,marginBottom:5,alignItems:"center",fontSize:11}}>
+                  <span style={{padding:"1px 6px",borderRadius:3,background:item[1]==="editor"?A.primaryDim:item[1]==="admin"?A.redDim:A.surfaceEl,color:item[1]==="editor"?A.primary:item[1]==="admin"?A.red:A.textSec,fontWeight:600,fontSize:10}}>{item[1]}</span>
+                  <span style={{color:A.text}}>{item[0]}</span>
+                  <span style={{color:A.textMuted}}>- {item[2]}</span>
+                </div>;
+              })}
+            </div>
+            <button onClick={runSetup} disabled={setupRunning||setupDone} style={{width:"100%",background:setupDone?A.greenDim:setupRunning?A.surfaceEl:A.red,border:"1px solid "+(setupDone?A.green:A.red)+"44",borderRadius:8,padding:"12px",color:setupDone?A.green:setupRunning?A.textSec:"#fff",fontSize:14,fontWeight:700,cursor:setupRunning||setupDone?"not-allowed":"pointer"}}>
+              {setupDone?"Setup completado":setupRunning?"Ejecutando...":"Ejecutar setup demo"}
+            </button>
+          </div>
+          {setupLog.length>0&&(
+            <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"12px 16px",maxHeight:280,overflowY:"auto"}}>
+              {setupLog.map(function(l,i){ return <div key={i} style={{fontSize:11,color:l.type==="success"?A.green:l.type==="error"?A.red:A.textSec,marginBottom:3,display:"flex",gap:8}}><span style={{color:A.textMuted,flexShrink:0}}>{l.t}</span><span>{l.msg}</span></div>; })}
+            </div>
+          )}
+        </div>
+      )}
       {tab==="create"&&(
         <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:14,padding:24,maxWidth:480}}>
           <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:20}}>Crear nuevo usuario</div>
