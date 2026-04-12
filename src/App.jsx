@@ -148,162 +148,6 @@ return (
 
 // --- SEED DATA ----------------------------------------------------------------
 const SEED = {
-  instruments: [],,
-  obligations: [],,
-  oversight: [],,
-  obligations: [],
-  alerts: [],,
-  oversight: []
-}port React, { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck } from "lucide-react";
-
-const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
-const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
-const sb = async (table, params="") => {
-const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
-if (!res.ok) throw new Error(res.status);
-return res.json();
-};
-
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
-const sbAuth = async (endpoint, body) => {
-  const res = await fetch(`${SB_URL}/auth/v1/${endpoint}`, {
-    method: "POST",
-    headers: { apikey: SB_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  return res.json();
-};
-
-const sbGetSession = async () => {
-  // Check localStorage for existing session
-  const raw = localStorage.getItem("vigia_session");
-  if (!raw) return null;
-  try {
-    const session = JSON.parse(raw);
-    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
-      localStorage.removeItem("vigia_session");
-      return null;
-    }
-    return session;
-  } catch { return null; }
-};
-
-const sbLogin = async (email, password) => {
-  const data = await sbAuth("token?grant_type=password", { email, password });
-  if (data.access_token) {
-    const session = {
-      access_token: data.access_token,
-      user: data.user,
-      expires_at: data.expires_at
-    };
-    localStorage.setItem("vigia_session", JSON.stringify(session));
-    return { ok: true, session };
-  }
-  return { ok: false, error: data.error_description || data.msg || "Credenciales incorrectas" };
-};
-
-const sbLogout = () => {
-  localStorage.removeItem("vigia_session");
-};
-
-const sbWithAuth = async (table, params, token) => {
-  const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
-    headers: {
-      apikey: SB_KEY,
-      Authorization: `Bearer ${token || SB_KEY}`
-    }
-  });
-  if (!res.ok) throw new Error(res.status);
-  return res.json();
-};
-
-const sbInsert = async (table, data) => {
-await fetch(`${SB_URL}/rest/v1/${table}`, { method:"POST", headers:{ apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, "Content-Type":"application/json", Prefer:"return=minimal" }, body:JSON.stringify(data) });
-};
-
-// --- DESIGN TOKENS ------------------------------------------------------------
-const C = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",textMuted:"#3a5270",red:"#ff4d6d",redDim:"rgba(255,77,109,0.12)",yellow:"#f7c948",yellowDim:"rgba(247,201,72,0.12)",green:"#2ec986",greenDim:"rgba(46,201,134,0.12)",blue:"#4d9fff",blueDim:"rgba(77,159,255,0.10)",purple:"#a78bfa",purpleDim:"rgba(167,139,250,0.10)" };
-const FONT = "'Poppins','Segoe UI',sans-serif";
-
-// --- HELPERS ------------------------------------------------------------------
-const StatusDot = ({status,size=8}) => { const color=status==="vencido"||status==="critico"?C.red:status==="proximo"||status==="moderado"?C.yellow:C.green; return <span style={{display:"inline-block",width:size,height:size,borderRadius:"50%",background:color,boxShadow:`0 0 6px ${color}88`,flexShrink:0}}/>; };
-const Badge = ({label,color,bg}) => <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,letterSpacing:"0.06em",color,background:bg,textTransform:"uppercase",flexShrink:0}}>{label}</span>;
-const ImpactBadge = ({impact}) => { const m={derogatoria:{c:C.red,b:C.redDim},ampliatoria:{c:C.red,b:C.redDim},prospectiva:{c:C.yellow,b:C.yellowDim},interpretativa:{c:C.blue,b:C.blueDim}}[impact]||{c:C.textSec,b:C.surfaceEl}; return <Badge label={impact} color={m.c} bg={m.b}/>; };
-const StatCard = ({icon:Icon,label,value,color,sub}) => <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={18} color={color}/></div><div><div style={{fontSize:22,fontWeight:700,color:C.text,lineHeight:1}}>{value}</div><div style={{fontSize:11,color:C.textSec,marginTop:3}}>{label}</div>{sub&&<div style={{fontSize:10,color,marginTop:1}}>{sub}</div>}</div></div>;
-
-// --- FUENTE BADGE -------------------------------------------------------------
-function FuenteBadge({fuente}) {
-if(!fuente) return null;
-const tipos = {
-normativa:{ icon:BookOpen, color:"#4d9fff", bg:"rgba(77,159,255,0.10)", label:"Normativa" },
-jurisprudencial:{ icon:Scale, color:"#a78bfa", bg:"rgba(167,139,250,0.10)", label:"Jurisprudencia" },
-administrativa:{ icon:FileCheck, color:"#00c9a7", bg:"rgba(0,201,167,0.10)", label:"Acto Administrativo" },
-};
-const t = tipos[fuente.tipo]||tipos.normativa;
-const Icon = t.icon;
-return (
-<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",borderRadius:5,background:t.bg,border:`1px solid ${t.color}33`}}>
-<Icon size={10} color={t.color}/>
-<span style={{fontSize:10,fontWeight:600,color:t.color}}>{t.label}</span>
-</div>
-);
-}
-
-// --- FUENTE DETAIL ------------------------------------------------------------
-function FuenteDetail({fuente}) {
-if(!fuente) return null;
-const fields = {
-normativa:[
-{k:"tipo_norma",l:"Tipo"},
-{k:"numero",l:"Numero"},
-{k:"articulo",l:"Articulo"},
-{k:"parrafo",l:"Parrafo/inciso"},
-{k:"fecha_expedicion",l:"Fecha expedicion"},
-{k:"autoridad_emisora",l:"Autoridad emisora"},
-{k:"vigencia",l:"Vigencia"},
-],
-jurisprudencial:[
-{k:"tribunal",l:"Tribunal/Corte"},
-{k:"numero_sentencia",l:"Sentencia/Radicado"},
-{k:"fecha",l:"Fecha"},
-{k:"magistrado_ponente",l:"Magistrado ponente"},
-{k:"ratio_decidendi",l:"Ratio decidendi"},
-{k:"aplicabilidad",l:"Aplicabilidad al caso"},
-],
-administrativa:[
-{k:"tipo_acto",l:"Tipo de acto"},
-{k:"numero_acto",l:"Numero del acto"},
-{k:"fecha",l:"Fecha"},
-{k:"autoridad_competente",l:"Autoridad competente"},
-{k:"radicado",l:"Radicado"},
-{k:"objeto",l:"Objeto del acto"},
-],
-};
-const fs = fields[fuente.tipo]||fields.normativa;
-const colores = {
-normativa:{color:"#4d9fff",bg:"rgba(77,159,255,0.06)"},
-jurisprudencial:{color:"#a78bfa",bg:"rgba(167,139,250,0.06)"},
-administrativa:{color:"#00c9a7",bg:"rgba(0,201,167,0.06)"},
-};
-const tc = colores[fuente.tipo]||colores.normativa;
-return (
-<div style={{background:tc.bg,borderRadius:8,padding:"10px 12px",border:`1px solid ${tc.color}22`,marginTop:8}}>
-<div style={{fontSize:10,color:tc.color,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Trazabilidad de fuente</div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-{fs.map(f=>fuente[f.k]&&(
-<div key={f.k} style={{gridColumn:f.k==="ratio_decidendi"||f.k==="objeto"||f.k==="aplicabilidad"?"1 / -1":"auto"}}>
-<div style={{fontSize:9,color:C.textMuted,marginBottom:2,textTransform:"uppercase"}}>{f.l}</div>
-<div style={{fontSize:11,color:C.text,fontWeight:500,lineHeight:1.4}}>{fuente[f.k]}</div>
-</div>
-))}
-</div>
-</div>
-);
-}
-
-// --- SEED DATA ----------------------------------------------------------------
-const SEED = {
 instruments: [
 { id:"c1000000-0000-0000-0000-000000000001", number:"786/2016", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:75, projects:{ name:"Parque Solar AS I - Baranoa", location_dept:"Atlantico", location_mun:"Baranoa" } },
 { id:"c2000000-0000-0000-0000-000000000002", number:"556/2017", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:60, projects:{ name:"Parque Solar AS II - Polonuevo", location_dept:"Atlantico", location_mun:"Polonuevo" } },
@@ -348,11 +192,14 @@ normSources: [
 { id:"n3", norm_type:"ley", norm_number:"2387", norm_title:"Ley de Transicion Energetica", issuing_body:"Congreso de Colombia", issue_date:"2024-07-18", is_active:true },
 { id:"n4", norm_type:"resolucion", norm_number:"0226", norm_title:"Protocolo de monitoreo de calidad del aire - 2026", issuing_body:"AUTORIDAD COMPETENTE", issue_date:"2026-01-15", is_active:true },
 ],
-oversight: []
+oversight: [
+{ id:"ov1", severity:"critico", anomaly_type:"vencimiento_pasado", title:"Obligacion vencida sin evidencia de cumplimiento: OBL-04", description:"La obligacion ICA Semestral vencio el 2026-03-15 sin que se haya registrado evidencia de cumplimiento.", legal_reference:"Art. 8 - Instrumento N. 786/2016", suggested_action:"Verificar si el reporte fue presentado y registrar la evidencia, o presentarlo a la mayor brevedad.", confidence_pct:96, status:"activo" }
+]
 };
 
 // --- INTAKE CONSTANTS ---------------------------------------------------------
 const INTAKE_EDIS = [];
+const INTAKE_OBLIGATIONS = [];
 const DOC_TYPES = {
 norma:{ label:"Norma", color:"#a78bfa", bg:"rgba(167,139,250,0.10)", desc:"Ley, Decreto, Resolucion, Circular" },
 acto_administrativo:{ label:"Acto Administrativo", color:"#ff4d6d", bg:"rgba(255,77,109,0.12)", desc:"Auto, Oficio, Resolucion individual" },
@@ -378,7 +225,7 @@ const SEED_INTAKE = [];
 
 // --- INTAKE MODULE -------------------------------------------------------------
 function IntakeModule({ onNewAlert, onNewNorm }) {
-const [docs, setDocs] = React.useState(SEED_INTAKE);
+const [docs, setDocs] = React.useState([]);
 const [selectedDoc, setSelectedDoc] = React.useState(null);
 const [uploadState, setUploadState] = React.useState("idle");
 const [analysisResult, setAnalysisResult] = React.useState(null);
@@ -787,214 +634,6 @@ function LoginScreen({ onLogin }) {
   );
 }
 
-
-// ─── SUPERADMIN MODULE ────────────────────────────────────────────────────────
-const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a2J1amtxamVzdW50Z2RrdWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk1NzIyNywiZXhwIjoyMDkxNTMzMjI3fQ.0wdZfTZ0Ar-Wys99pxqMACBt7xfBwJdkFW5sNp6ka2Q";
-const SB_ADMIN_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
-
-const adminFetch = async (path, method, body, prefer) => {
-  const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE, "Content-Type":"application/json"};
-  if(prefer) h["Prefer"] = prefer;
-  const opts = {method: method||"GET", headers: h};
-  if(body) opts.body = JSON.stringify(body);
-  const r = await fetch(SB_ADMIN_URL + path, opts);
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { return {raw:t, status:r.status}; }
-};
-
-function SuperAdminModule() {
-  const [tab, setTab] = React.useState("overview");
-  const [users, setUsers] = React.useState([]);
-  const [orgs, setOrgs] = React.useState([]);
-  const [stats, setStats] = React.useState({users:0,orgs:0,obligations:0,alerts:0});
-  const [loading, setLoading] = React.useState(false);
-  const [msg, setMsg] = React.useState(null);
-  const [newUser, setNewUser] = React.useState({email:"",password:"",org_id:"",role:"viewer"});
-  const [setupLog, setSetupLog] = React.useState([]);
-  const [setupRunning, setSetupRunning] = React.useState(false);
-  const [setupDone, setSetupDone] = React.useState(false);
-  const A = C;
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const [ur, or2, ob, al] = await Promise.all([
-        adminFetch("/auth/v1/admin/users?page=1&per_page=50"),
-        adminFetch("/rest/v1/organizations?select=*"),
-        adminFetch("/rest/v1/obligations?select=id"),
-        adminFetch("/rest/v1/regulatory_alerts?select=id"),
-      ]);
-      const ul = ur.users || (Array.isArray(ur)?ur:[]);
-      setUsers(ul);
-      setOrgs(Array.isArray(or2)?or2:[]);
-      setStats({users:ur.total||ul.length, orgs:Array.isArray(or2)?or2.length:0, obligations:Array.isArray(ob)?ob.length:0, alerts:Array.isArray(al)?al.length:0});
-    } catch(e) { setMsg({t:"error",m:e.message}); }
-    setLoading(false);
-  };
-
-  React.useEffect(() => { load(); }, []);
-
-  const addLog = (m, t) => setSetupLog(p => [...p, {m, t:t||"info", ts:new Date().toLocaleTimeString("es-CO")}]);
-
-  const runSetup = async () => {
-    setSetupRunning(true); setSetupLog([]); setSetupDone(false);
-    try {
-      addLog("Creando Energia Renovable Demo S.A.S...");
-      await adminFetch("/rest/v1/organizations", "POST", {id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",fecha_constitucion:"2015-06-20",direccion:"Av. El Dorado No. 92-32 Of. 301",ciudad:"Bogota",departamento:"Cundinamarca",telefono:"+57 601 445 7890",email_corporativo:"contacto@energiademo.co",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",sector:"energia",ciiu:"3510",num_instrumentos_declarado:3,plan:"prueba",plan_inicio:"2026-04-12",plan_renovacion:"2026-07-12",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,version_terminos:"1.0",consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"alto",country:"Colombia"}, "resolution=merge-duplicates,return=minimal");
-      addLog("Energia Renovable Demo - OK","success");
-
-      addLog("Creando Mineria Verde Demo Ltda...");
-      await adminFetch("/rest/v1/organizations", "POST", {id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",fecha_constitucion:"2008-11-03",direccion:"Calle 72 No. 10-07 Of. 802",ciudad:"Medellin",departamento:"Antioquia",telefono:"+57 604 312 5678",email_corporativo:"ambiental@mineriademo.co",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",sector:"mineria",ciiu:"0710",num_instrumentos_declarado:5,plan:"prueba",plan_inicio:"2026-04-12",plan_renovacion:"2026-07-12",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,version_terminos:"1.0",consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico",country:"Colombia"}, "resolution=merge-duplicates,return=minimal");
-      addLog("Mineria Verde Demo - OK","success");
-
-      addLog("Actualizando C.I. Energia Solar...");
-      await adminFetch("/rest/v1/organizations?id=eq.a1000000-0000-0000-0000-000000000001", "PATCH", {tipo_persona:"juridica",representante_legal:"Javier Restrepo Gomez",fecha_constitucion:"2010-03-15",direccion:"Cra. 53 No. 80-58 Of. 502",ciudad:"Barranquilla",departamento:"Atlantico",telefono:"+57 605 330 1234",email_corporativo:"gerencia@cienergiasolarsas.co",contacto_vigia:"Javier Restrepo",cargo_contacto:"Director de Sostenibilidad",sector:"energia",ciiu:"3510",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:3,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"alto"});
-      addLog("C.I. Energia Solar - OK","success");
-
-      const usersToCreate = [
-        {email:"admin@enara.co",password:"Vigia2026!",org_id:null,role:"superadmin"},
-        {email:"consulta1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"viewer"},
-        {email:"onboarding1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"editor"},
-        {email:"consulta2@demo-mineria.co",password:"Vigia2026!",org_id:"b2000000-0000-0000-0000-000000000002",role:"viewer"},
-        {email:"onboarding2@demo-mineria.co",password:"Vigia2026!",org_id:"b2000000-0000-0000-0000-000000000002",role:"editor"},
-      ];
-      for(let i=0;i<usersToCreate.length;i++) {
-        const u = usersToCreate[i];
-        addLog("Creando "+u.email+"...");
-        const ur = await adminFetch("/auth/v1/admin/users","POST",{email:u.email,password:u.password,email_confirm:true});
-        if(!ur.id){ addLog("ERROR: "+(ur.message||JSON.stringify(ur).slice(0,60)),"error"); continue; }
-        if(u.org_id && u.role !== "superadmin") {
-          await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:u.org_id,role:u.role},"resolution=merge-duplicates,return=minimal");
-        }
-        addLog(u.email+" ("+u.role+") - OK","success");
-      }
-      addLog("SETUP COMPLETO","success");
-      setSetupDone(true);
-      load();
-    } catch(e) { addLog("Error: "+e.message,"error"); }
-    setSetupRunning(false);
-  };
-
-  const delUser = async (uid, email) => {
-    if(!window.confirm("Eliminar "+email+"?")) return;
-    await adminFetch("/auth/v1/admin/users/"+uid,"DELETE");
-    load();
-  };
-
-  const createUser = async () => {
-    if(!newUser.email||!newUser.password||!newUser.org_id){ setMsg({t:"error",m:"Completa todos los campos"}); return; }
-    setLoading(true); setMsg(null);
-    const ur = await adminFetch("/auth/v1/admin/users","POST",{email:newUser.email,password:newUser.password,email_confirm:true});
-    if(!ur.id){ setMsg({t:"error",m:ur.message||JSON.stringify(ur)}); setLoading(false); return; }
-    await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:newUser.org_id,role:newUser.role},"resolution=merge-duplicates,return=minimal");
-    setMsg({t:"success",m:"Usuario "+newUser.email+" creado OK"});
-    setNewUser({email:"",password:"",org_id:"",role:"viewer"});
-    load();
-    setLoading(false);
-  };
-
-  const tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
-
-  return (
-    <div style={{padding:28,color:A.text}}>
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
-        <div style={{width:40,height:40,borderRadius:10,background:"rgba(255,77,109,0.15)",display:"flex",alignItems:"center",justifyContent:"center"}}><Shield size={20} color={A.red}/></div>
-        <div><h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>SUPERADMIN</h1><p style={{fontSize:12,color:A.red,margin:0,fontWeight:600}}>ACCESO RESTRINGIDO - ENARA CONSULTING</p></div>
-        <button onClick={load} style={{marginLeft:"auto",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:6,padding:"6px 12px",color:A.textSec,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><RefreshCw size={12}/> Actualizar</button>
-      </div>
-      {msg&&<div style={{background:msg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(msg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:msg.t==="success"?A.green:A.red,marginBottom:16}}>{msg.m}</div>}
-      <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
-        {tabs.map(t=><button key={t.k} onClick={()=>setTab(t.k)} style={{background:tab===t.k?A.primaryDim:A.surface,border:"1px solid "+(tab===t.k?A.primary+"44":A.border),borderRadius:6,padding:"6px 14px",color:tab===t.k?A.primary:A.textSec,fontSize:12,fontWeight:tab===t.k?600:400,cursor:"pointer"}}>{t.l}</button>)}
-      </div>
-
-      {tab==="overview"&&(
-        <div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-            {[["Usuarios",stats.users,A.primary],["Organizaciones",stats.orgs,A.blue],["Obligaciones",stats.obligations,A.yellow],["Alertas",stats.alerts,A.red]].map(function(item){ return <div key={item[0]} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:12,padding:"16px 20px"}}><div style={{fontSize:28,fontWeight:700,color:item[2]}}>{item[1]}</div><div style={{fontSize:12,color:A.textSec,marginTop:4}}>{item[0]}</div></div>; })}
-          </div>
-          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:12,padding:"16px 20px"}}>
-            <div style={{fontSize:13,fontWeight:600,color:A.text,marginBottom:12}}>Sistema</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {[["Supabase","itkbujkqjesuntgdkubt (Sao Paulo)"],["GitHub","Yopakhome/Vigia"],["URL","vigia-five.vercel.app"],["Modelo IA","claude-sonnet-4-20250514"],["Stack","React + Vite + Supabase"],["Auth","Supabase Auth + RLS"]].map(function(item){ return <div key={item[0]} style={{background:A.surfaceEl,borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:A.textMuted,marginBottom:2,textTransform:"uppercase"}}>{item[0]}</div><div style={{fontSize:11,color:A.text,fontWeight:500}}>{item[1]}</div></div>; })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {tab==="users"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {loading&&<div style={{color:A.textSec,fontSize:13}}>Cargando...</div>}
-          {users.map(function(u){ return <div key={u.id} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
-            <div style={{width:36,height:36,borderRadius:8,background:A.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:14,fontWeight:700,color:A.primary}}>{(u.email||"?")[0].toUpperCase()}</span></div>
-            <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:A.text}}>{u.email}</div><div style={{display:"flex",gap:8,marginTop:3}}><span style={{fontSize:10,color:A.textMuted,fontFamily:"monospace"}}>{(u.id||"").slice(0,8)}...</span><span style={{fontSize:10,color:u.email_confirmed_at?A.green:A.yellow}}>{u.email_confirmed_at?"Verificado":"Pendiente"}</span><span style={{fontSize:10,color:A.textMuted}}>{u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleDateString("es-CO"):"Nunca"}</span></div></div>
-            <button onClick={()=>delUser(u.id,u.email)} style={{background:"transparent",border:"1px solid "+A.red+"44",borderRadius:6,padding:"4px 10px",color:A.red,fontSize:11,cursor:"pointer"}}>Eliminar</button>
-          </div>; })}
-        </div>
-      )}
-
-      {tab==="orgs"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {orgs.map(function(o){ return <div key={o.id} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"14px 18px"}}>
-            <div style={{fontSize:13,fontWeight:600,color:A.text,marginBottom:4}}>{o.name}</div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              <span style={{fontSize:10,color:A.textMuted,fontFamily:"monospace"}}>{(o.id||"").slice(0,8)}...</span>
-              {o.nit&&<span style={{fontSize:10,color:A.textSec}}>NIT: {o.nit}</span>}
-              {o.sector&&<span style={{fontSize:10,color:A.blue}}>{o.sector}</span>}
-              {o.plan&&<span style={{fontSize:10,color:A.primary,fontWeight:600}}>{o.plan}</span>}
-              {o.ciudad&&<span style={{fontSize:10,color:A.textMuted}}>{o.ciudad}</span>}
-            </div>
-          </div>; })}
-        </div>
-      )}
-
-      {tab==="create"&&(
-        <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:24,maxWidth:480}}>
-          <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:20}}>Crear nuevo usuario</div>
-          {[["Email","email","correo@empresa.co"],["Password","password","Min. 8 caracteres"]].map(function(f){ return <div key={f[0]} style={{marginBottom:14}}>
-            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f[0]}</div>
-            <input type={f[1]} value={newUser[f[1]]} onChange={function(e){ setNewUser(function(p){ return {...p,[f[1]]:e.target.value}; }); }} placeholder={f[2]} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,fontFamily:FONT,outline:"none"}}/>
-          </div>; })}
-          <div style={{marginBottom:14}}>
-            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Organizacion</div>
-            {orgs.length===0?<div style={{fontSize:12,color:A.yellow,padding:"10px 14px",background:A.yellowDim,borderRadius:8}}>Ejecuta Setup Demo primero para crear las organizaciones.</div>:(
-              <select value={newUser.org_id} onChange={function(e){ setNewUser(function(p){ return {...p,org_id:e.target.value}; }); }} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,outline:"none"}}>
-                <option value="">Selecciona una organizacion...</option>
-                {orgs.map(function(o){ return <option key={o.id} value={o.id}>{o.name} ({o.plan||"prueba"})</option>; })}
-              </select>
-            )}
-          </div>
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rol</div>
-            <div style={{display:"flex",gap:8}}>
-              {["viewer","editor","admin"].map(function(r){ return <button key={r} onClick={function(){ setNewUser(function(p){ return {...p,role:r}; }); }} style={{background:newUser.role===r?A.primaryDim:A.surfaceEl,border:"1px solid "+(newUser.role===r?A.primary+"44":A.border),borderRadius:6,padding:"6px 16px",color:newUser.role===r?A.primary:A.textSec,fontSize:12,cursor:"pointer",textTransform:"capitalize"}}>{r}</button>; })}
-            </div>
-          </div>
-          <button onClick={createUser} disabled={loading} style={{width:"100%",background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:FONT}}>{loading?"Creando...":"Crear usuario"}</button>
-        </div>
-      )}
-
-      {tab==="setup"&&(
-        <div style={{maxWidth:520}}>
-          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:24,marginBottom:16}}>
-            <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:8}}>Setup ambiente de prueba</div>
-            <div style={{fontSize:12,color:A.textSec,lineHeight:1.6,marginBottom:16}}>Crea las 2 organizaciones demo y los 5 usuarios de prueba con un solo clic. Password para todos: Vigia2026!</div>
-            <div style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",marginBottom:16}}>
-              {[["admin@enara.co","admin","C.I. Energia Solar"],["consulta1@demo-energia.co","viewer","Energia Renovable Demo"],["onboarding1@demo-energia.co","editor","Energia Renovable Demo"],["consulta2@demo-mineria.co","viewer","Mineria Verde Demo"],["onboarding2@demo-mineria.co","editor","Mineria Verde Demo"]].map(function(item){ return <div key={item[0]} style={{display:"flex",gap:8,marginBottom:5,alignItems:"center",fontSize:11}}><span style={{padding:"1px 6px",borderRadius:3,background:item[1]==="editor"?A.primaryDim:item[1]==="admin"?A.redDim:A.surfaceEl,color:item[1]==="editor"?A.primary:item[1]==="admin"?A.red:A.textSec,fontWeight:600,fontSize:10}}>{item[1]}</span><span style={{color:A.text}}>{item[0]}</span><span style={{color:A.textMuted}}>- {item[2]}</span></div>; })}
-              <div style={{marginTop:8,fontSize:11,color:A.textMuted}}>Password: Vigia2026!</div>
-            </div>
-            <button onClick={runSetup} disabled={setupRunning||setupDone} style={{width:"100%",background:setupDone?A.greenDim:setupRunning?A.surfaceEl:A.red,border:"1px solid "+(setupDone?A.green:A.red)+"44",borderRadius:8,padding:"12px",color:setupDone?A.green:setupRunning?A.textSec:"#fff",fontSize:14,fontWeight:700,cursor:setupRunning||setupDone?"not-allowed":"pointer"}}>{setupDone?"Setup completado":setupRunning?"Ejecutando...":"Ejecutar setup demo"}</button>
-          </div>
-          {setupLog.length>0&&(
-            <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"12px 16px",maxHeight:280,overflowY:"auto"}}>
-              {setupLog.map(function(l,i){ return <div key={i} style={{fontSize:11,color:l.t==="success"?A.green:l.t==="error"?A.red:A.textSec,marginBottom:3,display:"flex",gap:8}}><span style={{color:A.textMuted,flexShrink:0}}>{l.ts}</span><span>{l.m}</span></div>; })}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function VIGIAApp() {
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -1015,50 +654,31 @@ const [oversight, setOversight] = useState([]);
 const [dbStatus, setDbStatus] = useState("demo");
 const [lastSync, setLastSync] = useState(null);
 const [botInput, setBotInput] = useState("");
-const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Selecciona las fuentes y escribe tu consulta."}]);
+const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Datos de C.I. Energia Solar cargados. Selecciona fuentes y escribe tu consulta."}]);
 const [botLoading, setBotLoading] = useState(false);
 const [sources, setSources] = useState({documentos:true,normativa:true,jurisprudencia:false,validacion:false});
 
 useEffect(()=>{
 const tryConnect = async () => {
 try {
-  const SA = ["demo@vigia.co","admin@enara.co"];
-  const isSA = SA.includes(session?.user?.email);
-  const useKey = isSA ? SB_SERVICE : (session?.access_token || SB_KEY);
-  const hdr = { apikey: SB_KEY, Authorization: "Bearer " + useKey };
-  const fetchWithKey = async (table, params) => {
-    const res = await fetch(SB_URL+"/rest/v1/"+table+"?"+params, { headers: hdr });
-    if(!res.ok) throw new Error(res.status);
-    return res.json();
-  };
-  const [inst,obs,alrt,norms]=await Promise.all([
-    fetchWithKey("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),
-    fetchWithKey("obligations","select=*&order=due_date.asc"),
-    fetchWithKey("regulatory_alerts","select=*&order=norm_date.desc"),
-    fetchWithKey("normative_sources","select=*&is_active=eq.true")
-  ]);
-  // Always use Supabase data when connected (empty arrays if no data yet)
-  setInstruments(Array.isArray(inst)?inst:[]);
-  const enriched=(Array.isArray(obs)?obs:[]).map(ob=>{
-    const s=SEED.obligations.find(s=>s.obligation_num===ob.obligation_num||s.id===ob.id);
-    return s?.fuente?{...ob,fuente:s.fuente}:ob;
-  });
-  setObligations(enriched);
-  setAlerts(Array.isArray(alrt)?alrt:[]);
-  setNormSources(Array.isArray(norms)?norms:[]);
-  setDbStatus("connected");
-  setLastSync(new Date());
-  if(isSA){ setUserRole("superadmin"); }
-  else if(session?.user?.id){
-    try {
-      const rr=await fetchWithKey("user_org_map","user_id=eq."+session.user.id+"&select=role");
-      if(Array.isArray(rr)&&rr.length>0) setUserRole(rr[0].role);
-    } catch {}
-  }
+const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
+if(Array.isArray(inst)&&inst.length>0){
+          setInstruments(inst);
+          // Enrich Supabase obligations with fuente from SEED
+          const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
+            const seedOb = SEED.obligations.find(s => s.obligation_num === ob.obligation_num || s.id === ob.id);
+            return seedOb?.fuente ? {...ob, fuente: seedOb.fuente} : ob;
+          });
+          setObligations(enriched);
+          setAlerts(Array.isArray(alrt)?alrt:[]);
+          setNormSources(Array.isArray(norms)?norms:[]);
+          setDbStatus("connected");
+          setLastSync(new Date());
+        }
 } catch { setDbStatus("demo"); }
 };
 tryConnect();
-},[session]);
+},[]);
 
 const overdue=obligations.filter(o=>o.status==="vencido").length;
 const upcoming=obligations.filter(o=>o.status==="proximo"||o.status==="proximo").length;
@@ -1097,9 +717,7 @@ try { await sbInsert("bot_queries",{org_id:"a1000000-0000-0000-0000-000000000001
 setBotLoading(false);
 };
 
-const SUPERADMIN_EMAILS = ["demo@vigia.co","admin@enara.co"];
-  const isSuperAdmin = SUPERADMIN_EMAILS.includes(session?.user?.email);
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"}];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={s=>setSession(s)}/>;
@@ -1109,7 +727,7 @@ const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
 <div style={{padding:28}}>
-<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Sin datos - configura tu primer EDI"}</p></div>
+<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Modo demo - C.I. Energia Solar"}</p></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
 <StatCard icon={Layers} label="EDIs activos" value={instruments.length} color={C.primary}/>
 <StatCard icon={AlertTriangle} label="Obligaciones vencidas" value={overdue} color={C.red} sub={overdue>0?"Requiere accion inmediata":"Sin vencimientos"}/>
@@ -1255,7 +873,7 @@ const renderOversight=()=><div style={{padding:28}}>
 
 const renderConsultar=()=>{ const c=conf(); return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>{msg.layers&&msg.role==="assistant"&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm}/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm}/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1264,7 +882,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:8,color:C.primary,fontWeight:700}}>v2.1 CLEAN</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
