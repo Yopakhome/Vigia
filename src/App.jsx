@@ -1022,15 +1022,15 @@ const [session, setSession] = useState(null);
 
   const [view, setView] = useState("dashboard");
 const [selectedEDI, setSelectedEDI] = useState(null);
-const [instruments, setInstruments] = useState(SEED.instruments);
-const [obligations, setObligations] = useState(SEED.obligations);
-const [alerts, setAlerts] = useState(SEED.alerts);
-const [normSources, setNormSources] = useState(SEED.normSources);
-const [oversight, setOversight] = useState(SEED.oversight);
+const [instruments, setInstruments] = useState([]);
+const [obligations, setObligations] = useState([]);
+const [alerts, setAlerts] = useState([]);
+const [normSources, setNormSources] = useState([]);
+const [oversight, setOversight] = useState([]);
 const [dbStatus, setDbStatus] = useState("demo");
 const [lastSync, setLastSync] = useState(null);
 const [botInput, setBotInput] = useState("");
-const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Datos de C.I. Energia Solar cargados. Selecciona fuentes y escribe tu consulta."}]);
+const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Selecciona las fuentes y escribe tu consulta."}]);
 const [botLoading, setBotLoading] = useState(false);
 const [sources, setSources] = useState({documentos:true,normativa:true,jurisprudencia:false,validacion:false});
 
