@@ -653,9 +653,46 @@ export default function VIGIAApp() {
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  const [userRole, setUserRole] = useState(isSuperAdmin?"superadmin":"viewer");
+
   useEffect(()=>{
-    sbGetSession().then(s=>{ setSession(s); setAuthLoading(false); });
-  },[]);
+    const tryConnect = async () => {
+      try {
+        const token = session?.access_token || SB_KEY;
+        const headers = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
+        const fetchSb = async (table, params) => {
+          const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers });
+          if(!res.ok) throw new Error(res.status);
+          return res.json();
+        };
+        const [inst,obs,alrt,norms] = await Promise.all([
+          fetchSb("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),
+          fetchSb("obligations","select=*&order=due_date.asc"),
+          fetchSb("regulatory_alerts","select=*&order=norm_date.desc"),
+          fetchSb("normative_sources","select=*&is_active=eq.true"),
+        ]);
+        if(Array.isArray(inst)&&inst.length>0){
+          setInstruments(inst);
+          const enriched=(Array.isArray(obs)?obs:[]).map(ob=>{
+            const s=SEED.obligations.find(s=>s.obligation_num===ob.obligation_num||s.id===ob.id);
+            return s?.fuente?{...ob,fuente:s.fuente}:ob;
+          });
+          setObligations(enriched);
+          setAlerts(Array.isArray(alrt)?alrt:[]);
+          setNormSources(Array.isArray(norms)?norms:[]);
+          setDbStatus("connected");
+          setLastSync(new Date());
+        }
+        if(session?.user?.id) {
+          try {
+            const roleRes = await fetchSb("user_org_map",`user_id=eq.${session.user.id}&select=role`);
+            if(Array.isArray(roleRes)&&roleRes.length>0) setUserRole(roleRes[0].role);
+          } catch {}
+        }
+      } catch { setDbStatus("demo"); }
+    };
+    tryConnect();
+  },[session]);
 
   const handleLogout = () => { sbLogout(); setSession(null); };
 
@@ -732,8 +769,18 @@ try { await sbInsert("bot_queries",{org_id:"a1000000-0000-0000-0000-000000000001
 setBotLoading(false);
 };
 
-const isSuperAdmin = session?.user?.email === "demo@vigia.co";
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+const isSuperAdmin = ["demo@vigia.co","admin@enara.co"].includes(session?.user?.email);
+  const canEdit = isSuperAdmin || userRole === "admin" || userRole === "editor";
+  const navItems=[
+    {key:"dashboard",icon:BarChart2,label:"Dashboard"},
+    {key:"edis",icon:Layers,label:"Mis EDIs"},
+    {key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},
+    {key:"consultar",icon:MessageSquare,label:"Consultar"},
+    {key:"normativa",icon:BookOpen,label:"Normativa"},
+    {key:"oversight",icon:Shield,label:"Oversight"},
+    ...(canEdit?[{key:"intake",icon:Upload,label:"INTAKE"}]:[]),
+    ...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])
+  ];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={s=>setSession(s)}/>;
@@ -913,7 +960,7 @@ return (
 <div style={{padding:"12px 14px"}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{width:30,height:30,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,fontWeight:700,color:C.primary}}>JR</span></div>
-<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>ENARA Consulting</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
+<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>{isSuperAdmin?"SuperAdmin":userRole==="editor"?"Editor":"Consulta"}</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
 </div>
 </div>
 </div>
