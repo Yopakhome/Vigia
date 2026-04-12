@@ -1037,24 +1037,44 @@ const [sources, setSources] = useState({documentos:true,normativa:true,jurisprud
 useEffect(()=>{
 const tryConnect = async () => {
 try {
-const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
-if(Array.isArray(inst)&&inst.length>0){
-          setInstruments(inst);
-          // Enrich Supabase obligations with fuente from SEED
-          const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
-            const seedOb = SEED.obligations.find(s => s.obligation_num === ob.obligation_num || s.id === ob.id);
-            return seedOb?.fuente ? {...ob, fuente: seedOb.fuente} : ob;
-          });
-          setObligations(enriched);
-          setAlerts(Array.isArray(alrt)?alrt:[]);
-          setNormSources(Array.isArray(norms)?norms:[]);
-          setDbStatus("connected");
-          setLastSync(new Date());
-        }
+  const SA = ["demo@vigia.co","admin@enara.co"];
+  const isSA = SA.includes(session?.user?.email);
+  const useKey = isSA ? SB_SERVICE : (session?.access_token || SB_KEY);
+  const hdr = { apikey: SB_KEY, Authorization: "Bearer " + useKey };
+  const fetchWithKey = async (table, params) => {
+    const res = await fetch(SB_URL+"/rest/v1/"+table+"?"+params, { headers: hdr });
+    if(!res.ok) throw new Error(res.status);
+    return res.json();
+  };
+  const [inst,obs,alrt,norms]=await Promise.all([
+    fetchWithKey("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),
+    fetchWithKey("obligations","select=*&order=due_date.asc"),
+    fetchWithKey("regulatory_alerts","select=*&order=norm_date.desc"),
+    fetchWithKey("normative_sources","select=*&is_active=eq.true")
+  ]);
+  if(Array.isArray(inst)&&inst.length>0){
+    setInstruments(inst);
+    const enriched=(Array.isArray(obs)?obs:[]).map(ob=>{
+      const s=SEED.obligations.find(s=>s.obligation_num===ob.obligation_num||s.id===ob.id);
+      return s?.fuente?{...ob,fuente:s.fuente}:ob;
+    });
+    setObligations(enriched);
+    setAlerts(Array.isArray(alrt)?alrt:[]);
+    setNormSources(Array.isArray(norms)?norms:[]);
+  }
+  setDbStatus("connected");
+  setLastSync(new Date());
+  if(isSA){ setUserRole("superadmin"); }
+  else if(session?.user?.id){
+    try {
+      const rr=await fetchWithKey("user_org_map","user_id=eq."+session.user.id+"&select=role");
+      if(Array.isArray(rr)&&rr.length>0) setUserRole(rr[0].role);
+    } catch {}
+  }
 } catch { setDbStatus("demo"); }
 };
 tryConnect();
-},[]);
+},[session]);
 
 const overdue=obligations.filter(o=>o.status==="vencido").length;
 const upcoming=obligations.filter(o=>o.status==="proximo"||o.status==="proximo").length;
