@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers } from "lucide-react";
+import ComunicacionesModule from "./ComunicacionesModule.jsx";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail } from "lucide-react";
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
@@ -106,7 +107,7 @@ export default function VIGIAApp() {
     setBotLoading(false);
   };
 
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"}];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"comunicaciones",icon:Mail,label:"Comunicaciones"}];
   const renderDashboard = () => (
     <div style={{padding:28}}>
       <div style={{marginBottom:24}}>
@@ -303,6 +304,18 @@ export default function VIGIAApp() {
       </div>)}
     </div>
   </div>;
+  const renderNormativa = () => <div style={{padding:28}}>
+    <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 6px"}}>Base normativa — Capa 2</h1>
+    <p style={{fontSize:13,color:C.textSec,margin:"0 0 24px"}}>{normSources.length} normas activas · Colombia · Actualización continua</p>
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {normSources.map(n=><div key={n.id} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
+        <div style={{width:36,height:36,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><BookOpen size={15} color={C.primary}/></div>
+        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:4}}>{n.norm_title}</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={n.norm_type} color={C.blue} bg={C.blueDim}/>{n.norm_number&&<Badge label={`N.º ${n.norm_number}`} color={C.textSec} bg={C.surfaceEl}/>}<span style={{fontSize:10,color:C.textMuted}}>{n.issue_date}</span></div></div>
+        <Badge label="Vigente" color={C.green} bg={C.greenDim}/>
+      </div>)}
+    </div>
+  </div>;
+
   const renderConsultar = () => { const c=conf(); return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}>
     <div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas · {obligations.length} obligaciones · respuestas con trazabilidad jurídica</p></div>
     <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}>
@@ -345,7 +358,7 @@ export default function VIGIAApp() {
     </div>
   </div>; };
 
-  const renderView=()=>{ if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+  const renderView=()=>{ if(view==="comunicaciones")return <ComunicacionesModule/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
   return (
     <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
