@@ -688,12 +688,14 @@ function SuperAdminModule() {
     setSetupRunning(true); setSetupLog([]); setSetupDone(false);
     try {
       addLog("Creando Energia Renovable Demo S.A.S...");
-      await adminFetch("/rest/v1/organizations","POST",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tier:"cliente",risk_profile:"medio",city:"Bogota",sector:"energia",ciudad:"Bogota",departamento:"Cundinamarca",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia"},"resolution=merge-duplicates,return=minimal");
-      addLog("Energia Renovable Demo - OK","success");
+      var r1 = await adminFetch("/rest/v1/organizations","POST",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tier:"cliente",risk_profile:"medio",city:"Bogota",sector:"energia",ciudad:"Bogota",departamento:"Cundinamarca",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia"},"resolution=merge-duplicates,return=representation");
+      if(r1 && !r1.error && !r1.raw) { addLog("Energia Renovable Demo - OK","success"); }
+      else { addLog("Energia ERROR: "+JSON.stringify(r1).slice(0,120),"error"); }
 
       addLog("Creando Mineria Verde Demo Ltda...");
-      await adminFetch("/rest/v1/organizations","POST",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tier:"cliente",risk_profile:"alto",city:"Medellin",sector:"mineria",ciudad:"Medellin",departamento:"Antioquia",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico"},"resolution=merge-duplicates,return=minimal");
-      addLog("Mineria Verde Demo - OK","success");
+      var r2 = await adminFetch("/rest/v1/organizations","POST",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tier:"cliente",risk_profile:"alto",city:"Medellin",sector:"mineria",ciudad:"Medellin",departamento:"Antioquia",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico"},"resolution=merge-duplicates,return=representation");
+      if(r2 && !r2.error && !r2.raw) { addLog("Mineria Verde Demo - OK","success"); }
+      else { addLog("Mineria ERROR: "+JSON.stringify(r2).slice(0,120),"error"); }
 
       var usersToCreate = [
         {email:"admin@enara.co",password:"Vigia2026!",org_id:null,role:"superadmin"},
@@ -1078,7 +1080,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.1.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.1.2</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
