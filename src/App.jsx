@@ -618,7 +618,7 @@ return <div style={{padding:28}}>
 <button onClick={()=>setView("dashboard")} style={{background:"transparent",border:"none",color:C.textSec,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:5,marginBottom:20,padding:0}}>Volver al panel</button>
 <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,padding:"20px 24px",marginBottom:20}}>
 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.projects?.name}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/*/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
+<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.projects?.name}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
 <button onClick={()=>setView("consultar")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,color:C.primary,borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><MessageSquare size={13}/>Consultar</button>
 </div>
 <div style={{marginTop:16}}>
@@ -643,7 +643,7 @@ return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ob.stat
 <span style={{fontSize:10,color:C.textMuted,fontFamily:"monospace"}}>{ob.obligation_num||ob.num}</span>
 </div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:ob.fuente?8:0}}>
-<Badge label={ob.obligation_type?.replace(/*/g," ")||ob.frequency||""} color={C.textSec} bg={C.surfaceEl}/>
+<Badge label={ob.obligation_type?.replace(/_/g," ")||ob.frequency||""} color={C.textSec} bg={C.surfaceEl}/>
 <Badge label={ob.frequency||""} color={C.blue} bg={C.blueDim}/>
 {ob.confidence_level&&<Badge label={`${ob.confidence_level} confianza`} color={ob.confidence_level==="alta"?C.green:ob.confidence_level==="media"?C.yellow:C.red} bg={ob.confidence_level==="alta"?C.greenDim:ob.confidence_level==="media"?C.yellowDim:C.redDim}/>}
 </div>
@@ -651,7 +651,7 @@ return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ob.stat
 <div>
 <div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} >
 <FuenteBadge fuente={ob.fuente}/>
-<span style={{fontSize:10,color:C.textMuted}}>"Trazabilidad de fuente"</span>
+<span style={{fontSize:10,color:C.textMuted}}>Trazabilidad de fuente</span>
 </div>
 <FuenteDetail fuente={ob.fuente}/>
 </div>
