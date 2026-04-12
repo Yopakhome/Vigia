@@ -635,7 +635,7 @@ function LoginScreen({ onLogin }) {
 }
 
 
-// ─── SUPERADMIN ───────────────────────────────────────────────────────────────
+// ─── SUPERADMIN v2.1.1 ───────────────────────────────────────────────────────────────
 const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a2J1amtxamVzdW50Z2RrdWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk1NzIyNywiZXhwIjoyMDkxNTMzMjI3fQ.0wdZfTZ0Ar-Wys99pxqMACBt7xfBwJdkFW5sNp6ka2Q";
 const SB_ADMIN_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SUPERADMIN_EMAILS = ["demo@vigia.co","admin@enara.co"];
