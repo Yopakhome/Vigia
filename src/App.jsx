@@ -688,11 +688,11 @@ function SuperAdminModule() {
     setSetupRunning(true); setSetupLog([]); setSetupDone(false);
     try {
       addLog("Creando Energia Renovable Demo S.A.S...");
-      await adminFetch("/rest/v1/organizations","POST",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",ciudad:"Bogota",departamento:"Cundinamarca",sector:"energia",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",country:"Colombia"},"resolution=merge-duplicates,return=minimal");
+      await adminFetch("/rest/v1/organizations","POST",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tier:"cliente",risk_profile:"medio",city:"Bogota",sector:"energia",ciudad:"Bogota",departamento:"Cundinamarca",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia"},"resolution=merge-duplicates,return=minimal");
       addLog("Energia Renovable Demo - OK","success");
 
       addLog("Creando Mineria Verde Demo Ltda...");
-      await adminFetch("/rest/v1/organizations","POST",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",ciudad:"Medellin",departamento:"Antioquia",sector:"mineria",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",country:"Colombia"},"resolution=merge-duplicates,return=minimal");
+      await adminFetch("/rest/v1/organizations","POST",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tier:"cliente",risk_profile:"alto",city:"Medellin",sector:"mineria",ciudad:"Medellin",departamento:"Antioquia",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico"},"resolution=merge-duplicates,return=minimal");
       addLog("Mineria Verde Demo - OK","success");
 
       var usersToCreate = [
