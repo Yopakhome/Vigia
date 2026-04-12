@@ -955,28 +955,40 @@ function SuperAdminModule() {
   const [users, setUsers] = React.useState([]);
   const [orgs, setOrgs] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-  const [newUser, setNewUser] = React.useState({ email:"", password:"", org_name:"", role:"admin" });
+  const [newUser, setNewUser] = React.useState({ email:"", password:"", org_id:"", role:"admin" });
   const [message, setMessage] = React.useState(null);
   const [stats, setStats] = React.useState({ users:0, orgs:0, obligations:0, alerts:0, queries:0 });
 
   const A = C;
 
+  const [orgUserCounts, setOrgUserCounts] = React.useState({});
+  const [planes, setPlanes] = React.useState([]);
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const [usersRes, orgsRes, obsRes, alertsRes] = await Promise.all([
+      const [usersRes, orgsRes, obsRes, alertsRes, planesRes, orgMapRes] = await Promise.all([
         adminFetch("/auth/v1/admin/users?page=1&per_page=50"),
         adminFetch("/rest/v1/organizations?select=*", "GET"),
         adminFetch("/rest/v1/obligations?select=id", "GET"),
         adminFetch("/rest/v1/regulatory_alerts?select=id", "GET"),
+        adminFetch("/rest/v1/planes_suscripcion?select=*&order=precio_cop_mes.asc", "GET"),
+        adminFetch("/rest/v1/user_org_map?select=*", "GET"),
       ]);
-      console.log("Users response:", usersRes);
       const usersList = usersRes.users || (Array.isArray(usersRes) ? usersRes : []);
       setUsers(usersList);
-      setOrgs(Array.isArray(orgsRes) ? orgsRes : []);
+      const orgsList = Array.isArray(orgsRes) ? orgsRes : [];
+      setOrgs(orgsList);
+      setPlanes(Array.isArray(planesRes) ? planesRes : []);
+      // Count users per org
+      const counts = {};
+      if(Array.isArray(orgMapRes)) {
+        orgMapRes.forEach(m => { counts[m.org_id] = (counts[m.org_id]||0) + 1; });
+      }
+      setOrgUserCounts(counts);
       setStats({
         users: usersRes.total || usersList.length || 0,
-        orgs: Array.isArray(orgsRes) ? orgsRes.length : 0,
+        orgs: orgsList.length,
         obligations: Array.isArray(obsRes) ? obsRes.length : 0,
         alerts: Array.isArray(alertsRes) ? alertsRes.length : 0,
       });
@@ -1000,22 +1012,16 @@ function SuperAdminModule() {
 
       if(!userRes.id) { setMessage({type:"error",text:"Error creando usuario: " + (userRes.message||JSON.stringify(userRes))}); setLoading(false); return; }
 
-      // 2. Create org if new
-      let orgId;
-      if(newUser.org_name) {
-        const existingOrg = orgs.find(o => o.name.toLowerCase() === newUser.org_name.toLowerCase());
-        if(existingOrg) {
-          orgId = existingOrg.id;
-        } else {
-          const orgRes = await adminFetch("/rest/v1/organizations", "POST",
-            {name: newUser.org_name, sector: "ambiental", country: "Colombia"}
-          );
-          // get the new org
-          const newOrgs = await adminFetch("/rest/v1/organizations?select=*&order=created_at.desc&limit=1");
-          orgId = Array.isArray(newOrgs) ? newOrgs[0]?.id : null;
-        }
-      } else {
-        orgId = "a1000000-0000-0000-0000-000000000001"; // default org
+      // 2. Use selected org_id
+      let orgId = newUser.org_id;
+      if(!orgId) { setMessage({type:"error",text:"Selecciona una organizacion"}); setLoading(false); return; }
+      // Check user limit
+      const org = orgs.find(o=>o.id===orgId);
+      const usersEnOrg = orgUserCounts[orgId]||0;
+      const limite = org?.limite_usuarios||(org?.plan==="enterprise"?-1:2);
+      if(limite!==-1 && usersEnOrg>=limite) {
+        setMessage({type:"error",text:`La organizacion ha alcanzado su limite de ${limite} usuarios. Actualiza el plan para agregar mas.`});
+        setLoading(false); return;
       }
 
       // 3. Link user to org
@@ -1028,7 +1034,7 @@ function SuperAdminModule() {
       }
 
       setMessage({type:"success", text:`Usuario ${newUser.email} creado y vinculado exitosamente`});
-      setNewUser({email:"", password:"", org_name:"", role:"admin"});
+      setNewUser({email:"", password:"", org_id:"", role:"admin"});
       loadData();
     } catch(e) { setMessage({type:"error",text:"Error: " + e.message}); }
     setLoading(false);
@@ -1135,13 +1141,40 @@ function SuperAdminModule() {
       {tab==="create"&&(
         <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:14,padding:24,maxWidth:480}}>
           <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:20}}>Crear nuevo usuario</div>
-          {[["Email","email","email","correo@empresa.co"],["Password","password","password","Min. 8 caracteres"],["Organizacion (nueva o existente)","text","org_name","Nombre de la empresa"],].map(([label,type,field,ph])=>(
+              {[["Email","email","correo@empresa.co"],["Password","password","Min. 8 caracteres"]].map(([label,field,ph])=>(
             <div key={field} style={{marginBottom:14}}>
               <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>{label}</div>
-              <input type={type} value={newUser[field]} onChange={e=>setNewUser(p=>({...p,[field]:e.target.value}))} placeholder={ph}
+              <input type={field} value={newUser[field]} onChange={e=>setNewUser(p=>({...p,[field]:e.target.value}))} placeholder={ph}
                 style={{width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,fontFamily:FONT,outline:"none"}}/>
             </div>
           ))}
+          <div style={{marginBottom:14}}>
+            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Organizacion</div>
+            {orgs.length===0?<div style={{fontSize:12,color:A.red,padding:"10px 14px",background:A.redDim,borderRadius:8}}>No hay organizaciones con perfil creado. Crea primero el perfil de la empresa.</div>:(
+              <select value={newUser.org_id||""} onChange={e=>setNewUser(p=>({...p,org_id:e.target.value}))}
+                style={{width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,fontFamily:FONT,outline:"none"}}>
+                <option value="">Selecciona una organizacion...</option>
+                {orgs.map(o=>{
+                  const usersEnOrg = orgUserCounts[o.id]||0;
+                  const limite = o.limite_usuarios||(o.plan==="enterprise"?999:2);
+                  const disponibles = limite - usersEnOrg;
+                  const llena = disponibles <= 0;
+                  return <option key={o.id} value={o.id} disabled={llena}>
+                    {o.name} ({o.plan||"prueba"}) {llena?"- SIN CUPOS":`- ${disponibles} cupo${disponibles!==1?"s":""} disponible${disponibles!==1?"s":""}`}
+                  </option>;
+                })}
+              </select>
+            )}
+            {newUser.org_id&&(()=>{
+              const org = orgs.find(o=>o.id===newUser.org_id);
+              if(!org) return null;
+              const usersEnOrg = orgUserCounts[org.id]||0;
+              const limite = org.limite_usuarios||(org.plan==="enterprise"?999:2);
+              return <div style={{marginTop:8,padding:"8px 12px",background:A.surfaceEl,borderRadius:6,fontSize:11,color:A.textSec}}>
+                Plan <span style={{color:A.primary,fontWeight:600}}>{org.plan}</span> - {usersEnOrg}/{limite==-1?"ilimitado":limite} usuarios - {org.plan_estado}
+              </div>;
+            })()}
+          </div>
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rol</div>
             <div style={{display:"flex",gap:8}}>
