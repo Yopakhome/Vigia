@@ -714,7 +714,7 @@ function SuperAdminModule() {
       addLog("C.I. Energia Solar - OK","success");
 
       const usersToCreate = [
-        {email:"admin@enara.co",password:"Vigia2026!",org_id:"a1000000-0000-0000-0000-000000000001",role:"admin"},
+        {email:"admin@enara.co",password:"Vigia2026!",org_id:null,role:"superadmin"},
         {email:"consulta1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"viewer"},
         {email:"onboarding1@demo-energia.co",password:"Vigia2026!",org_id:"b1000000-0000-0000-0000-000000000001",role:"editor"},
         {email:"consulta2@demo-mineria.co",password:"Vigia2026!",org_id:"b2000000-0000-0000-0000-000000000002",role:"viewer"},
@@ -725,7 +725,9 @@ function SuperAdminModule() {
         addLog("Creando "+u.email+"...");
         const ur = await adminFetch("/auth/v1/admin/users","POST",{email:u.email,password:u.password,email_confirm:true});
         if(!ur.id){ addLog("ERROR: "+(ur.message||JSON.stringify(ur).slice(0,60)),"error"); continue; }
-        await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:u.org_id,role:u.role},"resolution=merge-duplicates,return=minimal");
+        if(u.org_id && u.role !== "superadmin") {
+          await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:u.org_id,role:u.role},"resolution=merge-duplicates,return=minimal");
+        }
         addLog(u.email+" ("+u.role+") - OK","success");
       }
       addLog("SETUP COMPLETO","success");
@@ -938,7 +940,8 @@ try { await sbInsert("bot_queries",{org_id:"a1000000-0000-0000-0000-000000000001
 setBotLoading(false);
 };
 
-const isSuperAdmin = ["demo@vigia.co","admin@enara.co"].includes(session?.user?.email);
+const SUPERADMIN_EMAILS = ["demo@vigia.co","admin@enara.co"];
+  const isSuperAdmin = SUPERADMIN_EMAILS.includes(session?.user?.email);
   const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
