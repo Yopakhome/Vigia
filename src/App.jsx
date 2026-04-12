@@ -936,12 +936,18 @@ const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const SB_ADMIN_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 
 const adminFetch = async (path, method="GET", body=null) => {
-  const res = await fetch(`${SB_ADMIN_URL}${path}`, {
-    method,
-    headers: { apikey: SB_SERVICE, Authorization: `Bearer ${SB_SERVICE}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : null
-  });
-  return res.json();
+  const headers = {
+    "apikey": SB_SERVICE,
+    "Authorization": `Bearer ${SB_SERVICE}`,
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+  };
+  const opts = { method, headers };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${SB_ADMIN_URL}${path}`, opts);
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch { return { error: text, status: res.status }; }
 };
 
 function SuperAdminModule() {
@@ -960,19 +966,22 @@ function SuperAdminModule() {
     try {
       const [usersRes, orgsRes, obsRes, alertsRes] = await Promise.all([
         adminFetch("/auth/v1/admin/users?page=1&per_page=50"),
-        adminFetch("/rest/v1/organizations?select=*"),
-        adminFetch("/rest/v1/obligations?select=id"),
-        adminFetch("/rest/v1/regulatory_alerts?select=id"),
+        adminFetch("/rest/v1/organizations?select=*", "GET"),
+        adminFetch("/rest/v1/obligations?select=id", "GET"),
+        adminFetch("/rest/v1/regulatory_alerts?select=id", "GET"),
       ]);
-      setUsers(usersRes.users || []);
+      console.log("Users response:", usersRes);
+      const usersList = usersRes.users || (Array.isArray(usersRes) ? usersRes : []);
+      setUsers(usersList);
       setOrgs(Array.isArray(orgsRes) ? orgsRes : []);
       setStats({
-        users: usersRes.total || 0,
+        users: usersRes.total || usersList.length || 0,
         orgs: Array.isArray(orgsRes) ? orgsRes.length : 0,
         obligations: Array.isArray(obsRes) ? obsRes.length : 0,
         alerts: Array.isArray(alertsRes) ? alertsRes.length : 0,
       });
-    } catch(e) { setMessage({type:"error", text:"Error cargando datos: " + e.message}); }
+      if(usersRes.error) setMessage({type:"error", text:"Error usuarios: " + usersRes.error});
+    } catch(e) { setMessage({type:"error", text:"Error: " + e.message}); }
     setLoading(false);
   };
 
