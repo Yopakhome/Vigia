@@ -148,6 +148,168 @@ return (
 
 // --- SEED DATA ----------------------------------------------------------------
 const SEED = {
+  instruments: [
+    { id:"d1000000-0000-0000-0000-000000000001", org_id:"b1000000-0000-0000-0000-000000000001", number:"101/2024", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:0, projects:{ name:"Planta Solar Norte - Demo", location_dept:"Cundinamarca", location_mun:"Bogota" } },
+    { id:"d2000000-0000-0000-0000-000000000002", org_id:"b2000000-0000-0000-0000-000000000002", number:"202/2023", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"nacional", edi_status:"activo", completeness_pct:0, projects:{ name:"Operacion Minera Sur - Demo", location_dept:"Antioquia", location_mun:"Medellin" } },
+  ],
+  obligations: [],
+  alerts: [],
+  normSources: [
+    { id:"n1", norm_type:"decreto", norm_number:"1076", norm_title:"Decreto Unico Reglamentario del Sector Ambiente y Desarrollo Sostenible", issuing_body:"Ministerio de Ambiente", issue_date:"2015-05-26", is_active:true },
+    { id:"n2", norm_type:"ley", norm_number:"99", norm_title:"Ley 99 de 1993 - Sistema Nacional Ambiental (SINA)", issuing_body:"Congreso de Colombia", issue_date:"1993-12-22", is_active:true },
+    { id:"n3", norm_type:"ley", norm_number:"2387", norm_title:"Ley de Transicion Energetica", issuing_body:"Congreso de Colombia", issue_date:"2024-07-18", is_active:true },
+  ],
+  oversight: []
+}port React, { useState, useEffect } from "react";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck } from "lucide-react";
+
+const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
+const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
+const sb = async (table, params="") => {
+const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+if (!res.ok) throw new Error(res.status);
+return res.json();
+};
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+const sbAuth = async (endpoint, body) => {
+  const res = await fetch(`${SB_URL}/auth/v1/${endpoint}`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+};
+
+const sbGetSession = async () => {
+  // Check localStorage for existing session
+  const raw = localStorage.getItem("vigia_session");
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw);
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+      localStorage.removeItem("vigia_session");
+      return null;
+    }
+    return session;
+  } catch { return null; }
+};
+
+const sbLogin = async (email, password) => {
+  const data = await sbAuth("token?grant_type=password", { email, password });
+  if (data.access_token) {
+    const session = {
+      access_token: data.access_token,
+      user: data.user,
+      expires_at: data.expires_at
+    };
+    localStorage.setItem("vigia_session", JSON.stringify(session));
+    return { ok: true, session };
+  }
+  return { ok: false, error: data.error_description || data.msg || "Credenciales incorrectas" };
+};
+
+const sbLogout = () => {
+  localStorage.removeItem("vigia_session");
+};
+
+const sbWithAuth = async (table, params, token) => {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: {
+      apikey: SB_KEY,
+      Authorization: `Bearer ${token || SB_KEY}`
+    }
+  });
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
+};
+
+const sbInsert = async (table, data) => {
+await fetch(`${SB_URL}/rest/v1/${table}`, { method:"POST", headers:{ apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, "Content-Type":"application/json", Prefer:"return=minimal" }, body:JSON.stringify(data) });
+};
+
+// --- DESIGN TOKENS ------------------------------------------------------------
+const C = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",textMuted:"#3a5270",red:"#ff4d6d",redDim:"rgba(255,77,109,0.12)",yellow:"#f7c948",yellowDim:"rgba(247,201,72,0.12)",green:"#2ec986",greenDim:"rgba(46,201,134,0.12)",blue:"#4d9fff",blueDim:"rgba(77,159,255,0.10)",purple:"#a78bfa",purpleDim:"rgba(167,139,250,0.10)" };
+const FONT = "'Poppins','Segoe UI',sans-serif";
+
+// --- HELPERS ------------------------------------------------------------------
+const StatusDot = ({status,size=8}) => { const color=status==="vencido"||status==="critico"?C.red:status==="proximo"||status==="moderado"?C.yellow:C.green; return <span style={{display:"inline-block",width:size,height:size,borderRadius:"50%",background:color,boxShadow:`0 0 6px ${color}88`,flexShrink:0}}/>; };
+const Badge = ({label,color,bg}) => <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,letterSpacing:"0.06em",color,background:bg,textTransform:"uppercase",flexShrink:0}}>{label}</span>;
+const ImpactBadge = ({impact}) => { const m={derogatoria:{c:C.red,b:C.redDim},ampliatoria:{c:C.red,b:C.redDim},prospectiva:{c:C.yellow,b:C.yellowDim},interpretativa:{c:C.blue,b:C.blueDim}}[impact]||{c:C.textSec,b:C.surfaceEl}; return <Badge label={impact} color={m.c} bg={m.b}/>; };
+const StatCard = ({icon:Icon,label,value,color,sub}) => <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={18} color={color}/></div><div><div style={{fontSize:22,fontWeight:700,color:C.text,lineHeight:1}}>{value}</div><div style={{fontSize:11,color:C.textSec,marginTop:3}}>{label}</div>{sub&&<div style={{fontSize:10,color,marginTop:1}}>{sub}</div>}</div></div>;
+
+// --- FUENTE BADGE -------------------------------------------------------------
+function FuenteBadge({fuente}) {
+if(!fuente) return null;
+const tipos = {
+normativa:{ icon:BookOpen, color:"#4d9fff", bg:"rgba(77,159,255,0.10)", label:"Normativa" },
+jurisprudencial:{ icon:Scale, color:"#a78bfa", bg:"rgba(167,139,250,0.10)", label:"Jurisprudencia" },
+administrativa:{ icon:FileCheck, color:"#00c9a7", bg:"rgba(0,201,167,0.10)", label:"Acto Administrativo" },
+};
+const t = tipos[fuente.tipo]||tipos.normativa;
+const Icon = t.icon;
+return (
+<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",borderRadius:5,background:t.bg,border:`1px solid ${t.color}33`}}>
+<Icon size={10} color={t.color}/>
+<span style={{fontSize:10,fontWeight:600,color:t.color}}>{t.label}</span>
+</div>
+);
+}
+
+// --- FUENTE DETAIL ------------------------------------------------------------
+function FuenteDetail({fuente}) {
+if(!fuente) return null;
+const fields = {
+normativa:[
+{k:"tipo_norma",l:"Tipo"},
+{k:"numero",l:"Numero"},
+{k:"articulo",l:"Articulo"},
+{k:"parrafo",l:"Parrafo/inciso"},
+{k:"fecha_expedicion",l:"Fecha expedicion"},
+{k:"autoridad_emisora",l:"Autoridad emisora"},
+{k:"vigencia",l:"Vigencia"},
+],
+jurisprudencial:[
+{k:"tribunal",l:"Tribunal/Corte"},
+{k:"numero_sentencia",l:"Sentencia/Radicado"},
+{k:"fecha",l:"Fecha"},
+{k:"magistrado_ponente",l:"Magistrado ponente"},
+{k:"ratio_decidendi",l:"Ratio decidendi"},
+{k:"aplicabilidad",l:"Aplicabilidad al caso"},
+],
+administrativa:[
+{k:"tipo_acto",l:"Tipo de acto"},
+{k:"numero_acto",l:"Numero del acto"},
+{k:"fecha",l:"Fecha"},
+{k:"autoridad_competente",l:"Autoridad competente"},
+{k:"radicado",l:"Radicado"},
+{k:"objeto",l:"Objeto del acto"},
+],
+};
+const fs = fields[fuente.tipo]||fields.normativa;
+const colores = {
+normativa:{color:"#4d9fff",bg:"rgba(77,159,255,0.06)"},
+jurisprudencial:{color:"#a78bfa",bg:"rgba(167,139,250,0.06)"},
+administrativa:{color:"#00c9a7",bg:"rgba(0,201,167,0.06)"},
+};
+const tc = colores[fuente.tipo]||colores.normativa;
+return (
+<div style={{background:tc.bg,borderRadius:8,padding:"10px 12px",border:`1px solid ${tc.color}22`,marginTop:8}}>
+<div style={{fontSize:10,color:tc.color,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Trazabilidad de fuente</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+{fs.map(f=>fuente[f.k]&&(
+<div key={f.k} style={{gridColumn:f.k==="ratio_decidendi"||f.k==="objeto"||f.k==="aplicabilidad"?"1 / -1":"auto"}}>
+<div style={{fontSize:9,color:C.textMuted,marginBottom:2,textTransform:"uppercase"}}>{f.l}</div>
+<div style={{fontSize:11,color:C.text,fontWeight:500,lineHeight:1.4}}>{fuente[f.k]}</div>
+</div>
+))}
+</div>
+</div>
+);
+}
+
+// --- SEED DATA ----------------------------------------------------------------
+const SEED = {
 instruments: [
 { id:"c1000000-0000-0000-0000-000000000001", number:"786/2016", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:75, projects:{ name:"Parque Solar AS I - Baranoa", location_dept:"Atlantico", location_mun:"Baranoa" } },
 { id:"c2000000-0000-0000-0000-000000000002", number:"556/2017", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:60, projects:{ name:"Parque Solar AS II - Polonuevo", location_dept:"Atlantico", location_mun:"Polonuevo" } },
@@ -192,16 +354,14 @@ normSources: [
 { id:"n3", norm_type:"ley", norm_number:"2387", norm_title:"Ley de Transicion Energetica", issuing_body:"Congreso de Colombia", issue_date:"2024-07-18", is_active:true },
 { id:"n4", norm_type:"resolucion", norm_number:"0226", norm_title:"Protocolo de monitoreo de calidad del aire - 2026", issuing_body:"AUTORIDAD COMPETENTE", issue_date:"2026-01-15", is_active:true },
 ],
-oversight: [
-{ id:"ov1", severity:"critico", anomaly_type:"vencimiento_pasado", title:"Obligacion vencida sin evidencia de cumplimiento: OBL-04", description:"La obligacion ICA Semestral vencio el 2026-03-15 sin que se haya registrado evidencia de cumplimiento.", legal_reference:"Art. 8 - Instrumento N. 786/2016", suggested_action:"Verificar si el reporte fue presentado y registrar la evidencia, o presentarlo a la mayor brevedad.", confidence_pct:96, status:"activo" }
-]
+oversight: []
 };
 
 // --- INTAKE CONSTANTS ---------------------------------------------------------
 const INTAKE_EDIS = [
-{ id:"c1000000-0000-0000-0000-000000000001", name:"Parque Solar AS I - Baranoa", number:"786/2016" },
-{ id:"c2000000-0000-0000-0000-000000000002", name:"Parque Solar AS II - Polonuevo", number:"556/2017" },
-];
+  { id:"d1000000-0000-0000-0000-000000000001", name:"Planta Solar Norte - Demo", number:"101/2024" },
+  { id:"d2000000-0000-0000-0000-000000000002", name:"Operacion Minera Sur - Demo", number:"202/2023" },
+]
 const INTAKE_OBLIGATIONS = [
 { id:"o1", num:"OBL-04", name:"ICA Semestral", status:"vencido" },
 { id:"o2", num:"OBL-07", name:"Monitoreo Recurso Hidrico", status:"proximo" },
@@ -229,14 +389,7 @@ agrega_a_normativa:{ label:"Agrega a base normativa", color:"#a78bfa" },
 genera_alerta:{ label:"Genera alerta regulatoria", color:"#a78bfa" },
 informativo:{ label:"Solo informativo", color:"#5e7a95" },
 };
-const SEED_INTAKE = [
-{ id:"int1", original_name:"Auto_Seguimiento_034_2026.pdf", file_type:"pdf", file_size:"2.3 MB", doc_nature:"acto_administrativo", sender:"AUTORIDAD COMPETENTE - Regional", receiver:"C.I. Energia Solar S.A.S.", doc_date:"2026-03-28", received_date:"2026-03-30", radicado:"2026-034-CRA", subject:"Requerimiento subsanacion ICA Semestral - Res. 786/2016", content_summary:"La autoridad requiere subsanar el ICA del segundo semestre 2025 en 15 dias habiles bajo apercibimiento de medidas preventivas.", actions_detected:["requiere_respuesta","modifica_obligacion"], obligations_affected:["OBL-04"], confidence_pct:97, edi_id:"c1000000-0000-0000-0000-000000000001", urgency:"critica", status:"procesado", processed_date:"2026-03-30", is_norma:false },
-{ id:"int2", original_name:"Respuesta_ICA_S2_2025.pdf", file_type:"pdf", file_size:"8.1 MB", doc_nature:"evidencia_cumplimiento", sender:"C.I. Energia Solar S.A.S.", receiver:"AUTORIDAD COMPETENTE - Regional", doc_date:"2026-04-10", received_date:"2026-04-10", radicado:"2026-1847-TITULAR", subject:"ICA Segundo Semestre 2025 - AS I Baranoa", content_summary:"Radicacion del Informe de Cumplimiento Ambiental correspondiente al periodo julio-diciembre 2025.", actions_detected:["confirma_cumplimiento"], obligations_affected:["OBL-04"], confidence_pct:99, edi_id:"c1000000-0000-0000-0000-000000000001", urgency:"informativa", status:"procesado", processed_date:"2026-04-10", is_norma:false },
-{ id:"int3", original_name:"Resolucion_0445_2026_Reporte_Periodico.pdf", file_type:"pdf", file_size:"1.2 MB", doc_nature:"norma", sender:"Ministerio de Ambiente", receiver:"General", doc_date:"2026-04-08", received_date:"2026-04-09", radicado:null, subject:"Resolucion 0445/2026 - Modifica plazos reporte periodico cumplimiento ambiental FNCE", content_summary:"Modifica los plazos y formatos del reporte periodico para proyectos de energia no convencional. Reduce plazo de 60 a 45 dias.", actions_detected:["modifica_obligacion","agrega_a_normativa","genera_alerta"], obligations_affected:["OBL-04"], confidence_pct:96, edi_id:"c1000000-0000-0000-0000-000000000001", urgency:"critica", status:"procesado", processed_date:"2026-04-09", is_norma:true,
-norma_data:{ tipo_norma:"Resolucion", numero:"0445", fecha_expedicion:"2026-04-08", autoridad_emisora:"Ministerio de Ambiente", vigencia:"Vigente", articulos_relevantes:["Art. 3 - Modifica plazo de presentacion de 60 a 45 dias calendario","Art. 5 - Nuevo formato de reporte obligatorio desde 1 junio 2026"] },
-proposed_changes:[{ obligation_num:"OBL-04", field:"plazo_presentacion", before:"60 dias calendario", after:"45 dias calendario", reason:"Art. 3 Resolucion 0445/2026", applied:false }]
-},
-];
+const SEED_INTAKE = [];
 
 // --- INTAKE MODULE -------------------------------------------------------------
 function IntakeModule({ onNewAlert, onNewNorm }) {
