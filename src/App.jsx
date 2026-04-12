@@ -8,6 +8,60 @@ const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { api
 if (!res.ok) throw new Error(res.status);
 return res.json();
 };
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+const sbAuth = async (endpoint, body) => {
+  const res = await fetch(`${SB_URL}/auth/v1/${endpoint}`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+};
+
+const sbGetSession = async () => {
+  // Check localStorage for existing session
+  const raw = localStorage.getItem("vigia_session");
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw);
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+      localStorage.removeItem("vigia_session");
+      return null;
+    }
+    return session;
+  } catch { return null; }
+};
+
+const sbLogin = async (email, password) => {
+  const data = await sbAuth("token?grant_type=password", { email, password });
+  if (data.access_token) {
+    const session = {
+      access_token: data.access_token,
+      user: data.user,
+      expires_at: data.expires_at
+    };
+    localStorage.setItem("vigia_session", JSON.stringify(session));
+    return { ok: true, session };
+  }
+  return { ok: false, error: data.error_description || data.msg || "Credenciales incorrectas" };
+};
+
+const sbLogout = () => {
+  localStorage.removeItem("vigia_session");
+};
+
+const sbWithAuth = async (table, params, token) => {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: {
+      apikey: SB_KEY,
+      Authorization: `Bearer ${token || SB_KEY}`
+    }
+  });
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
+};
+
 const sbInsert = async (table, data) => {
 await fetch(`${SB_URL}/rest/v1/${table}`, { method:"POST", headers:{ apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, "Content-Type":"application/json", Prefer:"return=minimal" }, body:JSON.stringify(data) });
 };
@@ -518,8 +572,94 @@ return (
 }
 
 // --- MAIN APP -----------------------------------------------------------------
+
+// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = React.useState("demo@vigia.co");
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleLogin = async () => {
+    if (!email || !password) { setError("Completa todos los campos"); return; }
+    setLoading(true); setError("");
+    const result = await sbLogin(email, password);
+    if (result.ok) {
+      onLogin(result.session);
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  const L = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",red:"#ff4d6d" };
+
+  return (
+    <div style={{height:"100vh",background:L.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Poppins','Segoe UI',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box}`}</style>
+      <div style={{width:380,padding:40,background:L.surface,borderRadius:20,border:`1px solid ${L.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:32}}>
+          <div style={{width:44,height:44,borderRadius:12,background:`linear-gradient(135deg,${L.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <Shield size={22} color="#fff"/>
+          </div>
+          <div>
+            <div style={{fontSize:22,fontWeight:800,color:L.text,letterSpacing:"-0.03em"}}>VIGÍA</div>
+            <div style={{fontSize:10,color:L.textSec,textTransform:"uppercase",letterSpacing:"0.12em"}}>Inteligencia Regulatoria</div>
+          </div>
+        </div>
+
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Correo electrónico</div>
+          <input
+            type="email"
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            placeholder="correo@empresa.co"
+            style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none"}}
+          />
+        </div>
+
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Contraseña</div>
+          <input
+            type="password"
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+            placeholder="••••••••"
+            style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none"}}
+          />
+        </div>
+
+        {error&&<div style={{background:"rgba(255,77,109,0.10)",border:"1px solid rgba(255,77,109,0.3)",borderRadius:8,padding:"10px 14px",fontSize:12,color:L.red,marginBottom:16}}>{error}</div>}
+
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          style={{width:"100%",background:loading?L.surfaceEl:L.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:"inherit"}}
+        >
+          {loading?"Verificando...":"Iniciar sesión"}
+        </button>
+
+        <div style={{marginTop:20,padding:"12px 14px",background:L.primaryDim,borderRadius:8,fontSize:11,color:L.primary}}>
+          Demo: demo@vigia.co / Vigia2026!
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function VIGIAApp() {
-const [view, setView] = useState("dashboard");
+const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(()=>{
+    sbGetSession().then(s=>{ setSession(s); setAuthLoading(false); });
+  },[]);
+
+  const handleLogout = () => { sbLogout(); setSession(null); };
+
+  const [view, setView] = useState("dashboard");
 const [selectedEDI, setSelectedEDI] = useState(null);
 const [instruments, setInstruments] = useState(SEED.instruments);
 const [obligations, setObligations] = useState(SEED.obligations);
@@ -594,7 +734,10 @@ setBotLoading(false);
 
 const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"}];
 
-const hC=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
+  if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
+  if(!session) return <LoginScreen onLogin={s=>setSession(s)}/>;
+
+  const hC=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
 const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
@@ -769,7 +912,7 @@ return (
 <div style={{padding:"12px 14px"}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{width:30,height:30,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,fontWeight:700,color:C.primary}}>JR</span></div>
-<div><div style={{fontSize:11,fontWeight:600,color:C.text}}>Javier Restrepo</div><div style={{fontSize:9,color:C.textSec}}>ENARA Consulting - Admin</div></div>
+<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>ENARA Consulting</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
 </div>
 </div>
 </div>
