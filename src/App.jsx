@@ -148,17 +148,11 @@ return (
 
 // --- SEED DATA ----------------------------------------------------------------
 const SEED = {
-  instruments: [
-    { id:"d1000000-0000-0000-0000-000000000001", org_id:"b1000000-0000-0000-0000-000000000001", number:"101/2024", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:0, projects:{ name:"Planta Solar Norte - Demo", location_dept:"Cundinamarca", location_mun:"Bogota" } },
-    { id:"d2000000-0000-0000-0000-000000000002", org_id:"b2000000-0000-0000-0000-000000000002", number:"202/2023", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"nacional", edi_status:"activo", completeness_pct:0, projects:{ name:"Operacion Minera Sur - Demo", location_dept:"Antioquia", location_mun:"Medellin" } },
-  ],
+  instruments: [],,
+  obligations: [],,
+  oversight: [],,
   obligations: [],
-  alerts: [],
-  normSources: [
-    { id:"n1", norm_type:"decreto", norm_number:"1076", norm_title:"Decreto Unico Reglamentario del Sector Ambiente y Desarrollo Sostenible", issuing_body:"Ministerio de Ambiente", issue_date:"2015-05-26", is_active:true },
-    { id:"n2", norm_type:"ley", norm_number:"99", norm_title:"Ley 99 de 1993 - Sistema Nacional Ambiental (SINA)", issuing_body:"Congreso de Colombia", issue_date:"1993-12-22", is_active:true },
-    { id:"n3", norm_type:"ley", norm_number:"2387", norm_title:"Ley de Transicion Energetica", issuing_body:"Congreso de Colombia", issue_date:"2024-07-18", is_active:true },
-  ],
+  alerts: [],,
   oversight: []
 }port React, { useState, useEffect } from "react";
 import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck } from "lucide-react";
@@ -358,16 +352,7 @@ oversight: []
 };
 
 // --- INTAKE CONSTANTS ---------------------------------------------------------
-const INTAKE_EDIS = [
-  { id:"d1000000-0000-0000-0000-000000000001", name:"Planta Solar Norte - Demo", number:"101/2024" },
-  { id:"d2000000-0000-0000-0000-000000000002", name:"Operacion Minera Sur - Demo", number:"202/2023" },
-]
-const INTAKE_OBLIGATIONS = [
-{ id:"o1", num:"OBL-04", name:"ICA Semestral", status:"vencido" },
-{ id:"o2", num:"OBL-07", name:"Monitoreo Recurso Hidrico", status:"proximo" },
-{ id:"o3", num:"OBL-11", name:"Compensacion Forestal Fase II", status:"proximo" },
-{ id:"o4", num:"OBL-03", name:"Pago Tasa Retributiva", status:"proximo" },
-];
+const INTAKE_EDIS = [];
 const DOC_TYPES = {
 norma:{ label:"Norma", color:"#a78bfa", bg:"rgba(167,139,250,0.10)", desc:"Ley, Decreto, Resolucion, Circular" },
 acto_administrativo:{ label:"Acto Administrativo", color:"#ff4d6d", bg:"rgba(255,77,109,0.12)", desc:"Auto, Oficio, Resolucion individual" },
@@ -1124,7 +1109,7 @@ const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
 <div style={{padding:28}}>
-<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Modo demo - C.I. Energia Solar"}</p></div>
+<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Sin datos - configura tu primer EDI"}</p></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
 <StatCard icon={Layers} label="EDIs activos" value={instruments.length} color={C.primary}/>
 <StatCard icon={AlertTriangle} label="Obligaciones vencidas" value={overdue} color={C.red} sub={overdue>0?"Requiere accion inmediata":"Sin vencimientos"}/>
