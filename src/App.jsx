@@ -1052,16 +1052,15 @@ try {
     fetchWithKey("regulatory_alerts","select=*&order=norm_date.desc"),
     fetchWithKey("normative_sources","select=*&is_active=eq.true")
   ]);
-  if(Array.isArray(inst)&&inst.length>0){
-    setInstruments(inst);
-    const enriched=(Array.isArray(obs)?obs:[]).map(ob=>{
-      const s=SEED.obligations.find(s=>s.obligation_num===ob.obligation_num||s.id===ob.id);
-      return s?.fuente?{...ob,fuente:s.fuente}:ob;
-    });
-    setObligations(enriched);
-    setAlerts(Array.isArray(alrt)?alrt:[]);
-    setNormSources(Array.isArray(norms)?norms:[]);
-  }
+  // Always use Supabase data when connected (empty arrays if no data yet)
+  setInstruments(Array.isArray(inst)?inst:[]);
+  const enriched=(Array.isArray(obs)?obs:[]).map(ob=>{
+    const s=SEED.obligations.find(s=>s.obligation_num===ob.obligation_num||s.id===ob.id);
+    return s?.fuente?{...ob,fuente:s.fuente}:ob;
+  });
+  setObligations(enriched);
+  setAlerts(Array.isArray(alrt)?alrt:[]);
+  setNormSources(Array.isArray(norms)?norms:[]);
   setDbStatus("connected");
   setLastSync(new Date());
   if(isSA){ setUserRole("superadmin"); }
