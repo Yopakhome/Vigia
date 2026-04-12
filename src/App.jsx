@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp } from "lucide-react";
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
@@ -48,6 +48,375 @@ const StatusDot = ({status,size=8}) => { const color=status==="vencido"||status=
 const Badge = ({label,color,bg}) => <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,letterSpacing:"0.06em",color,background:bg,textTransform:"uppercase"}}>{label}</span>;
 const ImpactBadge = ({impact}) => { const m={derogatoria:{c:C.red,b:C.redDim},ampliatoria:{c:C.red,b:C.redDim},prospectiva:{c:C.yellow,b:C.yellowDim},interpretativa:{c:C.blue,b:C.blueDim}}[impact]||{c:C.textSec,b:C.surfaceEl}; return <Badge label={impact} color={m.c} bg={m.b}/>; };
 const StatCard = ({icon:Icon,label,value,color,sub}) => <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={18} color={color}/></div><div><div style={{fontSize:22,fontWeight:700,color:C.text,lineHeight:1}}>{value}</div><div style={{fontSize:11,color:C.textSec,marginTop:3}}>{label}</div>{sub&&<div style={{fontSize:10,color,marginTop:1}}>{sub}</div>}</div></div>;
+
+// ─── INTAKE MODULE ────────────────────────────────────────────────────────────
+// Motor de ingestión documental universal de VIGÍA
+// Acepta cualquier formato - analiza, clasifica y procesa dentro del EDI correcto
+
+const INTAKE_EDIS = [
+  { id:"c1000000-0000-0000-0000-000000000001", name:"Parque Solar AS I - Baranoa", number:"786/2016", authority:"AUTORIDAD COMPETENTE - Regional" },
+  { id:"c2000000-0000-0000-0000-000000000002", name:"Parque Solar AS II - Polonuevo", number:"556/2017", authority:"AUTORIDAD COMPETENTE - Regional" },
+];
+
+const INTAKE_OBLIGATIONS = [
+  { id:"o1", num:"OBL-04", name:"ICA Semestral", status:"vencido" },
+  { id:"o2", num:"OBL-07", name:"Monitoreo Recurso Hidrico", status:"proximo" },
+  { id:"o3", num:"OBL-11", name:"Compensacion Forestal Fase II", status:"proximo" },
+  { id:"o4", num:"OBL-03", name:"Pago Tasa Retributiva", status:"proximo" },
+];
+
+const DOC_TYPES = {
+  acto_administrativo: { label:"Acto Administrativo", color:"#ff4d6d", bg:"rgba(255,77,109,0.12)", desc:"Resolucion, Auto, Concepto, Oficio" },
+  comunicacion: { label:"Comunicacion", color:"#4d9fff", bg:"rgba(77,159,255,0.10)", desc:"Entrante o saliente con la autoridad" },
+  evidencia_cumplimiento: { label:"Evidencia de Cumplimiento", color:"#2ec986", bg:"rgba(46,201,134,0.12)", desc:"Informe, certificado, constancia" },
+  documento_tecnico: { label:"Documento Tecnico", color:"#a78bfa", bg:"rgba(167,139,250,0.10)", desc:"Estudio, plan, protocolo, plano" },
+  instrumento_legal: { label:"Instrumento Legal", color:"#f7c948", bg:"rgba(247,201,72,0.12)", desc:"Contrato, permiso, concesion" },
+  documento_financiero: { label:"Documento Financiero", color:"#00c9a7", bg:"rgba(0,201,167,0.10)", desc:"Factura, liquidacion, tasa" },
+  otro: { label:"Otro", color:"#5e7a95", bg:"rgba(94,122,149,0.10)", desc:"Documento no clasificado" },
+};
+
+const ACTIONS = {
+  crea_obligacion: { label:"Crea obligacion nueva", color:"#ff4d6d" },
+  modifica_obligacion: { label:"Modifica obligacion existente", color:"#f7c948" },
+  confirma_cumplimiento: { label:"Confirma cumplimiento", color:"#2ec986" },
+  inicia_sancion: { label:"Inicia proceso sancionatorio", color:"#ff4d6d" },
+  requiere_respuesta: { label:"Requiere respuesta/accion", color:"#f7c948" },
+  amplia_plazo: { label:"Amplia plazo", color:"#4d9fff" },
+  aprueba_tramite: { label:"Aprueba tramite", color:"#2ec986" },
+  informativo: { label:"Solo informativo", color:"#5e7a95" },
+};
+
+const SEED_INTAKE = [
+  { id:"int1", original_name:"Auto_Seguimiento_034_2026.pdf", file_type:"pdf", file_size:"2.3 MB", doc_nature:"acto_administrativo", sender:"AUTORIDAD COMPETENTE - Regional", receiver:"C.I. Energia Solar S.A.S.", doc_date:"2026-03-28", received_date:"2026-03-30", radicado:"2026-034-CRA", subject:"Requerimiento subsanacion ICA Semestral - Res. 786/2016", content_summary:"La autoridad requiere subsanar el ICA del segundo semestre 2025 en 15 dias habiles bajo apercibimiento de medidas preventivas.", actions_detected:["requiere_respuesta","modifica_obligacion"], obligations_affected:["OBL-04"], confidence_pct:97, edi_id:"c1000000-0000-0000-0000-000000000001", urgency:"critica", status:"procesado", processed_date:"2026-03-30" },
+  { id:"int2", original_name:"Respuesta_ICA_S2_2025.pdf", file_type:"pdf", file_size:"8.1 MB", doc_nature:"evidencia_cumplimiento", sender:"C.I. Energia Solar S.A.S.", receiver:"AUTORIDAD COMPETENTE - Regional", doc_date:"2026-04-10", received_date:"2026-04-10", radicado:"2026-1847-TITULAR", subject:"ICA Segundo Semestre 2025 - AS I Baranoa", content_summary:"Radicacion del Informe de Cumplimiento Ambiental correspondiente al periodo julio-diciembre 2025, con anexos de monitoreo.", actions_detected:["confirma_cumplimiento"], obligations_affected:["OBL-04"], confidence_pct:99, edi_id:"c1000000-0000-0000-0000-000000000001", urgency:"informativa", status:"procesado", processed_date:"2026-04-10" },
+  { id:"int3", original_name:"Plano_Area_Compensacion_N1.pdf", file_type:"pdf", file_size:"15.7 MB", doc_nature:"documento_tecnico", sender:"Consorcio Forestal Caribe", receiver:"C.I. Energia Solar S.A.S.", doc_date:"2026-03-10", received_date:"2026-03-12", radicado:null, subject:"Plano definitivo area N1 - Compensacion forestal Fase II", content_summary:"Cartografia definitiva del area N1 propuesta para compensacion forestal, con especificaciones tecnicas y coordenadas.", actions_detected:["modifica_obligacion"], obligations_affected:["OBL-11"], confidence_pct:74, edi_id:null, urgency:"moderada", status:"requiere_confirmacion", processed_date:"2026-03-12" },
+];
+
+function IntakeModule() {
+  const [docs, setDocs] = React.useState(SEED_INTAKE);
+  const [selectedDoc, setSelectedDoc] = React.useState(null);
+  const [uploadState, setUploadState] = React.useState("idle");
+  const [analysisResult, setAnalysisResult] = React.useState(null);
+  const [dragOver, setDragOver] = React.useState(false);
+  const [filterNature, setFilterNature] = React.useState("todos");
+  const [filterEDI, setFilterEDI] = React.useState("todos");
+  const [confirmAnswers, setConfirmAnswers] = React.useState({});
+  const [analysisStep, setAnalysisStep] = React.useState(0);
+  const fileRef = React.useRef();
+
+  const I = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",textMuted:"#3a5270",red:"#ff4d6d",redDim:"rgba(255,77,109,0.12)",yellow:"#f7c948",yellowDim:"rgba(247,201,72,0.12)",green:"#2ec986",greenDim:"rgba(46,201,134,0.12)",blue:"#4d9fff",blueDim:"rgba(77,159,255,0.10)",purple:"#a78bfa",purpleDim:"rgba(167,139,250,0.10)" };
+
+  const analyzeDocument = async (file) => {
+    setUploadState("analyzing");
+    setAnalysisStep(0);
+    const steps = [0,1,2,3,4];
+    for(let i=0;i<steps.length;i++){
+      await new Promise(r=>setTimeout(r,600));
+      setAnalysisStep(i+1);
+    }
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:1200,
+          system:`Eres el motor de ingestion documental de VIGIA, plataforma de inteligencia regulatoria ambiental colombiana.
+EDIs activos: ${INTAKE_EDIS.map(e=>`${e.name} (Instrumento No. ${e.number})`).join(", ")}.
+Obligaciones activas: ${INTAKE_OBLIGATIONS.map(o=>`${o.num}: ${o.name}`).join(", ")}.
+Analiza el nombre y contexto del archivo y determina TODAS sus dimensiones.
+Responde SOLO en JSON valido con esta estructura exacta:
+{
+  "doc_nature": "acto_administrativo|comunicacion|evidencia_cumplimiento|documento_tecnico|instrumento_legal|documento_financiero|otro",
+  "sender": "quien envia el documento",
+  "receiver": "quien recibe el documento",
+  "doc_date": "fecha estimada YYYY-MM-DD o null",
+  "radicado": "numero de radicado o null",
+  "subject": "asunto o titulo del documento",
+  "content_summary": "resumen del contenido probable en 2-3 oraciones",
+  "actions_detected": ["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|informativo"],
+  "obligations_affected": ["OBL-04|OBL-07|OBL-11|OBL-03"],
+  "candidate_edi": "nombre exacto del EDI mas probable o null",
+  "candidate_confidence": 0-100,
+  "matching_reasons": ["razon 1", "razon 2"],
+  "urgency": "critica|moderada|informativa",
+  "requires_confirmation": true,
+  "confirmation_questions": [{"question": "pregunta especifica", "options": ["opcion1", "opcion2"]}],
+  "recommended_classification": "descripcion de como clasificar este documento en el EDI"
+}`,
+          messages:[{role:"user",content:`Analiza este documento: "${file.name}" (${(file.size/1024/1024).toFixed(1)} MB, tipo: ${file.type||file.name.split(".").pop()})`}]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text||"{}";
+      const parsed = JSON.parse(text.replace(/```json|```/g,"").trim());
+      setAnalysisResult({...parsed, file_name:file.name, file_type:file.name.split(".").pop(), file_size:`${(file.size/1024/1024).toFixed(1)} MB`});
+    } catch {
+      setAnalysisResult({
+        doc_nature:"otro", sender:"Por determinar", receiver:"C.I. Energia Solar S.A.S.", doc_date:null, radicado:null,
+        subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),
+        content_summary:"Documento recibido. El motor de analisis no pudo determinar el contenido con certeza. Se requiere revision manual para clasificacion correcta.",
+        actions_detected:["informativo"], obligations_affected:[], candidate_edi:null, candidate_confidence:40,
+        matching_reasons:["No se identificaron referencias claras al instrumento"], urgency:"informativa",
+        requires_confirmation:true, confirmation_questions:[{question:"Cual es la naturaleza de este documento?",options:Object.values(DOC_TYPES).map(t=>t.label)},{question:"A cual EDI pertenece?",options:[...INTAKE_EDIS.map(e=>e.name),"No corresponde a ningun EDI"]}],
+        recommended_classification:"Clasificar manualmente tras revision del contenido.",
+        file_name:file.name, file_type:file.name.split(".").pop(), file_size:`${(file.size/1024/1024).toFixed(1)} MB`
+      });
+    }
+    setUploadState("result");
+  };
+
+  const processAndLink = () => {
+    if(!analysisResult) return;
+    const edi = INTAKE_EDIS.find(e=>e.name===analysisResult.candidate_edi);
+    const newDoc = {
+      id:`int_${Date.now()}`, original_name:analysisResult.file_name, file_type:analysisResult.file_type, file_size:analysisResult.file_size,
+      doc_nature:analysisResult.doc_nature, sender:analysisResult.sender, receiver:analysisResult.receiver,
+      doc_date:analysisResult.doc_date||new Date().toISOString().split("T")[0], received_date:new Date().toISOString().split("T")[0],
+      radicado:analysisResult.radicado, subject:analysisResult.subject, content_summary:analysisResult.content_summary,
+      actions_detected:analysisResult.actions_detected, obligations_affected:analysisResult.obligations_affected,
+      confidence_pct:analysisResult.candidate_confidence, edi_id:edi?.id||null, urgency:analysisResult.urgency,
+      status:analysisResult.candidate_confidence>=95?"procesado":"procesado", processed_date:new Date().toISOString().split("T")[0]
+    };
+    setDocs(p=>[newDoc,...p]);
+    setUploadState("idle"); setAnalysisResult(null); setConfirmAnswers({});
+  };
+
+  const STEPS = ["Extrayendo contenido","Clasificando naturaleza","Identificando partes","Analizando impacto","Buscando EDI"];
+  const urgC = (u) => u==="critica"?"#ff4d6d":u==="moderada"?"#f7c948":"#4d9fff";
+  const urgB = (u) => u==="critica"?"rgba(255,77,109,0.12)":u==="moderada"?"rgba(247,201,72,0.12)":"rgba(77,159,255,0.10)";
+
+  const filteredDocs = docs.filter(d=>{
+    if(filterNature!=="todos"&&d.doc_nature!==filterNature) return false;
+    if(filterEDI!=="todos"&&d.edi_id!==filterEDI) return false;
+    return true;
+  });
+
+  const pendingConfirmation = docs.filter(d=>d.status==="requiere_confirmacion").length;
+
+  return (
+    <div style={{padding:28,color:I.text}}>
+      <style>{`@keyframes spinI{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes pulseI{0%,100%{opacity:0.3}50%{opacity:1}}@keyframes fadeInI{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
+        <div>
+          <h1 style={{fontSize:22,fontWeight:700,color:I.text,margin:0}}>INTAKE</h1>
+          <p style={{fontSize:13,color:I.textSec,margin:"4px 0 0"}}>
+            Motor de ingestion documental - {docs.length} documento{docs.length!==1?"s":""} procesado{docs.length!==1?"s":""}
+            {pendingConfirmation>0&&<span style={{color:I.yellow,fontWeight:600}}> - {pendingConfirmation} pendiente{pendingConfirmation!==1?"s":""} de confirmacion</span>}
+          </p>
+        </div>
+        <button onClick={()=>fileRef.current?.click()} style={{background:I.primary,border:"none",borderRadius:8,padding:"9px 18px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
+          <Upload size={14}/> Cargar documento
+        </button>
+        <input ref={fileRef} type="file" accept="*/*" style={{display:"none"}} onChange={e=>e.target.files?.[0]&&analyzeDocument(e.target.files[0])}/>
+      </div>
+
+      {uploadState==="idle"&&(
+        <div onDragOver={e=>{e.preventDefault();setDragOver(true);}} onDragLeave={()=>setDragOver(false)} onDrop={e=>{e.preventDefault();setDragOver(false);e.dataTransfer.files?.[0]&&analyzeDocument(e.dataTransfer.files[0]);}} onClick={()=>fileRef.current?.click()}
+          style={{border:`2px dashed ${dragOver?I.primary:I.border}`,borderRadius:14,padding:"36px 24px",textAlign:"center",cursor:"pointer",marginBottom:24,background:dragOver?I.primaryDim:"transparent",transition:"all 0.15s"}}>
+          <div style={{width:52,height:52,borderRadius:14,background:dragOver?I.primaryDim:I.surfaceEl,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+            <Upload size={22} color={dragOver?I.primary:I.textMuted}/>
+          </div>
+          <div style={{fontSize:15,fontWeight:700,color:dragOver?I.primary:I.textSec,marginBottom:6}}>
+            {dragOver?"Suelta para analizar":"Arrastra cualquier documento o toca para seleccionar"}
+          </div>
+          <div style={{fontSize:12,color:I.textMuted,marginBottom:16}}>PDF - DOCX - XLSX - JPG - PNG - ZIP - MSG - EML - Cualquier formato - Sin limite de tamano</div>
+          <div style={{display:"flex",justifyContent:"center",gap:8,flexWrap:"wrap"}}>
+            {["Actos administrativos","Comunicaciones","Informes tecnicos","Evidencias","Planos","Contratos"].map(t=>(
+              <span key={t} style={{padding:"3px 10px",borderRadius:12,fontSize:11,background:I.surfaceEl,color:I.textSec}}>{t}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {uploadState==="analyzing"&&(
+        <div style={{background:I.surface,border:`1px solid ${I.border}`,borderRadius:14,padding:"32px 24px",marginBottom:24,animation:"fadeInI 0.3s ease"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:20}}>
+            <div style={{width:56,height:56,borderRadius:14,background:I.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <RefreshCw size={24} color={I.primary} style={{animation:"spinI 1s linear infinite"}}/>
+            </div>
+            <div style={{textAlign:"center"}}>
+              <div style={{fontSize:16,fontWeight:700,color:I.text,marginBottom:4}}>Procesando documento</div>
+              <div style={{fontSize:12,color:I.textSec}}>{STEPS[Math.min(analysisStep,STEPS.length-1)]}</div>
+            </div>
+            <div style={{width:"100%",maxWidth:400}}>
+              {STEPS.map((step,i)=>(
+                <div key={step} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:i<STEPS.length-1?`1px solid ${I.border}`:"none"}}>
+                  <div style={{width:24,height:24,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,background:i<analysisStep?I.primaryDim:I.surfaceEl,border:`1px solid ${i<analysisStep?I.primary:I.border}`,transition:"all 0.3s"}}>
+                    {i<analysisStep?<CheckCircle size={13} color={I.primary}/>:<span style={{fontSize:10,color:I.textMuted}}>{i+1}</span>}
+                  </div>
+                  <div style={{fontSize:12,color:i<analysisStep?I.text:I.textMuted,fontWeight:i<analysisStep?600:400,transition:"all 0.3s"}}>{step}</div>
+                  {i===analysisStep-1&&<div style={{marginLeft:"auto",display:"flex",gap:3}}>{[0,1,2].map(j=><div key={j} style={{width:5,height:5,borderRadius:"50%",background:I.primary,animation:`pulseI 1s infinite`,animationDelay:`${j*0.2}s`}}/>)}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {uploadState==="result"&&analysisResult&&(
+        <div style={{background:I.surface,border:`1px solid ${I.border}`,borderRadius:14,padding:24,marginBottom:24,animation:"fadeInI 0.3s ease"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+            <div style={{width:40,height:40,borderRadius:10,background:I.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={18} color={I.primary}/></div>
+            <div>
+              <div style={{fontSize:15,fontWeight:700,color:I.text}}>Analisis completado</div>
+              <div style={{fontSize:11,color:I.textSec}}>{analysisResult.file_name} - {analysisResult.file_size}</div>
+            </div>
+            <button onClick={()=>{setUploadState("idle");setAnalysisResult(null);}} style={{marginLeft:"auto",background:"transparent",border:"none",cursor:"pointer",color:I.textMuted}}><X size={18}/></button>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+            <div style={{background:I.surfaceEl,borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:10,color:I.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}}>Naturaleza</div>
+              <div style={{fontSize:12,fontWeight:700,color:DOC_TYPES[analysisResult.doc_nature]?.color||I.text}}>{DOC_TYPES[analysisResult.doc_nature]?.label||"Otro"}</div>
+              <div style={{fontSize:10,color:I.textMuted,marginTop:2}}>{DOC_TYPES[analysisResult.doc_nature]?.desc}</div>
+            </div>
+            <div style={{background:I.surfaceEl,borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:10,color:I.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}}>Remitente</div>
+              <div style={{fontSize:11,fontWeight:600,color:I.text,lineHeight:1.3}}>{analysisResult.sender}</div>
+              <div style={{fontSize:10,color:I.textMuted,marginTop:2}}>Para: {analysisResult.receiver}</div>
+            </div>
+            <div style={{background:I.surfaceEl,borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:10,color:I.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}}>EDI identificado</div>
+              <div style={{fontSize:11,fontWeight:600,color:I.text,lineHeight:1.3}}>{analysisResult.candidate_edi||"No identificado"}</div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+                <div style={{flex:1,height:3,background:I.border,borderRadius:2}}><div style={{width:`${analysisResult.candidate_confidence}%`,height:"100%",background:analysisResult.candidate_confidence>=95?I.green:analysisResult.candidate_confidence>=70?I.yellow:I.red,borderRadius:2}}/></div>
+                <span style={{fontSize:10,fontWeight:700,color:analysisResult.candidate_confidence>=95?I.green:analysisResult.candidate_confidence>=70?I.yellow:I.red}}>{analysisResult.candidate_confidence}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{background:I.surfaceEl,borderRadius:10,padding:"14px 16px",marginBottom:16}}>
+            <div style={{fontSize:10,color:I.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}}>Contenido analizado</div>
+            <div style={{fontSize:13,color:I.text,lineHeight:1.6}}>{analysisResult.content_summary}</div>
+            {analysisResult.radicado&&<div style={{fontSize:11,color:I.textSec,marginTop:8,fontFamily:"monospace"}}>Radicado: {analysisResult.radicado}</div>}
+          </div>
+
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:10,color:I.textMuted,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Acciones detectadas</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {analysisResult.actions_detected?.map(a=>(
+                <span key={a} style={{padding:"4px 10px",borderRadius:6,fontSize:11,fontWeight:600,color:ACTIONS[a]?.color||I.textSec,background:(ACTIONS[a]?.color||I.textSec)+"18"}}>{ACTIONS[a]?.label||a}</span>
+              ))}
+            </div>
+            {analysisResult.obligations_affected?.length>0&&(
+              <div style={{marginTop:8,display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                <span style={{fontSize:11,color:I.textMuted}}>Obligaciones afectadas:</span>
+                {analysisResult.obligations_affected.map(o=><span key={o} style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,color:I.yellow,background:I.yellowDim}}>{o}</span>)}
+              </div>
+            )}
+          </div>
+
+          {analysisResult.requires_confirmation&&analysisResult.confirmation_questions?.length>0&&(
+            <div style={{background:"rgba(247,201,72,0.06)",border:`1px solid ${I.yellow}33`,borderRadius:10,padding:"14px 16px",marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:700,color:I.yellow,marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+                <Eye size={13}/>Confianza menor al 95% - confirma para clasificar correctamente
+              </div>
+              {analysisResult.confirmation_questions.map((q,qi)=>(
+                <div key={qi} style={{marginBottom:14}}>
+                  <div style={{fontSize:12,color:I.text,marginBottom:8,fontWeight:500}}>{q.question}</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                    {q.options.map((opt,oi)=>(
+                      <button key={oi} onClick={()=>setConfirmAnswers(p=>({...p,[qi]:opt}))} style={{background:confirmAnswers[qi]===opt?I.primaryDim:I.surface,border:`1px solid ${confirmAnswers[qi]===opt?I.primary:I.border}`,borderRadius:6,padding:"8px 12px",color:confirmAnswers[qi]===opt?I.primary:I.textSec,fontSize:12,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:8}}>
+                        <div style={{width:14,height:14,borderRadius:"50%",border:`2px solid ${confirmAnswers[qi]===opt?I.primary:I.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                          {confirmAnswers[qi]===opt&&<div style={{width:6,height:6,borderRadius:"50%",background:I.primary}}/>}
+                        </div>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{padding:"10px 14px",background:urgB(analysisResult.urgency),borderRadius:8,marginBottom:16,fontSize:12,color:urgC(analysisResult.urgency),fontWeight:500,borderLeft:`3px solid ${urgC(analysisResult.urgency)}`}}>
+            {analysisResult.recommended_classification}
+          </div>
+
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={processAndLink} style={{flex:1,background:I.primary,border:"none",borderRadius:8,padding:"11px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <CheckCircle size={14}/> Procesar y vincular al EDI
+            </button>
+            <button onClick={()=>{setUploadState("idle");setAnalysisResult(null);}} style={{background:I.surfaceEl,border:`1px solid ${I.border}`,borderRadius:8,padding:"11px 18px",color:I.textSec,fontSize:13,cursor:"pointer"}}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+        <select value={filterNature} onChange={e=>setFilterNature(e.target.value)} style={{background:I.surface,border:`1px solid ${I.border}`,borderRadius:6,padding:"5px 10px",color:I.textSec,fontSize:12,cursor:"pointer"}}>
+          <option value="todos">Todos los tipos</option>
+          {Object.entries(DOC_TYPES).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}
+        </select>
+        <select value={filterEDI} onChange={e=>setFilterEDI(e.target.value)} style={{background:I.surface,border:`1px solid ${I.border}`,borderRadius:6,padding:"5px 10px",color:I.textSec,fontSize:12,cursor:"pointer"}}>
+          <option value="todos">Todos los EDIs</option>
+          {INTAKE_EDIS.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <span style={{marginLeft:"auto",fontSize:12,color:I.textMuted,alignSelf:"center"}}>{filteredDocs.length} de {docs.length} documentos</span>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {filteredDocs.map(doc=>{
+          const nt = DOC_TYPES[doc.doc_nature]||DOC_TYPES.otro;
+          const edi = INTAKE_EDIS.find(e=>e.id===doc.edi_id);
+          const isSelected = selectedDoc?.id===doc.id;
+          return (
+            <div key={doc.id} style={{background:I.surface,border:`1px solid ${doc.status==="requiere_confirmacion"?I.yellow+"55":I.border}`,borderRadius:12,overflow:"hidden",transition:"border-color 0.15s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=nt.color+"44"} onMouseLeave={e=>e.currentTarget.style.borderColor=doc.status==="requiere_confirmacion"?I.yellow+"55":I.border}>
+              <div onClick={()=>setSelectedDoc(isSelected?null:doc)} style={{padding:"14px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+                <div style={{width:42,height:42,borderRadius:10,background:nt.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <FileText size={18} color={nt.color}/>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                    <span style={{fontSize:13,fontWeight:600,color:I.text}}>{doc.subject}</span>
+                    {doc.status==="requiere_confirmacion"&&<span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,color:I.yellow,background:I.yellowDim,textTransform:"uppercase"}}>Confirmar</span>}
+                  </div>
+                  <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+                    <span style={{padding:"2px 7px",borderRadius:4,fontSize:10,fontWeight:600,color:nt.color,background:nt.bg}}>{nt.label}</span>
+                    <span style={{fontSize:11,color:I.textMuted}}>{doc.doc_date}</span>
+                    <span style={{fontSize:11,color:I.textSec}}>{doc.sender}</span>
+                    {edi&&<span style={{fontSize:11,color:I.primary}}>EDI: {edi.name.split(" - ")[1]||edi.name}</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <div style={{width:60,height:3,background:I.border,borderRadius:2}}><div style={{width:`${doc.confidence_pct}%`,height:"100%",background:doc.confidence_pct>=95?I.green:doc.confidence_pct>=70?I.yellow:I.red,borderRadius:2}}/></div>
+                    <span style={{fontSize:10,fontWeight:700,color:doc.confidence_pct>=95?I.green:doc.confidence_pct>=70?I.yellow:I.red}}>{doc.confidence_pct}%</span>
+                  </div>
+                  <span style={{fontSize:10,color:urgC(doc.urgency),fontWeight:600}}>{doc.urgency}</span>
+                </div>
+                <ChevronRight size={14} color={I.textMuted} style={{transform:isSelected?"rotate(90deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
+              </div>
+              {isSelected&&(
+                <div style={{borderTop:`1px solid ${I.border}`,padding:"16px 18px",animation:"fadeInI 0.2s ease"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+                    <div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Remitente</div><div style={{fontSize:12,color:I.text,fontWeight:500}}>{doc.sender}</div></div>
+                    <div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Destinatario</div><div style={{fontSize:12,color:I.text,fontWeight:500}}>{doc.receiver}</div></div>
+                    <div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Fecha documento</div><div style={{fontSize:12,color:I.text}}>{doc.doc_date}</div></div>
+                    <div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Recibido</div><div style={{fontSize:12,color:I.text}}>{doc.received_date}</div></div>
+                    {doc.radicado&&<div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Radicado</div><div style={{fontSize:12,color:I.text,fontFamily:"monospace"}}>{doc.radicado}</div></div>}
+                    <div><div style={{fontSize:10,color:I.textMuted,marginBottom:3}}>Archivo</div><div style={{fontSize:12,color:I.text}}>{doc.original_name} - {doc.file_size}</div></div>
+                  </div>
+                  <div style={{fontSize:12,color:I.textSec,lineHeight:1.6,marginBottom:12,padding:"10px 14px",background:I.surfaceEl,borderRadius:8}}>{doc.content_summary}</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                    {doc.actions_detected?.map(a=><span key={a} style={{padding:"3px 8px",borderRadius:4,fontSize:10,fontWeight:600,color:ACTIONS[a]?.color||I.textSec,background:(ACTIONS[a]?.color||I.textSec)+"18"}}>{ACTIONS[a]?.label||a}</span>)}
+                  </div>
+                  {doc.obligations_affected?.length>0&&(
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                      <span style={{fontSize:11,color:I.textMuted}}>Obligaciones:</span>
+                      {doc.obligations_affected.map(o=><span key={o} style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,color:I.yellow,background:I.yellowDim}}>{o}</span>)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {filteredDocs.length===0&&<div style={{textAlign:"center",padding:48,color:I.textMuted,fontSize:13}}>No hay documentos con los filtros seleccionados</div>}
+      </div>
+    </div>
+  );
+}
+// ─── FIN INTAKE MODULE ────────────────────────────────────────────────────────
 
 export default function VIGIAApp() {
   const [view, setView] = useState("dashboard");
@@ -106,7 +475,7 @@ export default function VIGIAApp() {
     setBotLoading(false);
   };
 
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"comunicaciones",icon:Mail,label:"Comunicaciones"}];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"}];
   const renderDashboard = () => (
     <div style={{padding:28}}>
       <div style={{marginBottom:24}}>
@@ -345,7 +714,7 @@ export default function VIGIAApp() {
     </div>
   </div>; };
 
-  const renderView=()=>{ if(view==="comunicaciones")return <div style={{padding:28}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 8px"}}>Comunicaciones</h1><p style={{fontSize:13,color:C.textSec}}>Modulo en construccion</p></div>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+  const renderView=()=>{ if(view==="intake")return <IntakeModule/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
   return (
     <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
