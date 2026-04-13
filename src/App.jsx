@@ -1678,7 +1678,7 @@ const [session, setSession] = useState(null);
           const md = await mr.json();
           if(md?.[0]?.org_id){
             setUserOrgRole(md[0].role||null);
-            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad,limite_usuarios", {headers:h});
+            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=*", {headers:h});
             const od = await or2.json();
             if(od?.[0]) setClientOrg(od[0]);
           }
@@ -1730,7 +1730,7 @@ const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=
             const mapData = await mapR.json();
             if(mapData?.[0]?.org_id) {
               setUserOrgRole(mapData[0].role||null);
-              const orgR = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan,ciudad,limite_usuarios", {headers:h});
+              const orgR = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=*", {headers:h});
               const orgData = await orgR.json();
               if(orgData?.[0]) setClientOrg(orgData[0]);
             }
@@ -1739,6 +1739,23 @@ const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=
 };
 if(session) tryConnect();
 },[session]);
+
+const refetchClientOrg = async () => {
+  if(!session?.user?.id) return;
+  try {
+    const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
+    const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+session.user.id+"&select=org_id,role", {headers:h});
+    const md = await mr.json();
+    if(md?.[0]?.org_id) {
+      setUserOrgRole(md[0].role||null);
+      const or = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=*", {headers:h});
+      const od = await or.json();
+      if(od?.[0]) setClientOrg(od[0]);
+    }
+  } catch(e) {}
+};
+
+useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
 
 const overdue=obligations.filter(o=>o.status==="vencido").length;
 const upcoming=obligations.filter(o=>o.status==="proximo"||o.status==="proximo").length;
@@ -2038,7 +2055,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.8.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.8.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
