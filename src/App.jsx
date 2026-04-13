@@ -225,7 +225,7 @@ informativo:{ label:"Solo informativo", color:"#5e7a95" },
 const SEED_INTAKE = [];
 
 // --- INTAKE MODULE -------------------------------------------------------------
-function IntakeModule({ onNewAlert, onNewNorm, clientOrg, sessionToken, onNewInstrument, onNewObligation, instruments = [], obligations = [] }) {
+function IntakeModule({ onNewAlert, onNewNorm, clientOrg, sessionToken, onNewInstrument, onNewObligation, onObligationUpdate, instruments = [], obligations = [] }) {
 const [docs, setDocs] = React.useState([]);
 const [selectedDoc, setSelectedDoc] = React.useState(null);
 const [uploadState, setUploadState] = React.useState("idle");
@@ -281,6 +281,8 @@ const saveToSupabase = async (analysisResult, file) => {
   } catch(e) { console.log("instrument save error", e); }
 
   // 2. Save document record
+  // doc_role CHECK permite: acto_principal|anexo_tecnico|modificacion|auto_seguimiento|informe_cumplimiento|evidencia|otro
+  const DOC_ROLE_MAP = { norma:"acto_principal", acto_administrativo:"acto_principal", jurisprudencia:"acto_principal", comunicacion:"auto_seguimiento", evidencia_cumplimiento:"evidencia", documento_tecnico:"anexo_tecnico", otro:"otro" };
   if(instrId) {
     try {
       const docPayload = {
@@ -289,10 +291,10 @@ const saveToSupabase = async (analysisResult, file) => {
         original_name: file.name,
         file_type: file.type || "application/octet-stream",
         file_size_kb: Math.round(file.size/1024),
-        doc_role: analysisResult.doc_nature || "otro",
+        doc_role: DOC_ROLE_MAP[analysisResult.doc_nature] || "otro",
         doc_label: analysisResult.subject || file.name,
-        accessibility: "restringido",
-        ocr_status: "procesado",
+        accessibility: "pendiente_revisión",
+        ocr_status: "completo",
         extracted_text: analysisResult.content_summary || ""
       };
       await sbPost("documents", docPayload);
@@ -312,11 +314,11 @@ const saveToSupabase = async (analysisResult, file) => {
             name: oNum + " — Extraída de " + (analysisResult.subject||file.name).slice(0,80),
             description: analysisResult.content_summary || "",
             obligation_type: "ambiental",
-            frequency: "unica",
+            frequency: "única",
             due_date: dl ? null : null,
             status: "al_dia",
             confidence_level: analysisResult.candidate_confidence > 70 ? "alta" : "media",
-            ai_interpretation: "Extraída automáticamente por VIGÍA INTAKE v2.3",
+            ai_interpretation: "Extraída automáticamente por VIGÍA INTAKE",
             requires_human_validation: analysisResult.requires_confirmation || false,
             has_regulatory_update: analysisResult.is_norma || false
           };
@@ -384,8 +386,28 @@ Responde SOLO en JSON:
   setUploadState("result");
 };
 
-const applyChange = (idx) => {
-setPendingChanges(p=>p.map((c,i)=>i===idx?{...c,applied:true}:c));
+const applyChange = async (idx) => {
+  const ch = pendingChanges[idx];
+  if(!ch || !clientOrg?.id) return;
+  const target = obligations.find(o => (o.obligation_num||o.num) === ch.obligation_num && o.org_id === clientOrg.id);
+  if(!target?.id) { alert(`No se encontró la obligación ${ch.obligation_num} en tu organización.`); return; }
+  if(!ch.field) { alert("El cambio propuesto no indica qué campo actualizar."); return; }
+  try {
+    const token = sessionToken || SB_SERVICE;
+    const r = await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${target.id}`, {
+      method:"PATCH",
+      headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
+      body: JSON.stringify({ [ch.field]: ch.after })
+    });
+    const t = await r.text();
+    if(!r.ok) throw new Error(`${r.status}: ${t.slice(0,120)}`);
+    const saved = JSON.parse(t);
+    const updated = Array.isArray(saved) ? saved[0] : saved;
+    if(updated?.id && onObligationUpdate) onObligationUpdate(updated);
+    setPendingChanges(p=>p.map((c,i)=>i===idx?{...c,applied:true}:c));
+  } catch(e) {
+    alert(`No se pudo aplicar el cambio en ${ch.obligation_num}: ${e.message||e}`);
+  }
 };
 
 const processAndLink = () => {
@@ -434,7 +456,7 @@ return (
             <div style={{fontSize:12,fontWeight:700,color:I.text,marginBottom:4}}>{ch.obligation_num} - {ch.field}</div>
             <div style={{display:"flex",gap:8,alignItems:"center",fontSize:11}}>
               <span style={{color:I.red,textDecoration:"line-through"}}>{ch.before}</span>
-              <span style={{color:I.textMuted}}>-></span>
+              <span style={{color:I.textMuted}}>→</span>
               <span style={{color:I.green,fontWeight:600}}>{ch.after}</span>
             </div>
             <div style={{fontSize:10,color:I.textMuted,marginTop:4}}>{ch.reason}</div>
@@ -560,7 +582,7 @@ return (
               <div style={{fontSize:12,fontWeight:700,color:I.text,marginBottom:4}}>{ch.obligation_num}</div>
               <div style={{display:"flex",gap:8,alignItems:"center",fontSize:11,marginBottom:4}}>
                 <span style={{color:I.red}}>{ch.before}</span>
-                <span style={{color:I.textMuted}}>-></span>
+                <span style={{color:I.textMuted}}>→</span>
                 <span style={{color:I.green,fontWeight:600}}>{ch.after}</span>
               </div>
               <div style={{fontSize:10,color:I.textMuted}}>{ch.reason}</div>
@@ -640,7 +662,7 @@ return (
                       <div style={{fontSize:10,color:I.yellow,fontWeight:700,marginBottom:6}}>CAMBIOS PROPUESTOS</div>
                       {doc.proposed_changes.map((ch,i)=>(
                         <div key={i} style={{fontSize:11,color:I.text,marginBottom:3}}>
-                          <span style={{fontWeight:600}}>{ch.obligation_num}</span>: {ch.before} -> <span style={{color:I.green}}>{ch.after}</span>
+                          <span style={{fontWeight:600}}>{ch.obligation_num}</span>: {ch.before} → <span style={{color:I.green}}>{ch.after}</span>
                         </div>
                       ))}
                     </div>
@@ -665,7 +687,7 @@ return (
 
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
-  const [email, setEmail] = React.useState("demo@vigia.co");
+  const [email, setEmail] = React.useState("admin@enara.co");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -732,7 +754,7 @@ function LoginScreen({ onLogin }) {
         </button>
 
         <div style={{marginTop:20,padding:"12px 14px",background:L.primaryDim,borderRadius:8,fontSize:11,color:L.primary}}>
-          Demo: demo@vigia.co / Vigia2026!
+          SuperAdmin: admin@enara.co / Vigia2026!
         </div>
       </div>
     </div>
@@ -1691,12 +1713,13 @@ useEffect(()=>{
 const tryConnect = async () => {
 try {
 const t=session?.access_token||SB_KEY;
-const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=created_at.desc",t),sb("obligations","select=*&order=due_date.asc",t),sb("regulatory_alerts","select=*&order=norm_date.desc",t),sb("normative_sources","select=*&is_active=eq.true",t)]);
+const [inst,obs,alrt,norms,ovs]=await Promise.all([sb("instruments","select=*&order=created_at.desc",t),sb("obligations","select=*&order=due_date.asc",t),sb("regulatory_alerts","select=*&order=norm_date.desc",t),sb("normative_sources","select=*&is_active=eq.true",t),sb("oversight_log","select=*&status=eq.activo&order=created_at.desc",t)]);
 // Load data regardless of count
           setInstruments(Array.isArray(inst)?inst:[]);
           setObligations(Array.isArray(obs)?obs:[]);
           setAlerts(Array.isArray(alrt)?alrt:[]);
           setNormSources(Array.isArray(norms)?norms:[]);
+          setOversight(Array.isArray(ovs)?ovs:[]);
           setDbStatus("connected");
           setLastSync(new Date());
           // Fetch client org (always, even with 0 EDIs)
@@ -1750,10 +1773,10 @@ useEffect(()=>{
 },[session?.refresh_token, session?.expires_at]);
 
 const overdue=obligations.filter(o=>o.status==="vencido").length;
-const upcoming=obligations.filter(o=>o.status==="proximo"||o.status==="proximo").length;
-const compliant=obligations.filter(o=>o.status==="al_dia"||o.status==="al_dia").length;
+const upcoming=obligations.filter(o=>o.status==="proximo").length;
+const compliant=obligations.filter(o=>o.status==="al_dia").length;
 const unreadAlerts=alerts.filter(a=>!a.human_validated).length;
-const ediHealth=(inst)=>{ const obs=obligations.filter(o=>o.instrument_id===inst.id); if(obs.some(o=>o.status==="vencido"))return"critico"; if(obs.some(o=>o.status==="proximo"||o.status==="proximo"))return"moderado"; return"al_dia"; };
+const ediHealth=(inst)=>{ const obs=obligations.filter(o=>o.instrument_id===inst.id); if(obs.some(o=>o.status==="vencido"))return"critico"; if(obs.some(o=>o.status==="proximo"))return"moderado"; return"al_dia"; };
 const ediObs=(id)=>obligations.filter(o=>o.instrument_id===id);
 const toggleSource=(k)=>setSources(p=>({...p,[k]:!p[k]}));
 const conf=()=>{ const a=Object.values(sources).filter(Boolean).length; if(a===0)return{label:"Sin fuentes",color:C.red,risk:"ROJO"}; if(sources.validacion)return{label:"Maxima precision con revision humana",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa&&sources.jurisprudencia)return{label:"Alta precision - riesgo bajo",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa)return{label:"Precision moderada",color:C.yellow,risk:"AMARILLO"}; return{label:"Precision limitada",color:C.yellow,risk:"AMARILLO"}; };
@@ -1776,10 +1799,11 @@ const handleNewAlert = async (analysisResult) => {
   try {
     const result = await adminFetch("/rest/v1/regulatory_alerts","POST",dbAlert,"return=representation");
     const saved = Array.isArray(result) ? result[0] : result;
-    setAlerts(p => [{...(saved?.id ? saved : {id:`al_${Date.now()}`,...dbAlert}), ...uiExtras}, ...p]);
+    if(!saved?.id) throw new Error("respuesta sin id: "+JSON.stringify(result).slice(0,120));
+    setAlerts(p => [{...saved, ...uiExtras}, ...p]);
   } catch(e) {
     console.log("handleNewAlert persist error", e);
-    setAlerts(p => [{id:`al_${Date.now()}`, ...dbAlert, ...uiExtras}, ...p]);
+    alert("No se pudo guardar la alerta en Supabase: "+(e.message||e));
   }
 };
 
@@ -1796,10 +1820,11 @@ const handleNewNorm = async (analysisResult) => {
   try {
     const result = await adminFetch("/rest/v1/normative_sources","POST",dbNorm,"return=representation");
     const saved = Array.isArray(result) ? result[0] : result;
-    setNormSources(p => [saved?.id ? saved : {id:`n_${Date.now()}`, ...dbNorm}, ...p]);
+    if(!saved?.id) throw new Error("respuesta sin id: "+JSON.stringify(result).slice(0,120));
+    setNormSources(p => [saved, ...p]);
   } catch(e) {
     console.log("handleNewNorm persist error", e);
-    setNormSources(p => [{id:`n_${Date.now()}`, ...dbNorm}, ...p]);
+    alert("No se pudo guardar la norma en Supabase: "+(e.message||e));
   }
 };
 
@@ -1810,13 +1835,18 @@ setBotMessages(p=>[...p,userMsg]); setBotInput(""); setBotLoading(true);
 const layers=Object.entries(sources).filter(([,v])=>v).map(([k])=>({documentos:"Capa 1",normativa:"Capa 2 - Normativa",jurisprudencia:"Capa 2 - Jurisprudencia",validacion:"Capa 3 - Validacion humana"}[k])).join(", ");
 const obsCtx=obligations.map(o=>`${o.obligation_num||o.num} - ${o.name} (${o.status}, vence ${o.due_date})`).join("; ");
 const normCtx=normSources.map(n=>`${n.norm_type} ${n.norm_number}: ${n.norm_title}`).join("; ");
+const systemPrompt=`Eres VIGÍA, asistente de inteligencia regulatoria ambiental colombiana${clientOrg?.name?` de ${clientOrg.name}`:""}.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en español colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`;
+const previousMessages = botMessages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({role:m.role,content:m.text}));
 try {
-const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:`Eres VIGÍA, asistente de inteligencia regulatoria ambiental colombiana${clientOrg?.name?` de ${clientOrg.name}`:""}.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en español colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`,messages:[{role:"user",content:userMsg.text}]})});
+const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session?.access_token||SB_KEY}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages})});
 const data=await res.json();
-const reply=data.content?.[0]?.text||"No fue posible procesar la consulta.";
+if(!res.ok||!data.reply) throw new Error(data.error||`Error ${res.status}`);
+const reply=data.reply;
 setBotMessages(p=>[...p,{role:"assistant",text:reply,layers}]);
-try { await sbInsert("bot_queries",{org_id:"a1000000-0000-0000-0000-000000000001",query_text:userMsg.text,active_layers:sources,response_text:reply}); } catch{}
-} catch { setBotMessages(p=>[...p,{role:"assistant",text:"Error de conexion. Intenta nuevamente.",layers:""}]); }
+if(clientOrg?.id && session?.access_token) {
+  try { await sbInsert("bot_queries",{org_id:clientOrg.id,query_text:userMsg.text,active_layers:sources,response_text:reply,tokens_used:(data.tokens_in||0)+(data.tokens_out||0)},session.access_token); } catch(e){ console.log("bot_queries save error", e); }
+}
+} catch(e) { setBotMessages(p=>[...p,{role:"assistant",text:"Error: "+(e.message||"No fue posible procesar la consulta."),layers:""}]); }
 setBotLoading(false);
 };
 
@@ -1856,13 +1886,13 @@ const renderDashboard=()=>(
 <div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>Expedientes Digitales Inteligentes</span><span style={{fontSize:11,color:C.textSec}}>{instruments.length} EDIs activos</span></div>
 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>o.status==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>o.status==="vencido").length} vencida(s)</span>}{(obs.filter(o=>o.status==="proximo"||o.status==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>o.status==="proximo"||o.status==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>o.status==="al_dia"||o.status==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
+{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - {inst.authority_name||"Autoridad no definida"} - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>o.status==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>o.status==="vencido").length} vencida(s)</span>}{(obs.filter(o=>o.status==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>o.status==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>o.status==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
 </div>
 </div>
 <div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>Alertas regulatorias</span>{unreadAlerts>0&&<span style={{background:C.red,color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700}}>{unreadAlerts} nuevas</span>}</div>
 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-{alerts.slice(0,4).map(alert=>{ const color=alert.urgency==="critica"||alert.urgency==="critica"?C.red:alert.urgency==="moderada"?C.yellow:C.blue; const bg=alert.urgency==="critica"||alert.urgency==="critica"?C.redDim:alert.urgency==="moderada"?C.yellowDim:C.blueDim; return <div key={alert.id} onClick={()=>setView("inteligencia")} style={{background:C.surface,border:`1px solid ${!alert.human_validated?color+"55":C.border}`,borderRadius:10,padding:"14px 16px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"flex-start",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:bg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}><AlertTriangle size={13} color={color}/></div><div style={{flex:1}}>{!alert.human_validated&&<div style={{width:6,height:6,borderRadius:"50%",background:color,marginBottom:4,display:"inline-block",marginRight:4}}/>}<div style={{fontSize:12,fontWeight:600,color:C.text,lineHeight:1.4,marginBottom:4}}>{alert.norm_title}</div><ImpactBadge impact={alert.impact_type}/></div></div></div>; })}
+{alerts.slice(0,4).map(alert=>{ const color=alert.urgency==="critica"?C.red:alert.urgency==="moderada"?C.yellow:C.blue; const bg=alert.urgency==="critica"?C.redDim:alert.urgency==="moderada"?C.yellowDim:C.blueDim; return <div key={alert.id} onClick={()=>setView("inteligencia")} style={{background:C.surface,border:`1px solid ${!alert.human_validated?color+"55":C.border}`,borderRadius:10,padding:"14px 16px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"flex-start",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:bg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}><AlertTriangle size={13} color={color}/></div><div style={{flex:1}}>{!alert.human_validated&&<div style={{width:6,height:6,borderRadius:"50%",background:color,marginBottom:4,display:"inline-block",marginRight:4}}/>}<div style={{fontSize:12,fontWeight:600,color:C.text,lineHeight:1.4,marginBottom:4}}>{alert.norm_title}</div><ImpactBadge impact={alert.impact_type}/></div></div></div>; })}
 </div>
 </div>
 </div>
@@ -1876,24 +1906,24 @@ return <div style={{padding:28}}>
 <button onClick={()=>setView("dashboard")} style={{background:"transparent",border:"none",color:C.textSec,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:5,marginBottom:20,padding:0}}>Volver al panel</button>
 <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,padding:"20px 24px",marginBottom:20}}>
 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
+<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - {inst.authority_name||"Autoridad no definida"}</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
 <button onClick={()=>setView("consultar")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,color:C.primary,borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><MessageSquare size={13}/>Consultar</button>
 </div>
 <div style={{marginTop:16}}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:11,color:C.textSec}}>Cumplimiento general</span><span style={{fontSize:11,fontWeight:600,color:sc}}>{obs.length>0?Math.round((obs.filter(o=>o.status==="al_dia"||o.status==="al_dia").length/obs.length)*100):0}%</span></div>
-<div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>o.status==="al_dia"||o.status==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:11,color:C.textSec}}>Cumplimiento general</span><span style={{fontSize:11,fontWeight:600,color:sc}}>{obs.length>0?Math.round((obs.filter(o=>o.status==="al_dia").length/obs.length)*100):0}%</span></div>
+<div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>o.status==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
 </div>
 </div>
 <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Obligaciones del expediente</div>
 <div style={{display:"flex",flexDirection:"column",gap:8}}>
 {obs.map(ob=>{
-const color=ob.status==="vencido"?C.red:(ob.status==="proximo"||ob.status==="proximo")?C.yellow:C.green;
-const bg=ob.status==="vencido"?C.redDim:(ob.status==="proximo"||ob.status==="proximo")?C.yellowDim:C.greenDim;
+const color=ob.status==="vencido"?C.red:(ob.status==="proximo")?C.yellow:C.green;
+const bg=ob.status==="vencido"?C.redDim:(ob.status==="proximo")?C.yellowDim:C.greenDim;
 const days=ob.due_date?Math.ceil((new Date(ob.due_date)-new Date())/86400000):null;
 return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ob.status==="vencido"?C.red+"55":C.border}`,borderRadius:10,padding:"14px 18px"}}>
 <div style={{display:"grid",gridTemplateColumns:"auto 1fr auto",alignItems:"start",gap:14}}>
 <div style={{width:38,height:38,borderRadius:8,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
-{ob.status==="vencido"?<AlertTriangle size={16} color={color}/>:(ob.status==="proximo"||ob.status==="proximo")?<Clock size={16} color={color}/>:<CheckCircle size={16} color={color}/>}
+{ob.status==="vencido"?<AlertTriangle size={16} color={color}/>:(ob.status==="proximo")?<Clock size={16} color={color}/>:<CheckCircle size={16} color={color}/>}
 </div>
 <div>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
@@ -1932,8 +1962,8 @@ const renderInteligencia=()=><div style={{padding:28}}>
 <p style={{fontSize:13,color:C.textSec,margin:"0 0 24px"}}>Motor de monitoreo continuo - {alerts.length} alertas activas</p>
 <div style={{display:"flex",flexDirection:"column",gap:14}}>
 {alerts.map(alert=>{
-const color=alert.urgency==="critica"||alert.urgency==="critica"?C.red:alert.urgency==="moderada"?C.yellow:C.blue;
-const bg=alert.urgency==="critica"||alert.urgency==="critica"?C.redDim:alert.urgency==="moderada"?C.yellowDim:C.blueDim;
+const color=alert.urgency==="critica"?C.red:alert.urgency==="moderada"?C.yellow:C.blue;
+const bg=alert.urgency==="critica"?C.redDim:alert.urgency==="moderada"?C.yellowDim:C.blueDim;
 return <div key={alert.id} style={{background:C.surface,border:`1px solid ${!alert.human_validated?color+"55":C.border}`,borderRadius:14,padding:"20px 22px"}}>
 <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
 <div style={{width:44,height:44,borderRadius:12,background:bg,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -1950,7 +1980,7 @@ return <div key={alert.id} style={{background:C.surface,border:`1px solid ${!ale
 <div style={{marginTop:12,background:C.yellowDim,border:`1px solid ${C.yellow}33`,borderRadius:8,padding:"12px 14px"}}>
 <div style={{fontSize:11,fontWeight:700,color:C.yellow,marginBottom:8}}>Cambios propuestos a obligaciones</div>
 {alert.proposed_changes.map((ch,i)=>(
-<div key={i} style={{fontSize:11,color:C.text,marginBottom:4}}><span style={{fontWeight:600}}>{ch.obligation_num}</span>: {ch.before} -> <span style={{color:C.green}}>{ch.after}</span><div style={{fontSize:10,color:C.textMuted}}>{ch.reason}</div></div>
+<div key={i} style={{fontSize:11,color:C.text,marginBottom:4}}><span style={{fontWeight:600}}>{ch.obligation_num}</span>: {ch.before} → <span style={{color:C.green}}>{ch.after}</span><div style={{fontSize:10,color:C.textMuted}}>{ch.reason}</div></div>
 ))}
 </div>
 )}
@@ -1984,7 +2014,7 @@ const renderOversight=()=><div style={{padding:28}}>
 <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 6px"}}>Oversight legal automatico</h1>
 <p style={{fontSize:13,color:C.textSec,margin:"0 0 24px"}}>Anomalias detectadas - {oversight.length} activas</p>
 <div style={{display:"flex",flexDirection:"column",gap:12}}>
-{oversight.map(ov=>{ const color=ov.severity==="critico"||ov.severity==="critico"?C.red:ov.severity==="moderado"?C.yellow:C.blue; const bg=ov.severity==="critico"||ov.severity==="critico"?C.redDim:ov.severity==="moderado"?C.yellowDim:C.blueDim; return <div key={ov.id} style={{background:C.surface,border:`1px solid ${color+"55"}`,borderRadius:12,padding:"18px 22px"}}><div style={{display:"flex",alignItems:"flex-start",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><AlertTriangle size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}><Badge label={ov.severity} color={color} bg={bg}/><Badge label={ov.anomaly_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/></div><div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>{ov.title}</div><div style={{fontSize:13,color:C.textSec,marginBottom:10,lineHeight:1.6}}>{ov.description}</div><div style={{fontSize:11,color:C.textMuted,marginBottom:4}}>Referencia legal: <span style={{color:C.text}}>{ov.legal_reference}</span></div><div style={{marginTop:12,padding:"10px 14px",background:bg,borderRadius:8,fontSize:12,color,fontWeight:600}}>Accion: {ov.suggested_action}</div></div></div></div>; })}
+{oversight.map(ov=>{ const color=ov.severity==="critico"?C.red:ov.severity==="moderado"?C.yellow:C.blue; const bg=ov.severity==="critico"?C.redDim:ov.severity==="moderado"?C.yellowDim:C.blueDim; return <div key={ov.id} style={{background:C.surface,border:`1px solid ${color+"55"}`,borderRadius:12,padding:"18px 22px"}}><div style={{display:"flex",alignItems:"flex-start",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><AlertTriangle size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}><Badge label={ov.severity} color={color} bg={bg}/><Badge label={ov.anomaly_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/></div><div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>{ov.title}</div><div style={{fontSize:13,color:C.textSec,marginBottom:10,lineHeight:1.6}}>{ov.description}</div><div style={{fontSize:11,color:C.textMuted,marginBottom:4}}>Referencia legal: <span style={{color:C.text}}>{ov.legal_reference}</span></div><div style={{marginTop:12,padding:"10px 14px",background:bg,borderRadius:8,fontSize:12,color,fontWeight:600}}>Accion: {ov.suggested_action}</div></div></div></div>; })}
 </div>
 
   </div>;
@@ -2072,7 +2102,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -2081,7 +2111,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.1.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
