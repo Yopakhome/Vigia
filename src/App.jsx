@@ -3,8 +3,7 @@ import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
-const sb = async (table, params="") => {
-const token = session?.access_token || SB_KEY;
+const sb = async (table, params="", token=SB_KEY) => {
 const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
 if (!res.ok) throw new Error(res.status);
 return res.json();
@@ -1270,7 +1269,8 @@ const [ediFilter, setEdiFilter] = useState("todos");
 useEffect(()=>{
 const tryConnect = async () => {
 try {
-const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
+const t=session?.access_token||SB_KEY;
+const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=created_at.desc",t),sb("obligations","select=*&order=due_date.asc",t),sb("regulatory_alerts","select=*&order=norm_date.desc",t),sb("normative_sources","select=*&is_active=eq.true",t)]);
 // Load data regardless of count
           setInstruments(Array.isArray(inst)?inst:[]);
           const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
@@ -1596,7 +1596,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.5.2</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.5.3</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
