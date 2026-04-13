@@ -381,20 +381,28 @@ const saveToSupabase = async (analysisResult, file) => {
 };
 
 const analyzeDocument = async (file) => {
-setUploadState("analyzing");
-setAnalysisStep(0);
-const isPDF = file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf");
-const isImage = file.type.startsWith("image/");
-const canRead = isPDF||isImage;
-let base64Data = null;
-if(canRead) {
-try {
-base64Data = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(",")[1]); r.onerror=reject; r.readAsDataURL(file); });
-} catch { base64Data=null; }
-}
-for(let i=1;i<=5;i++){ await new Promise(r=>setTimeout(r,500)); setAnalysisStep(i); }
+  setUploadState("analyzing");
+  setAnalysisStep(0);
+  const isPDF = file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf");
+  const isImage = file.type.startsWith("image/");
+  if (!isPDF && !isImage) {
+    setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name,content_summary:"Tipo no soportado. Subí un PDF o imagen.",actions_detected:[],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Convertir a PDF y reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+    setUploadState("result");
+    return;
+  }
+  if (file.size > 10*1024*1024) {
+    setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name,content_summary:"El archivo supera 10 MB.",actions_detected:[],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Reducir tamaño y reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+    setUploadState("result");
+    return;
+  }
 
-const SYSTEM = `Eres el motor de ingestion documental de VIGIA, plataforma de inteligencia regulatoria ambiental colombiana.
+  let base64Data = null;
+  try {
+    base64Data = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(",")[1]); r.onerror=reject; r.readAsDataURL(file); });
+  } catch { base64Data=null; }
+  for(let i=1;i<=5;i++){ await new Promise(r=>setTimeout(r,500)); setAnalysisStep(i); }
+
+  const SYSTEM = `Eres el motor de ingestion documental de VIGIA, plataforma de inteligencia regulatoria ambiental colombiana.
 
 EDIs activos: ${INTAKE_EDIS.map(e=>`${e.name} (Instrumento No. ${e.number})`).join(", ")}.
 Obligaciones activas: ${INTAKE_OBLIGATIONS.map(o=>`${o.num}: ${o.name}`).join(", ")}.
@@ -402,24 +410,27 @@ IMPORTANTE: Si el documento es una norma (ley, decreto, resolucion, circular, se
 Responde SOLO en JSON:
 {"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
 
-try {
-  let content;
-  if(canRead&&base64Data) {
-    if(isPDF) content=[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64Data}},{type:"text",text:`Analiza este documento para VIGIA. Identifica si es una norma. Nombre: "${file.name}"`}];
-    else content=[{type:"image",source:{type:"base64",media_type:file.type,data:base64Data}},{type:"text",text:`Analiza este documento para VIGIA. Nombre: "${file.name}"`}];
-  } else {
-    content=`Analiza por nombre: "${file.name}" (${(file.size/1024/1024).toFixed(1)} MB)`;
+  try {
+    const res = await fetch(`${SB_URL}/functions/v1/analyze-document`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionToken||SB_KEY}`,
+        apikey: SB_KEY
+      },
+      body: JSON.stringify({ fileData: base64Data, fileName: file.name, fileType: file.type || (isPDF?"application/pdf":"application/octet-stream"), systemPrompt: SYSTEM })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.result) {
+      const errMsg = data.error || `Error ${res.status}`;
+      setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:`No se pudo procesar: ${errMsg}`,actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:["Error del analizador"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+    } else {
+      setAnalysisResult({...data.result, file_name:file.name, file_type:file.name.split(".").pop(), file_size:`${(file.size/1024/1024).toFixed(1)} MB`, ocr_used:true});
+    }
+  } catch (e) {
+    setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:`Error de red: ${e.message}`,actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
   }
-  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1500,system:SYSTEM,messages:[{role:"user",content}]})});
-  const data=await res.json();
-  const text=data.content?.[0]?.text||"{}";
-  const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
-  setAnalysisResult({...parsed,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:canRead&&base64Data!==null});
-} catch {
-  setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:"No se pudo procesar el documento.",actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:30,matching_reasons:["Error de procesamiento"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
-}
-setUploadState("result");
-
+  setUploadState("result");
 };
 
 const applyChange = (idx) => {
@@ -460,7 +471,7 @@ return (
     <button onClick={()=>fileRef.current?.click()} style={{background:I.primary,border:"none",borderRadius:8,padding:"9px 18px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
       <Upload size={14}/> Cargar documento
     </button>
-    <input ref={fileRef} type="file" accept="*/*" style={{display:"none"}} onChange={e=>e.target.files?.[0]&&analyzeDocument(e.target.files[0])}/>
+    <input ref={fileRef} type="file" accept="application/pdf,image/*" style={{display:"none"}} onChange={e=>e.target.files?.[0]&&analyzeDocument(e.target.files[0])}/>
   </div>
 
   {pendingChanges.filter(c=>!c.applied).length>0&&(
@@ -2123,7 +2134,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.9.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.0.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
