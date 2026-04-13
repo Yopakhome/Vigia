@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck } from "lucide-react";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck, Users } from "lucide-react";
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
@@ -1224,9 +1224,109 @@ function SuperAdminModule() {
   );
 }
 
+function MyTeamModule({orgId, orgName, limiteUsuarios}) {
+  const [users, setUsers] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [msg, setMsg] = React.useState(null);
+  const [newUser, setNewUser] = React.useState({email:"",password:"Vigia2026!",role:"editor"});
+  const A = C;
+
+  const load = async () => {
+    if(!orgId) return;
+    setLoading(true);
+    try {
+      const maps = await adminFetch(`/rest/v1/user_org_map?org_id=eq.${orgId}&select=user_id,role,created_at`);
+      const list = Array.isArray(maps) ? maps : [];
+      if(list.length===0) { setUsers([]); setLoading(false); return; }
+      const ids = list.map(m=>m.user_id);
+      const profiles = await adminFetch(`/rest/v1/user_profiles?id=in.(${ids.join(",")})&select=id,email,full_name`);
+      const byId = {};
+      (Array.isArray(profiles)?profiles:[]).forEach(p=>{ byId[p.id]=p; });
+      setUsers(list.map(m=>({...byId[m.user_id], ...m})));
+    } catch(e) { setMsg({t:"error",m:e.message}); }
+    setLoading(false);
+  };
+
+  React.useEffect(()=>{ load(); }, [orgId]);
+
+  const createUser = async () => {
+    if(!newUser.email || !newUser.password) { setMsg({t:"error",m:"Email y password requeridos"}); return; }
+    if(limiteUsuarios && users.length >= limiteUsuarios) { setMsg({t:"error",m:`Límite de ${limiteUsuarios} usuarios alcanzado para este plan.`}); return; }
+    setLoading(true); setMsg(null);
+    const ur = await adminFetch("/auth/v1/admin/users","POST",{email:newUser.email,password:newUser.password,email_confirm:true});
+    if(!ur.id) { setMsg({t:"error",m:ur.message||JSON.stringify(ur).slice(0,120)}); setLoading(false); return; }
+    await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:orgId,role:newUser.role},"resolution=merge-duplicates,return=minimal");
+    setMsg({t:"success",m:`Usuario ${newUser.email} creado`});
+    setNewUser({email:"",password:"Vigia2026!",role:"editor"});
+    await load();
+  };
+
+  const removeUser = async (userId, email) => {
+    if(!window.confirm(`Quitar ${email} de ${orgName||"la organización"}? La cuenta seguirá existiendo pero perderá acceso a esta org.`)) return;
+    await adminFetch(`/rest/v1/user_org_map?user_id=eq.${userId}&org_id=eq.${orgId}`,"DELETE");
+    setMsg({t:"success",m:`${email} removido`});
+    await load();
+  };
+
+  const input = {width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:13,outline:"none",fontFamily:FONT};
+
+  return (
+    <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+      <div style={{marginBottom:20}}>
+        <h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>Mi equipo</h1>
+        <p style={{fontSize:13,color:A.textSec,margin:"4px 0 0"}}>Usuarios de {orgName||"tu organización"} — {users.length}{limiteUsuarios?` / ${limiteUsuarios}`:""}</p>
+      </div>
+
+      {msg && <div style={{padding:"10px 14px",borderRadius:8,marginBottom:16,background:msg.t==="error"?A.redDim:A.greenDim,color:msg.t==="error"?A.red:A.green,fontSize:12,fontWeight:500}}>{msg.m}</div>}
+
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"18px 22px",marginBottom:20}}>
+        <div style={{fontSize:13,fontWeight:700,color:A.text,marginBottom:14}}>Agregar usuario</div>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr auto",gap:10,alignItems:"end"}}>
+          <div>
+            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Email *</div>
+            <input value={newUser.email} onChange={e=>setNewUser({...newUser,email:e.target.value})} placeholder="usuario@ejemplo.com" style={input}/>
+          </div>
+          <div>
+            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Password *</div>
+            <input value={newUser.password} onChange={e=>setNewUser({...newUser,password:e.target.value})} style={input}/>
+          </div>
+          <div>
+            <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Rol</div>
+            <select value={newUser.role} onChange={e=>setNewUser({...newUser,role:e.target.value})} style={input}>
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button onClick={createUser} disabled={loading} style={{background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"10px 18px",color:loading?"#5e7a95":"#060c14",fontSize:13,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:FONT}}>{loading?"...":"Crear"}</button>
+        </div>
+      </div>
+
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,overflow:"hidden"}}>
+        <div style={{padding:"14px 22px",borderBottom:`1px solid ${A.border}`,fontSize:13,fontWeight:700,color:A.text}}>Usuarios activos</div>
+        {users.length===0 && <div style={{padding:"20px 22px",fontSize:12,color:A.textMuted}}>{loading?"Cargando...":"No hay usuarios todavía."}</div>}
+        {users.map(u=>(
+          <div key={u.user_id} style={{padding:"14px 22px",borderBottom:`1px solid ${A.border}`,display:"flex",alignItems:"center",gap:14}}>
+            <div style={{width:32,height:32,borderRadius:8,background:A.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <span style={{fontSize:11,fontWeight:700,color:A.primary}}>{(u.email||"??").substring(0,2).toUpperCase()}</span>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:600,color:A.text}}>{u.full_name||u.email?.split("@")[0]||"—"}</div>
+              <div style={{fontSize:11,color:A.textMuted,overflow:"hidden",textOverflow:"ellipsis"}}>{u.email||u.user_id}</div>
+            </div>
+            <div style={{fontSize:10,padding:"3px 10px",borderRadius:6,background:A.surfaceEl,color:A.textSec,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em"}}>{u.role}</div>
+            <button onClick={()=>removeUser(u.user_id,u.email)} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:6,padding:"5px 10px",color:A.red,fontSize:10,cursor:"pointer",fontWeight:600,fontFamily:FONT}}>Quitar</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function VIGIAApp() {
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [userOrgRole, setUserOrgRole] = useState(null);
 
   useEffect(()=>{
     sbGetSession().then(async s=>{
@@ -1235,10 +1335,11 @@ const [session, setSession] = useState(null);
       if(s?.user?.id) {
         try {
           const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
-          const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+s.user.id+"&select=org_id", {headers:h});
+          const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+s.user.id+"&select=org_id,role", {headers:h});
           const md = await mr.json();
           if(md?.[0]?.org_id){
-            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:h});
+            setUserOrgRole(md[0].role||null);
+            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad,limite_usuarios", {headers:h});
             const od = await or2.json();
             if(od?.[0]) setClientOrg(od[0]);
           }
@@ -1286,10 +1387,11 @@ const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=
           try {
             const uid = session?.user?.id;
             const h = {apikey:SB_SERVICE,Authorization:"Bearer "+SB_SERVICE};
-            const mapR = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:h});
+            const mapR = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id,role", {headers:h});
             const mapData = await mapR.json();
             if(mapData?.[0]?.org_id) {
-              const orgR = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:h});
+              setUserOrgRole(mapData[0].role||null);
+              const orgR = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan,ciudad,limite_usuarios", {headers:h});
               const orgData = await orgR.json();
               if(orgData?.[0]) setClientOrg(orgData[0]);
             }
@@ -1337,7 +1439,8 @@ setBotLoading(false);
 };
 
 const isSuperAdmin=SUPERADMIN_EMAILS.includes(session?.user?.email);
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"}]:[]),...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
@@ -1587,7 +1690,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1596,7 +1699,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.5.3</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.6.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
