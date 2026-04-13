@@ -20,13 +20,31 @@ const sbAuth = async (endpoint, body) => {
   return res.json();
 };
 
+const sbRefresh = async (refresh_token) => {
+  if (!refresh_token) return null;
+  const data = await sbAuth("token?grant_type=refresh_token", { refresh_token });
+  if (data.access_token) {
+    const session = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || refresh_token,
+      user: data.user,
+      expires_at: data.expires_at
+    };
+    localStorage.setItem("vigia_session", JSON.stringify(session));
+    return session;
+  }
+  return null;
+};
+
 const sbGetSession = async () => {
-  // Check localStorage for existing session
   const raw = localStorage.getItem("vigia_session");
   if (!raw) return null;
   try {
     const session = JSON.parse(raw);
-    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+    const now = Date.now() / 1000;
+    if (session.expires_at && now > session.expires_at - 60) {
+      const refreshed = await sbRefresh(session.refresh_token);
+      if (refreshed) return refreshed;
       localStorage.removeItem("vigia_session");
       return null;
     }
@@ -39,6 +57,7 @@ const sbLogin = async (email, password) => {
   if (data.access_token) {
     const session = {
       access_token: data.access_token,
+      refresh_token: data.refresh_token,
       user: data.user,
       expires_at: data.expires_at
     };
@@ -1757,6 +1776,21 @@ const refetchClientOrg = async () => {
 
 useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
 
+useEffect(()=>{
+  if(!session?.refresh_token) return;
+  const tick = async () => {
+    const now = Date.now()/1000;
+    if(session.expires_at && session.expires_at - now < 300) {
+      const refreshed = await sbRefresh(session.refresh_token);
+      if(refreshed) setSession(refreshed);
+      else { sbLogout(); setSession(null); }
+    }
+  };
+  tick();
+  const id = setInterval(tick, 240000);
+  return () => clearInterval(id);
+},[session?.refresh_token, session?.expires_at]);
+
 const overdue=obligations.filter(o=>o.status==="vencido").length;
 const upcoming=obligations.filter(o=>o.status==="proximo"||o.status==="proximo").length;
 const compliant=obligations.filter(o=>o.status==="al_dia"||o.status==="al_dia").length;
@@ -2055,7 +2089,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.8.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.9.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
