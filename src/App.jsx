@@ -250,10 +250,10 @@ const fileRef = React.useRef();
 const I = C;
 
 const sbPost = async (table, body) => {
-  const token = sessionToken || SB_SERVICE;
+  if(!sessionToken) return {error:"No hay sesión activa"};
   const r = await fetch(SB_URL+"/rest/v1/"+table, {
     method:"POST",
-    headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
+    headers:{apikey:SB_KEY, Authorization:"Bearer "+sessionToken, "Content-Type":"application/json", Prefer:"return=representation"},
     body:JSON.stringify(body)
   });
   const t = await r.text();
@@ -426,11 +426,11 @@ const applyChange = async (idx) => {
   if(!target?.id) { alert(`No se encontró la obligación ${ch.obligation_num} en tu organización.`); return; }
   if(!ch.field) { alert("El cambio propuesto no indica qué campo actualizar."); return; }
   if(!EDITABLE_OBLIGATION_FIELDS.includes(ch.field)) { alert(`El campo "${ch.field}" no es editable. Campos permitidos: ${EDITABLE_OBLIGATION_FIELDS.join(", ")}.`); return; }
+  if(!sessionToken) { alert("Sesión expirada. Volvé a iniciar sesión."); return; }
   try {
-    const token = sessionToken || SB_SERVICE;
     const r = await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${target.id}`, {
       method:"PATCH",
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
+      headers:{apikey:SB_KEY, Authorization:"Bearer "+sessionToken, "Content-Type":"application/json", Prefer:"return=representation"},
       body: JSON.stringify({ [ch.field]: ch.after })
     });
     const t = await r.text();
@@ -801,20 +801,6 @@ function LoginScreen({ onLogin }) {
   );
 }
 
-
-// ─── SUPERADMIN v2.1.1 ───────────────────────────────────────────────────────────────
-const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a2J1amtxamVzdW50Z2RrdWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk1NzIyNywiZXhwIjoyMDkxNTMzMjI3fQ.0wdZfTZ0Ar-Wys99pxqMACBt7xfBwJdkFW5sNp6ka2Q";
-const SB_ADMIN_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
-
-const adminFetch = async (path, method, body, prefer) => {
-  const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE, "Content-Type":"application/json"};
-  if(prefer) h["Prefer"] = prefer;
-  const opts = {method:method||"GET", headers:h};
-  if(body) opts.body = JSON.stringify(body);
-  const r = await fetch(SB_ADMIN_URL+path, opts);
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { return {raw:t,status:r.status}; }
-};
 
 
 const COLOMBIA = {
@@ -2118,7 +2104,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.3</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.5.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
