@@ -861,9 +861,8 @@ useEffect(()=>{
 const tryConnect = async () => {
 try {
 const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
-if(Array.isArray(inst)&&inst.length>0){
-          setInstruments(inst);
-          // Enrich Supabase obligations with fuente from SEED
+// Load data regardless of count
+          setInstruments(Array.isArray(inst)?inst:[]);
           const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
             const seedOb = SEED.obligations.find(s => s.obligation_num === ob.obligation_num || s.id === ob.id);
             return seedOb?.fuente ? {...ob, fuente: seedOb.fuente} : ob;
@@ -872,19 +871,19 @@ if(Array.isArray(inst)&&inst.length>0){
           setAlerts(Array.isArray(alrt)?alrt:[]);
           setNormSources(Array.isArray(norms)?norms:[]);
           setDbStatus("connected");
-          // Fetch client org
+          setLastSync(new Date());
+          // Fetch client org (always, even with 0 EDIs)
           try {
             const uid = session?.user?.id;
-            const mapR = await fetch(SB_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:{apikey:SB_KEY,Authorization:"Bearer "+(session?.access_token||SB_KEY)}});
+            const token = session?.access_token || SB_KEY;
+            const mapR = await fetch(SB_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:{apikey:SB_KEY,Authorization:"Bearer "+token}});
             const mapData = await mapR.json();
             if(mapData?.[0]?.org_id) {
-              const orgR = await fetch(SB_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan", {headers:{apikey:SB_KEY,Authorization:"Bearer "+(session?.access_token||SB_KEY)}});
+              const orgR = await fetch(SB_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:{apikey:SB_KEY,Authorization:"Bearer "+token}});
               const orgData = await orgR.json();
               if(orgData?.[0]) setClientOrg(orgData[0]);
             }
           } catch(e) { console.log("org fetch err",e); }
-          setLastSync(new Date());
-        }
 } catch { setDbStatus("demo"); }
 };
 tryConnect();
@@ -1093,7 +1092,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.2</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
