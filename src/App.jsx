@@ -274,7 +274,7 @@ try {
   const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
   setAnalysisResult({...parsed,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:canRead&&base64Data!==null});
 } catch {
-  setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:"No se pudo procesar el documento.",actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:30,matching_reasons:["Error de procesamiento"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+  setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:"C.I. Energia Solar S.A.S.",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:"No se pudo procesar el documento.",actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:30,matching_reasons:["Error de procesamiento"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
 }
 setUploadState("result");
 
@@ -925,7 +925,7 @@ const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
 <div style={{padding:28}}>
-<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:userOrg?.name || "Sin organización"}</p></div>
+<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Modo demo - C.I. Energia Solar"}</p></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
 <StatCard icon={Layers} label="EDIs activos" value={instruments.length} color={C.primary}/>
 <StatCard icon={AlertTriangle} label="Obligaciones vencidas" value={overdue} color={C.red} sub={overdue>0?"Requiere accion inmediata":"Sin vencimientos"}/>
@@ -1080,7 +1080,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.1.6</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.1.7</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
