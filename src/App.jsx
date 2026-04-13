@@ -1586,25 +1586,20 @@ function OrgProfileModule({clientOrg, sessionToken, userId}) {
   );
 }
 
-function MyTeamModule({orgId, orgName, limiteUsuarios}) {
+function MyTeamModule({orgId, orgName, limiteUsuarios, sessionToken}) {
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState(null);
   const [newUser, setNewUser] = React.useState({email:"",password:"Vigia2026!",role:"editor"});
   const A = C;
+  const teamCall = (op, payload) => callEdge("orgadmin-users", {op, orgId, payload}, sessionToken);
 
   const load = async () => {
     if(!orgId) return;
     setLoading(true);
     try {
-      const maps = await adminFetch(`/rest/v1/user_org_map?org_id=eq.${orgId}&select=user_id,role,created_at`);
-      const list = Array.isArray(maps) ? maps : [];
-      if(list.length===0) { setUsers([]); setLoading(false); return; }
-      const ids = list.map(m=>m.user_id);
-      const profiles = await adminFetch(`/rest/v1/user_profiles?id=in.(${ids.join(",")})&select=id,email,full_name`);
-      const byId = {};
-      (Array.isArray(profiles)?profiles:[]).forEach(p=>{ byId[p.id]=p; });
-      setUsers(list.map(m=>({...byId[m.user_id], ...m})));
+      const { users: list } = await teamCall("list");
+      setUsers(Array.isArray(list) ? list : []);
     } catch(e) { setMsg({t:"error",m:e.message}); }
     setLoading(false);
   };
@@ -1615,19 +1610,21 @@ function MyTeamModule({orgId, orgName, limiteUsuarios}) {
     if(!newUser.email || !newUser.password) { setMsg({t:"error",m:"Email y password requeridos"}); return; }
     if(limiteUsuarios && users.length >= limiteUsuarios) { setMsg({t:"error",m:`Límite de ${limiteUsuarios} usuarios alcanzado para este plan.`}); return; }
     setLoading(true); setMsg(null);
-    const ur = await adminFetch("/auth/v1/admin/users","POST",{email:newUser.email,password:newUser.password,email_confirm:true});
-    if(!ur.id) { setMsg({t:"error",m:ur.message||JSON.stringify(ur).slice(0,120)}); setLoading(false); return; }
-    await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:orgId,role:newUser.role},"resolution=merge-duplicates,return=minimal");
-    setMsg({t:"success",m:`Usuario ${newUser.email} creado`});
-    setNewUser({email:"",password:"Vigia2026!",role:"editor"});
-    await load();
+    try {
+      await teamCall("create", newUser);
+      setMsg({t:"success",m:`Usuario ${newUser.email} creado`});
+      setNewUser({email:"",password:"Vigia2026!",role:"editor"});
+      await load();
+    } catch(e) { setMsg({t:"error",m:e.message}); setLoading(false); }
   };
 
   const removeUser = async (userId, email) => {
     if(!window.confirm(`Quitar ${email} de ${orgName||"la organización"}? La cuenta seguirá existiendo pero perderá acceso a esta org.`)) return;
-    await adminFetch(`/rest/v1/user_org_map?user_id=eq.${userId}&org_id=eq.${orgId}`,"DELETE");
-    setMsg({t:"success",m:`${email} removido`});
-    await load();
+    try {
+      await teamCall("remove", { userId });
+      setMsg({t:"success",m:`${email} removido`});
+      await load();
+    } catch(e) { setMsg({t:"error",m:e.message}); }
   };
 
   const input = {width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:13,outline:"none",fontFamily:FONT};
@@ -2112,7 +2109,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -2121,7 +2118,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.2</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.3</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
