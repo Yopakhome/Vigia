@@ -1,0 +1,262 @@
+[
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=4125",
+    "meta": {
+      "title": "Constitución Política de Colombia 1991",
+      "norm_type": "constitucion",
+      "norm_number": "1991",
+      "norm_year": 1991,
+      "issuing_authority": "Asamblea Nacional Constituyente",
+      "publication_date": "1991-07-04",
+      "publication_source": "Gaceta Constitucional No. 116 del 20 de julio de 1991",
+      "scope": "general",
+      "hierarchy_level": 1,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=297",
+    "meta": {
+      "title": "Ley 99 de 1993 — Crea el Ministerio del Medio Ambiente y organiza el Sistema Nacional Ambiental (SINA)",
+      "norm_type": "ley",
+      "norm_number": "99",
+      "norm_year": 1993,
+      "issuing_authority": "Congreso de la República de Colombia",
+      "publication_date": "1993-12-22",
+      "scope": "general",
+      "hierarchy_level": 2,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=1551",
+    "meta": {
+      "title": "Decreto-Ley 2811 de 1974 — Código Nacional de Recursos Naturales Renovables y de Protección al Medio Ambiente",
+      "norm_type": "decreto_ley",
+      "norm_number": "2811",
+      "norm_year": 1974,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "1974-12-18",
+      "scope": "general",
+      "hierarchy_level": 3,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=78153",
+    "meta": {
+      "title": "Decreto 1076 de 2015 — Decreto Único Reglamentario del Sector Ambiente y Desarrollo Sostenible",
+      "norm_type": "decreto",
+      "norm_number": "1076",
+      "norm_year": 2015,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "2015-05-26",
+      "scope": "general",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=36879",
+    "meta": {
+      "title": "Ley 1333 de 2009 — Procedimiento sancionatorio ambiental",
+      "norm_type": "ley",
+      "norm_number": "1333",
+      "norm_year": 2009,
+      "issuing_authority": "Congreso de la República de Colombia",
+      "publication_date": "2009-07-21",
+      "scope": "sancionatorio",
+      "hierarchy_level": 2,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=40513",
+    "meta": {
+      "title": "Decreto 3678 de 2010 — Criterios para la imposición de sanciones ambientales",
+      "norm_type": "decreto",
+      "norm_number": "3678",
+      "norm_year": 2010,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "2010-10-04",
+      "scope": "sancionatorio",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=1250",
+    "meta": {
+      "title": "Decreto 1541 de 1978 — Aguas no marítimas, aprovechamiento de aguas",
+      "norm_type": "decreto",
+      "norm_number": "1541",
+      "norm_year": 1978,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "1978-07-26",
+      "scope": "agua",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=40620",
+    "meta": {
+      "title": "Decreto 3930 de 2010 — Usos del agua y residuos líquidos",
+      "norm_type": "decreto",
+      "norm_number": "3930",
+      "norm_year": 2010,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "2010-10-25",
+      "scope": "agua",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/08/resolucion-909-de-2008.pdf",
+    "meta": {
+      "title": "Resolución 909 de 2008 — Normas y estándares de emisión admisibles de contaminantes a la atmósfera por fuentes fijas",
+      "norm_type": "resolucion",
+      "norm_number": "909",
+      "norm_year": 2008,
+      "issuing_authority": "Ministerio de Ambiente, Vivienda y Desarrollo Territorial",
+      "publication_date": "2008-06-05",
+      "scope": "aire",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "mineria",
+        "energia",
+        "manufactura",
+        "hidrocarburos"
+      ]
+    }
+  },
+  {
+    "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/08/resolucion-610-de-2010.pdf",
+    "meta": {
+      "title": "Resolución 610 de 2010 — Norma de calidad del aire (vigencia parcial, precursora de la Res. 2254/2017)",
+      "norm_type": "resolucion",
+      "norm_number": "610",
+      "norm_year": 2010,
+      "issuing_authority": "Ministerio de Ambiente, Vivienda y Desarrollo Territorial",
+      "publication_date": "2010-03-24",
+      "scope": "aire",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=18718",
+    "meta": {
+      "title": "Decreto 4741 de 2005 — Prevención y manejo de residuos o desechos peligrosos en el marco de la gestión integral",
+      "norm_type": "decreto",
+      "norm_number": "4741",
+      "norm_year": 2005,
+      "issuing_authority": "Ministerio de Ambiente, Vivienda y Desarrollo Territorial",
+      "publication_date": "2005-12-30",
+      "scope": "residuos",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=33965",
+    "meta": {
+      "title": "Ley 1252 de 2008 — Normas prohibitivas en materia ambiental referentes a los residuos y desechos peligrosos",
+      "norm_type": "ley",
+      "norm_number": "1252",
+      "norm_year": 2008,
+      "issuing_authority": "Congreso de la República de Colombia",
+      "publication_date": "2008-11-27",
+      "scope": "residuos",
+      "hierarchy_level": 2,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.minambiente.gov.co/wp-content/uploads/2022/01/decreto-2041-2014.pdf",
+    "meta": {
+      "title": "Decreto 2041 de 2014 — Reglamenta el Título VIII de la Ley 99 de 1993 sobre licencias ambientales (compilado en Decreto 1076/2015)",
+      "norm_type": "decreto",
+      "norm_number": "2041",
+      "norm_year": 2014,
+      "issuing_authority": "Presidencia de la República de Colombia",
+      "publication_date": "2014-10-15",
+      "scope": "licenciamiento",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=39961",
+    "meta": {
+      "title": "Decreto 2372 de 2010 — Sistema Nacional de Áreas Protegidas (SINAP), categorías de manejo (compilado en Decreto 1076/2015)",
+      "norm_type": "decreto",
+      "norm_number": "2372",
+      "norm_year": 2010,
+      "issuing_authority": "Ministerio de Ambiente, Vivienda y Desarrollo Territorial",
+      "publication_date": "2010-07-01",
+      "scope": "biodiversidad",
+      "hierarchy_level": 4,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=87764",
+    "meta": {
+      "title": "Ley 1930 de 2018 — Gestión integral de los páramos en Colombia",
+      "norm_type": "ley",
+      "norm_number": "1930",
+      "norm_year": 2018,
+      "issuing_authority": "Congreso de la República de Colombia",
+      "publication_date": "2018-07-27",
+      "scope": "biodiversidad",
+      "hierarchy_level": 2,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma_pdf.php?i=87765",
+    "meta": {
+      "title": "Ley 1931 de 2018 — Directrices para la gestión del cambio climático en Colombia",
+      "norm_type": "ley",
+      "norm_number": "1931",
+      "norm_year": 2018,
+      "issuing_authority": "Congreso de la República de Colombia",
+      "publication_date": "2018-07-27",
+      "scope": "cambio_climatico",
+      "hierarchy_level": 2,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  }
+]

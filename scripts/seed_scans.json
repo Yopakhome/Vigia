@@ -1,0 +1,69 @@
+[
+  {
+    "url": "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf",
+    "meta": {
+      "title": "Resolución 631 de 2015 — Parámetros y valores límite máximos permisibles en vertimientos puntuales a cuerpos de aguas superficiales y sistemas de alcantarillado público",
+      "norm_type": "resolucion",
+      "norm_number": "631",
+      "norm_year": 2015,
+      "issuing_authority": "Ministerio de Ambiente y Desarrollo Sostenible",
+      "publication_date": "2015-03-17",
+      "scope": "agua",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/7.-Anexo-7-Resolucion-1207-de-2014.pdf",
+    "meta": {
+      "title": "Resolución 1207 de 2014 — Reúso de aguas residuales tratadas (derogada por Res. 1256/2021, se conserva con valor histórico)",
+      "norm_type": "resolucion",
+      "norm_number": "1207",
+      "norm_year": 2014,
+      "issuing_authority": "Ministerio de Ambiente y Desarrollo Sostenible",
+      "publication_date": "2014-07-25",
+      "scope": "agua",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/Resolucion-2254-de-2017.pdf",
+    "meta": {
+      "title": "Resolución 2254 de 2017 — Norma de calidad del aire ambiente",
+      "norm_type": "resolucion",
+      "norm_number": "2254",
+      "norm_year": 2017,
+      "issuing_authority": "Ministerio de Ambiente y Desarrollo Sostenible",
+      "publication_date": "2017-11-01",
+      "scope": "aire",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "todas"
+      ]
+    }
+  },
+  {
+    "url": "https://archivo.minambiente.gov.co/images/BosquesBiodiversidadyServiciosEcosistemicos/pdf/gestion_en_biodiversidad/res_1517_310812.pdf",
+    "meta": {
+      "title": "Resolución 1517 de 2012 — Manual para la Asignación de Compensaciones por Pérdida de Biodiversidad (actualizada por Res. 256/2018)",
+      "norm_type": "resolucion",
+      "norm_number": "1517",
+      "norm_year": 2012,
+      "issuing_authority": "Ministerio de Ambiente y Desarrollo Sostenible",
+      "publication_date": "2012-08-31",
+      "scope": "biodiversidad",
+      "hierarchy_level": 5,
+      "applies_to_sectors": [
+        "mineria",
+        "energia",
+        "hidrocarburos",
+        "infraestructura"
+      ]
+    }
+  }
+]

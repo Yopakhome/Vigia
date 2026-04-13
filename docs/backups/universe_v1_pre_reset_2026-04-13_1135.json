@@ -1,0 +1,85 @@
+{
+  "_meta": {
+    "ts": "2026-04-13T16:02:34Z",
+    "generated_by": "VIGIA-03 session, B.0.1 dump antes de reset universo v2",
+    "supabase_project_ref": "itkbujkqjesuntgdkubt",
+    "purpose": "Snapshot del universo v1 (3 orgs) antes de DELETE cascade de B.0.3",
+    "restore_strategy": "Los datos acá NO son re-ejecutables como SQL directo. Para restaurar: (1) re-crear orgs con superadmin-api create-org usando los ids; (2) re-crear users con superadmin-api create-user (passwords no están en este dump); (3) aplicar INSERTs manuales de instruments/obligations usando los UUIDs preservados."
+  },
+  "counts": {
+    "organizations": 3,
+    "user_org_map": 5,
+    "user_profiles": 7,
+    "auth_users": 7,
+    "instruments": 8,
+    "obligations": 24,
+    "documents": 0,
+    "normative_sources": 3,
+    "regulatory_alerts": 7,
+    "org_update_requests": 2,
+    "bot_queries": 1
+  },
+  "organizations": [
+    { "id": "b1000000-0000-0000-0000-000000000001", "name": "Energia Renovable Demo S.A.S.", "nit": "901234567-1", "tier": "free", "sector": "energia", "ciudad": "Caucasia", "departamento": "Antioquia", "plan": "prueba", "limite_edis": 5, "limite_usuarios": 4, "limite_intake_mes": 100, "created_at": "2026-04-13T00:26:31Z" },
+    { "id": "b2000000-0000-0000-0000-000000000002", "name": "Mineria Verde Demo Ltda.", "nit": "800987654-2", "tier": "free", "sector": "mineria", "city": "Medellin", "plan": "prueba", "limite_edis": 5, "limite_usuarios": 4, "limite_intake_mes": 100, "created_at": "2026-04-13T00:26:31Z" },
+    { "id": "e1fa4c4c-e010-4a2e-9f94-f220a0f01af6", "name": "OrgDemo", "nit": "999999999", "tier": "free", "sector": "manufactura", "ciudad": "Barranquilla", "departamento": "Atlantico", "plan": "prueba", "limite_edis": 5, "limite_usuarios": 4, "limite_intake_mes": 100, "created_at": "2026-04-13T01:00:28Z" }
+  ],
+  "user_org_map": [
+    { "user_id": "c52e1f55-edea-4eaa-84b7-47f602dc0112", "org_id": "b1000000-0000-0000-0000-000000000001", "role": "viewer", "email": "consulta1@demo-energia.co" },
+    { "user_id": "0e5ca2fd-02b7-4b99-9d47-aa1e164aa965", "org_id": "b1000000-0000-0000-0000-000000000001", "role": "admin",  "email": "onboarding1@demo-energia.co" },
+    { "user_id": "ab197559-abde-47d6-802d-064966f23dee", "org_id": "b2000000-0000-0000-0000-000000000002", "role": "viewer", "email": "consulta2@demo-mineria.co" },
+    { "user_id": "0613074e-9c28-45b5-bf82-0ee4b0365d99", "org_id": "b2000000-0000-0000-0000-000000000002", "role": "admin",  "email": "onboarding2@demo-mineria.co" },
+    { "user_id": "dd802a3e-412a-41b1-abaa-531d7a93f77a", "org_id": "e1fa4c4c-e010-4a2e-9f94-f220a0f01af6", "role": "editor", "email": "prueba@orgdemo.co" }
+  ],
+  "auth_users_preserved_through_reset": [
+    { "id": "f15dc7a5-b570-4182-bf35-33834b7f9520", "email": "admin@enara.co", "role": "SuperAdmin", "action": "preservar" },
+    { "id": "db67b87e-a229-4dff-90ba-fba33b8a0af0", "email": "javierrestrepov@gmail.com", "role": "PO sin org", "action": "preservar" }
+  ],
+  "auth_users_to_delete": [
+    "consulta1@demo-energia.co",
+    "onboarding1@demo-energia.co",
+    "consulta2@demo-mineria.co",
+    "onboarding2@demo-mineria.co",
+    "prueba@orgdemo.co"
+  ],
+  "instruments": [
+    { "id": "d1000000-0000-0000-0000-000000000001", "org_id": "b1000000-0000-0000-0000-000000000001", "type": "licencia_ambiental", "number": "Res 1245/2023", "project_name": "Parque Solar El Tesoro 120 MW", "authority": "ANLA", "completeness_pct": 85 },
+    { "id": "d1000000-0000-0000-0000-000000000002", "org_id": "b1000000-0000-0000-0000-000000000001", "type": "permiso_vertimientos", "number": "Res 0892/2024", "project_name": "Planta de Lavado Paneles - Parque Solar El Tesoro", "authority": "CAR Cundinamarca", "completeness_pct": 70 },
+    { "id": "d1000000-0000-0000-0000-000000000003", "org_id": "b1000000-0000-0000-0000-000000000001", "type": "plan_manejo_ambiental", "number": "Res 2156/2022", "project_name": "Línea de Transmisión 230 kV El Tesoro - Guavio", "authority": "ANLA", "completeness_pct": 92 },
+    { "id": "d1000000-0000-0000-0000-000000000004", "org_id": "b1000000-0000-0000-0000-000000000001", "type": "concesion_aguas", "number": "Res 1478/2023", "project_name": "Concesión de Aguas Superficiales Río Negro", "authority": "CAR Cundinamarca", "completeness_pct": 60 },
+    { "id": "d2000000-0000-0000-0000-000000000001", "org_id": "b2000000-0000-0000-0000-000000000002", "type": "licencia_ambiental", "number": "Res 0234/2021", "project_name": "Mina La Esperanza - Extracción de Oro Aluvial", "authority": "ANLA", "completeness_pct": 88 },
+    { "id": "d2000000-0000-0000-0000-000000000002", "org_id": "b2000000-0000-0000-0000-000000000002", "type": "plan_gestion_residuos", "number": "Res 3421/2023", "project_name": "Plan de Manejo de Residuos Peligrosos - Planta Beneficio", "authority": "Corantioquia", "completeness_pct": 75 },
+    { "id": "d2000000-0000-0000-0000-000000000003", "org_id": "b2000000-0000-0000-0000-000000000002", "type": "permiso_emisiones", "number": "Res 2891/2024", "project_name": "Permiso de Emisiones Atmosféricas - Planta de Beneficio", "authority": "Corantioquia", "completeness_pct": 65 },
+    { "id": "d2000000-0000-0000-0000-000000000004", "org_id": "b2000000-0000-0000-0000-000000000002", "type": "concesion_aguas", "number": "Res 4127/2022", "project_name": "Concesión de Aguas Subterráneas Pozo Profundo 1", "authority": "Corantioquia", "completeness_pct": 80 }
+  ],
+  "obligations_summary_by_org": {
+    "Energia Renovable Demo": "12 obligations (OBL-001 → OBL-012) | 4 vencidas + 4 proximas + 4 al_dia",
+    "Mineria Verde Demo":    "12 obligations (OBL-001 → OBL-012) | 4 vencidas + 4 proximas + 4 al_dia",
+    "OrgDemo":               "0 obligations"
+  },
+  "normative_sources": [
+    { "id": "0304c4c4-deb5-41d3-93e6-72c036bbb2fa", "type": "ley",     "number": "1333", "title": "Por la cual se establece el procedimiento sancionatorio ambiental y se dictan otras disposiciones", "date": "2009-07-21", "note": "duplicada, 2 filas" },
+    { "id": "b34e825e-9934-467b-9246-b6bb54eb4cf3", "type": "ley",     "number": "1333", "title": "Por la cual se establece el procedimiento sancionatorio ambiental y se dictan otras disposiciones", "date": "2009-07-21", "note": "duplicada de la anterior" },
+    { "id": "30682291-0797-49a5-aaa6-3981c316d2f1", "type": "decreto", "number": "1378", "title": "Por el cual se adiciona el Decreto Único Reglamentario No 1073 de 2015 — concesión minera pequeña escala", "date": "2020-10-21" }
+  ],
+  "regulatory_alerts_count": 7,
+  "regulatory_alerts_preview": [
+    "f1000000-0000-0000-0000-000000000001 | Resolución 0456 de 2026 - Nuevos lineamientos ICA | critica",
+    "f1000000-0000-0000-0000-000000000002 | Proyecto decreto - Coeficientes compensación biótica | moderada",
+    "f1000000-0000-0000-0000-000000000003 | Sentencia Tribunal - Alcance monitoreo sin parámetro | informativa | human_validated",
+    "f1000000-0000-0000-0000-000000000004 | Circular 0012-2026 - Tasas retributivas vertimientos | moderada",
+    "edf440f8-... | Decreto 1378/2020 (del INTAKE) | moderada",
+    "a0614bdb-... | Ley 1333/2009 (del INTAKE, 1ra vez) | critica",
+    "ba8ede64-... | Ley 1333/2009 (del INTAKE, 2da vez - duplicada) | critica"
+  ],
+  "org_update_requests": [
+    { "id": "3df7fbf0-d561-4a1b-9a36-ad7b29b3cabb", "org": "Energia Renovable Demo", "status": "rejected", "note": "No aporto Certificado" },
+    { "id": "3305d110-005b-439f-8ae1-09f8f46a5695", "org": "Energia Renovable Demo", "status": "approved", "has_attachment": true, "path": "b1000000-0000-0000-0000-000000000001/1776053800645-cdszwj/CE_DULA_DE.pdf" }
+  ],
+  "bot_queries_count": 1,
+  "notes": [
+    "documents table está vacía (la limpieza de v3.2.2 eliminó los 2 documents residuales).",
+    "3 normative_sources incluyen duplicado de Ley 1333 por testing de INTAKE. Se puede limpiar si se desea.",
+    "El bucket org-attachments tiene al menos 1 PDF (CE_DULA_DE.pdf) en prefix b1000000-.../. Hay que borrarlo en B.0.3."
+  ]
+}

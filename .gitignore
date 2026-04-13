@@ -1,1 +1,9 @@
 VIGIA_bootstrap_claude_code.md
+.DS_Store
+node_modules/
+dist/
+# Output efímero de scripts (se regenera con cada corrida)
+scripts/classify_report.json
+scripts/ingest_result.json
+scripts/ingest_result_scans.json
+scripts/ocr_scans_result.json
