@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck, Users } from "lucide-react";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck, Users, Paperclip, Download } from "lucide-react";
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
@@ -61,6 +61,30 @@ const sbWithAuth = async (table, params, token) => {
   });
   if (!res.ok) throw new Error(res.status);
   return res.json();
+};
+
+const uploadAttachment = async (file, orgId, token) => {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${orgId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}/${safeName}`;
+  const res = await fetch(`${SB_URL}/storage/v1/object/org-attachments/${path}`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${token||SB_KEY}`, "Content-Type": file.type || "application/pdf", "x-upsert": "false" },
+    body: file
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`Upload falló (${res.status}): ${t}`); }
+  return { path, name: file.name, size: file.size, mime: file.type || "application/pdf" };
+};
+
+const getSignedAttachmentUrl = async (path) => {
+  const res = await fetch(`${SB_URL}/storage/v1/object/sign/org-attachments/${encodeURI(path)}`, {
+    method: "POST",
+    headers: { apikey: SB_SERVICE, Authorization: `Bearer ${SB_SERVICE}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ expiresIn: 300 })
+  });
+  const data = await res.json();
+  const rel = data.signedURL || data.signedUrl;
+  if (!rel) throw new Error(data.error || "No se pudo firmar URL");
+  return SB_URL + "/storage/v1" + rel;
 };
 
 const sbInsert = async (table, data, token=SB_KEY) => {
@@ -1069,6 +1093,21 @@ function SuperAdminModule({reviewerId}) {
                   })}
                 </div>
                 {r.reason && <div style={{fontSize:11,color:A.textSec,fontStyle:"italic",marginBottom:10}}>Motivo del cliente: {r.reason}</div>}
+                {r.attachments?.length>0 && (
+                  <div style={{marginBottom:10,display:"flex",flexDirection:"column",gap:5}}>
+                    <div style={{fontSize:11,color:A.textSec,fontWeight:600}}>Documentos adjuntos:</div>
+                    {r.attachments.map(function(a,i){
+                      return (
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:A.surfaceEl,borderRadius:6,padding:"5px 10px"}}>
+                          <Paperclip size={11} color={A.primary}/>
+                          <span style={{flex:1,fontSize:11,color:A.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</span>
+                          <span style={{fontSize:10,color:A.textMuted}}>{a.size<1048576?(a.size/1024).toFixed(1)+" KB":(a.size/1048576).toFixed(1)+" MB"}</span>
+                          <button onClick={async function(){ try { const url = await getSignedAttachmentUrl(a.path); window.open(url, "_blank"); } catch(e){ setMsg({t:"error",m:"No se pudo abrir: "+e.message}); } }} style={{background:"transparent",border:"1px solid "+A.border,borderRadius:6,padding:"3px 10px",color:A.primary,fontSize:10,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:4,fontWeight:600}}><Download size={10}/> Ver</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 {r.review_note && <div style={{fontSize:11,color:A.textSec,marginBottom:10}}><span style={{fontWeight:600}}>Nota:</span> {r.review_note}</div>}
                 {isPending && (
                   <div style={{display:"flex",gap:10,alignItems:"flex-end",flexWrap:"wrap"}}>
@@ -1338,13 +1377,36 @@ const ORG_FIELD_LABELS = {
   departamento: "Departamento"
 };
 
+const MAX_ATTACHMENTS = 5;
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+
 function OrgProfileModule({clientOrg, sessionToken, userId}) {
   const A = C;
   const [form, setForm] = React.useState({});
   const [reason, setReason] = React.useState("");
+  const [files, setFiles] = React.useState([]);
+  const fileInputRef = React.useRef(null);
   const [requests, setRequests] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState(null);
+
+  const onPickFiles = (e) => {
+    const picked = Array.from(e.target.files || []);
+    const valid = [];
+    const errors = [];
+    picked.forEach(f => {
+      if (f.type !== "application/pdf") { errors.push(`${f.name}: solo PDF.`); return; }
+      if (f.size > MAX_ATTACHMENT_SIZE) { errors.push(`${f.name}: supera 10 MB.`); return; }
+      valid.push(f);
+    });
+    if (files.length + valid.length > MAX_ATTACHMENTS) { errors.push(`Máximo ${MAX_ATTACHMENTS} archivos por solicitud.`); valid.splice(MAX_ATTACHMENTS - files.length); }
+    if (errors.length) setMsg({t:"error",m:errors.join(" ")});
+    else setMsg(null);
+    setFiles(prev => [...prev, ...valid]);
+    if (e.target) e.target.value = "";
+  };
+
+  const removeFile = (idx) => setFiles(prev => prev.filter((_,i)=>i!==idx));
 
   React.useEffect(()=>{
     if(!clientOrg) return;
@@ -1373,18 +1435,27 @@ function OrgProfileModule({clientOrg, sessionToken, userId}) {
     if(requests.find(r=>r.status==="pending")) { setMsg({t:"error",m:"Ya tenés una solicitud pendiente. Esperá aprobación o rechazo."}); return; }
     setLoading(true); setMsg(null);
     try {
+      const attachments = [];
+      for (const f of files) {
+        const meta = await uploadAttachment(f, clientOrg.id, sessionToken);
+        attachments.push(meta);
+      }
       await sbInsert("org_update_requests", {
         org_id: clientOrg.id,
         requested_by: userId,
         requested_changes: diff,
-        reason: reason.trim() || null
+        reason: reason.trim() || null,
+        attachments
       }, sessionToken);
       setMsg({t:"success",m:"Solicitud enviada. Un SuperAdmin la revisará."});
       setReason("");
+      setFiles([]);
       await loadRequests();
     } catch(e) { setMsg({t:"error",m:e.message}); }
     setLoading(false);
   };
+
+  const formatSize = (bytes) => bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes/1024).toFixed(1)+" KB" : (bytes/1048576).toFixed(1)+" MB";
 
   const input = {width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:13,outline:"none",fontFamily:FONT};
   const statusBadge = (s) => s==="pending"?{color:A.yellow,bg:A.yellowDim,label:"Pendiente"}:s==="approved"?{color:A.green,bg:A.greenDim,label:"Aprobada"}:{color:A.red,bg:A.redDim,label:"Rechazada"};
@@ -1433,6 +1504,27 @@ function OrgProfileModule({clientOrg, sessionToken, userId}) {
           <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Motivo (opcional)</div>
           <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ej: actualización de contacto por cambio de HSE manager." rows={2} style={{...input,resize:"vertical",minHeight:58,fontFamily:FONT}}/>
         </div>
+
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Documentos de soporte (PDF, máx. 10 MB, hasta 5)</div>
+          <input ref={fileInputRef} type="file" accept="application/pdf" multiple onChange={onPickFiles} style={{display:"none"}}/>
+          <button type="button" onClick={()=>fileInputRef.current?.click()} disabled={files.length>=MAX_ATTACHMENTS} style={{display:"inline-flex",alignItems:"center",gap:8,background:"transparent",border:`1px dashed ${A.border}`,borderRadius:8,padding:"9px 14px",color:files.length>=MAX_ATTACHMENTS?A.textMuted:A.textSec,fontSize:12,cursor:files.length>=MAX_ATTACHMENTS?"not-allowed":"pointer",fontFamily:FONT}}>
+            <Paperclip size={13}/> Adjuntar PDF ({files.length}/{MAX_ATTACHMENTS})
+          </button>
+          {files.length>0 && (
+            <div style={{marginTop:10,display:"flex",flexDirection:"column",gap:6}}>
+              {files.map((f,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"7px 12px"}}>
+                  <FileText size={13} color={A.primary}/>
+                  <div style={{flex:1,fontSize:12,color:A.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</div>
+                  <div style={{fontSize:10,color:A.textMuted}}>{formatSize(f.size)}</div>
+                  <button onClick={()=>removeFile(i)} style={{background:"transparent",border:"none",color:A.red,cursor:"pointer",padding:2,display:"flex"}}><X size={13}/></button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button onClick={submit} disabled={loading} style={{background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"10px 18px",color:loading?"#5e7a95":"#060c14",fontSize:13,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:FONT}}>{loading?"Enviando...":"Enviar solicitud"}</button>
       </div>
 
@@ -1453,6 +1545,15 @@ function OrgProfileModule({clientOrg, sessionToken, userId}) {
                 ))}
               </div>
               {r.reason && <div style={{fontSize:11,color:A.textSec,fontStyle:"italic",marginTop:6}}>Motivo: {r.reason}</div>}
+              {r.attachments?.length>0 && (
+                <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4}}>
+                  {r.attachments.map((a,i)=>(
+                    <div key={i} style={{fontSize:11,color:A.textSec,display:"flex",alignItems:"center",gap:6}}>
+                      <Paperclip size={11}/> <span style={{color:A.text}}>{a.name}</span> <span style={{color:A.textMuted}}>({formatSize(a.size)})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {r.review_note && <div style={{fontSize:11,color:A.textSec,marginTop:6,paddingTop:6,borderTop:`1px dashed ${A.border}`}}><span style={{fontWeight:600}}>Nota SuperAdmin:</span> {r.review_note}</div>}
             </div>
           );
@@ -1937,7 +2038,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.7.2</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.8.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
