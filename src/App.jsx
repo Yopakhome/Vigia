@@ -1800,15 +1800,49 @@ const ediObs=(id)=>obligations.filter(o=>o.instrument_id===id);
 const toggleSource=(k)=>setSources(p=>({...p,[k]:!p[k]}));
 const conf=()=>{ const a=Object.values(sources).filter(Boolean).length; if(a===0)return{label:"Sin fuentes",color:C.red,risk:"ROJO"}; if(sources.validacion)return{label:"Maxima precision con revision humana",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa&&sources.jurisprudencia)return{label:"Alta precision - riesgo bajo",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa)return{label:"Precision moderada",color:C.yellow,risk:"AMARILLO"}; return{label:"Precision limitada",color:C.yellow,risk:"AMARILLO"}; };
 
-const handleNewAlert=(analysisResult)=>{
-const newAlert={id:`al_${Date.now()}`,norm_title:analysisResult.subject,norm_type:analysisResult.norma_data?.tipo_norma?.toLowerCase()||"resolucion",norm_date:analysisResult.doc_date||new Date().toISOString().split("T")[0],issuing_authority:analysisResult.sender,impact_type:analysisResult.proposed_changes?.length>0?"derogatoria":"interpretativa",urgency:analysisResult.urgency==="critica"?"critica":analysisResult.urgency==="moderada"?"moderada":"informativa",summary:analysisResult.content_summary,detailed_analysis:analysisResult.norma_data?.articulos_relevantes?.join(". ")||"",suggested_action:"Revisar los cambios propuestos y aplicar los que correspondan.",confidence_pct:analysisResult.candidate_confidence,human_validated:false,fuente_norma:analysisResult.norma_data,proposed_changes:analysisResult.proposed_changes||[]};
-setAlerts(p=>[newAlert,...p]);
+const handleNewAlert = async (analysisResult) => {
+  const uiExtras = { fuente_norma: analysisResult.norma_data, proposed_changes: analysisResult.proposed_changes || [] };
+  const dbAlert = {
+    norm_title: analysisResult.subject,
+    norm_type: analysisResult.norma_data?.tipo_norma?.toLowerCase() || "resolucion",
+    norm_date: analysisResult.doc_date || new Date().toISOString().split("T")[0],
+    issuing_authority: analysisResult.sender,
+    impact_type: analysisResult.proposed_changes?.length > 0 ? "derogatoria" : "interpretativa",
+    urgency: analysisResult.urgency === "critica" ? "critica" : analysisResult.urgency === "moderada" ? "moderada" : "informativa",
+    summary: analysisResult.content_summary,
+    detailed_analysis: analysisResult.norma_data?.articulos_relevantes?.join(". ") || "",
+    suggested_action: "Revisar los cambios propuestos y aplicar los que correspondan.",
+    confidence_pct: analysisResult.candidate_confidence,
+    human_validated: false
+  };
+  try {
+    const result = await adminFetch("/rest/v1/regulatory_alerts","POST",dbAlert,"return=representation");
+    const saved = Array.isArray(result) ? result[0] : result;
+    setAlerts(p => [{...(saved?.id ? saved : {id:`al_${Date.now()}`,...dbAlert}), ...uiExtras}, ...p]);
+  } catch(e) {
+    console.log("handleNewAlert persist error", e);
+    setAlerts(p => [{id:`al_${Date.now()}`, ...dbAlert, ...uiExtras}, ...p]);
+  }
 };
 
-const handleNewNorm=(analysisResult)=>{
-if(!analysisResult.norma_data) return;
-const newNorm={id:`n_${Date.now()}`,norm_type:analysisResult.norma_data.tipo_norma?.toLowerCase()||"resolucion",norm_number:analysisResult.norma_data.numero||"",norm_title:analysisResult.subject,issuing_body:analysisResult.norma_data.autoridad_emisora||analysisResult.sender,issue_date:analysisResult.norma_data.fecha_expedicion||analysisResult.doc_date,is_active:true};
-setNormSources(p=>[newNorm,...p]);
+const handleNewNorm = async (analysisResult) => {
+  if (!analysisResult.norma_data) return;
+  const dbNorm = {
+    norm_type: analysisResult.norma_data.tipo_norma?.toLowerCase() || "resolucion",
+    norm_number: analysisResult.norma_data.numero || "",
+    norm_title: analysisResult.subject,
+    issuing_body: analysisResult.norma_data.autoridad_emisora || analysisResult.sender,
+    issue_date: analysisResult.norma_data.fecha_expedicion || analysisResult.doc_date || null,
+    is_active: true
+  };
+  try {
+    const result = await adminFetch("/rest/v1/normative_sources","POST",dbNorm,"return=representation");
+    const saved = Array.isArray(result) ? result[0] : result;
+    setNormSources(p => [saved?.id ? saved : {id:`n_${Date.now()}`, ...dbNorm}, ...p]);
+  } catch(e) {
+    console.log("handleNewNorm persist error", e);
+    setNormSources(p => [{id:`n_${Date.now()}`, ...dbNorm}, ...p]);
+  }
 };
 
 const sendBot=async()=>{
@@ -2089,7 +2123,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.9.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.9.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
