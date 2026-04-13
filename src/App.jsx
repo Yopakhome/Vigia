@@ -4,7 +4,8 @@ import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
 const sb = async (table, params="") => {
-const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+const token = session?.access_token || SB_KEY;
+const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
 if (!res.ok) throw new Error(res.status);
 return res.json();
 };
@@ -874,10 +875,10 @@ if(Array.isArray(inst)&&inst.length>0){
           // Fetch client org
           try {
             const uid = session?.user?.id;
-            const mapR = await fetch(SB_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:{apikey:SB_ANON,Authorization:"Bearer "+(session?.access_token||"")}});
+            const mapR = await fetch(SB_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:{apikey:SB_KEY,Authorization:"Bearer "+(session?.access_token||SB_KEY)}});
             const mapData = await mapR.json();
             if(mapData?.[0]?.org_id) {
-              const orgR = await fetch(SB_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan", {headers:{apikey:SB_ANON,Authorization:"Bearer "+(session?.access_token||"")}});
+              const orgR = await fetch(SB_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan", {headers:{apikey:SB_KEY,Authorization:"Bearer "+(session?.access_token||SB_KEY)}});
               const orgData = await orgR.json();
               if(orgData?.[0]) setClientOrg(orgData[0]);
             }
@@ -1092,7 +1093,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
