@@ -264,7 +264,10 @@ const saveToSupabase = async (analysisResult, file) => {
       number: analysisResult.radicado || "SIN-RADICADO-"+Date.now(),
       issue_date: analysisResult.doc_date || now,
       authority_name: analysisResult.sender || "Por determinar",
-      domain: clientOrg.sector || "ambiental",
+      project_name: analysisResult.subject || analysisResult.candidate_edi || (clientOrg?.name ? `EDI ${clientOrg.name}` : "EDI sin título"),
+      location_dept: clientOrg?.location_dept || null,
+      location_mun: clientOrg?.location_mun || null,
+      domain: clientOrg?.sector || "ambiental",
       edi_status: "activo",
       completeness_pct: analysisResult.candidate_confidence || 60,
       has_confidential_sections: false,
@@ -363,7 +366,7 @@ try {
   const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
   setAnalysisResult({...parsed,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:canRead&&base64Data!==null});
 } catch {
-  setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:"C.I. Energia Solar S.A.S.",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:"No se pudo procesar el documento.",actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:30,matching_reasons:["Error de procesamiento"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+  setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:"No se pudo procesar el documento.",actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:30,matching_reasons:["Error de procesamiento"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
 }
 setUploadState("result");
 
@@ -1258,14 +1261,14 @@ const [dbStatus, setDbStatus] = useState("demo");
 const [clientOrg, setClientOrg] = useState(null);
 const [lastSync, setLastSync] = useState(null);
 const [botInput, setBotInput] = useState("");
-const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Datos de C.I. Energia Solar cargados. Selecciona fuentes y escribe tu consulta."}]);
+const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGÍA activo. Selecciona fuentes y escribe tu consulta."}]);
 const [botLoading, setBotLoading] = useState(false);
 const [sources, setSources] = useState({documentos:true,normativa:true,jurisprudencia:false,validacion:false});
 
 useEffect(()=>{
 const tryConnect = async () => {
 try {
-const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*,projects(name,location_dept,location_mun)&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
+const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=created_at.desc"),sb("obligations","select=*&order=due_date.asc"),sb("regulatory_alerts","select=*&order=norm_date.desc"),sb("normative_sources","select=*&is_active=eq.true")]);
 // Load data regardless of count
           setInstruments(Array.isArray(inst)?inst:[]);
           const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
@@ -1322,7 +1325,7 @@ const layers=Object.entries(sources).filter(([,v])=>v).map(([k])=>({documentos:"
 const obsCtx=obligations.map(o=>`${o.obligation_num||o.num} - ${o.name} (${o.status}, vence ${o.due_date})`).join("; ");
 const normCtx=normSources.map(n=>`${n.norm_type} ${n.norm_number}: ${n.norm_title}`).join("; ");
 try {
-const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:`Eres VIGIA, asistente de inteligencia regulatoria ambiental colombiana de C.I. Energia Solar S.A.S.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en espanol colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`,messages:[{role:"user",content:userMsg.text}]})});
+const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:`Eres VIGÍA, asistente de inteligencia regulatoria ambiental colombiana${clientOrg?.name?` de ${clientOrg.name}`:""}.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en español colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`,messages:[{role:"user",content:userMsg.text}]})});
 const data=await res.json();
 const reply=data.content?.[0]?.text||"No fue posible procesar la consulta.";
 setBotMessages(p=>[...p,{role:"assistant",text:reply,layers}]);
@@ -1366,7 +1369,7 @@ const renderDashboard=()=>(
 <div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>Expedientes Digitales Inteligentes</span><span style={{fontSize:11,color:C.textSec}}>{instruments.length} EDIs activos</span></div>
 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.projects?.name}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>o.status==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>o.status==="vencido").length} vencida(s)</span>}{(obs.filter(o=>o.status==="proximo"||o.status==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>o.status==="proximo"||o.status==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>o.status==="al_dia"||o.status==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
+{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>o.status==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>o.status==="vencido").length} vencida(s)</span>}{(obs.filter(o=>o.status==="proximo"||o.status==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>o.status==="proximo"||o.status==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>o.status==="al_dia"||o.status==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
 </div>
 </div>
 <div>
@@ -1386,7 +1389,7 @@ return <div style={{padding:28}}>
 <button onClick={()=>setView("dashboard")} style={{background:"transparent",border:"none",color:C.textSec,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:5,marginBottom:20,padding:0}}>Volver al panel</button>
 <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,padding:"20px 24px",marginBottom:20}}>
 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.projects?.name}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
+<div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - AUTORIDAD COMPETENTE</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
 <button onClick={()=>setView("consultar")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,color:C.primary,borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><MessageSquare size={13}/>Consultar</button>
 </div>
 <div style={{marginTop:16}}>
@@ -1501,7 +1504,90 @@ const renderOversight=()=><div style={{padding:28}}>
 
 const renderConsultar=()=>{ const c=conf(); return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>{msg.layers&&msg.role==="assistant"&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const [ediSearch, setEdiSearch] = useState("");
+const [ediFilter, setEdiFilter] = useState("todos");
+const renderEDIs = () => {
+  const hC2=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
+  const hB2=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
+  const q = ediSearch.trim().toLowerCase();
+  const filtered = instruments.filter(inst=>{
+    const h = ediHealth(inst);
+    if(ediFilter==="criticos" && h!=="critico") return false;
+    if(ediFilter==="moderados" && h!=="moderado") return false;
+    if(ediFilter==="al_dia" && h!=="al_dia") return false;
+    if(!q) return true;
+    const label = (inst.project_name||inst.projects?.name||"")+" "+(inst.number||"")+" "+(inst.instrument_type||"")+" "+(inst.authority_name||"");
+    return label.toLowerCase().includes(q);
+  });
+  const counts = {
+    todos: instruments.length,
+    criticos: instruments.filter(i=>ediHealth(i)==="critico").length,
+    moderados: instruments.filter(i=>ediHealth(i)==="moderado").length,
+    al_dia: instruments.filter(i=>ediHealth(i)==="al_dia").length,
+  };
+  return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+    <div style={{marginBottom:20}}>
+      <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Mis EDIs</h1>
+      <p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>Expedientes Digitales Inteligentes de {clientOrg?.name||"tu organización"} — {instruments.length} en total</p>
+    </div>
+    <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+      <input value={ediSearch} onChange={e=>setEdiSearch(e.target.value)} placeholder="Buscar por nombre, radicado, autoridad..." style={{flex:"1 1 280px",minWidth:220,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,outline:"none"}}/>
+      {[
+        {key:"todos",label:"Todos",color:C.primary},
+        {key:"criticos",label:"Críticos",color:C.red},
+        {key:"moderados",label:"Próximos",color:C.yellow},
+        {key:"al_dia",label:"Al día",color:C.green},
+      ].map(f=>(
+        <button key={f.key} onClick={()=>setEdiFilter(f.key)} style={{background:ediFilter===f.key?f.color+"22":C.surfaceEl,border:`1px solid ${ediFilter===f.key?f.color:C.border}`,borderRadius:8,padding:"9px 14px",color:ediFilter===f.key?f.color:C.textSec,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:FONT}}>{f.label} <span style={{opacity:0.7,marginLeft:4}}>{counts[f.key]}</span></button>
+      ))}
+    </div>
+    {instruments.length===0 ? (
+      <div style={{background:C.surface,border:`1px dashed ${C.border}`,borderRadius:12,padding:"48px 24px",textAlign:"center"}}>
+        <Layers size={36} color={C.textMuted} style={{marginBottom:12}}/>
+        <div style={{fontSize:15,fontWeight:600,color:C.text,marginBottom:6}}>Aún no tienes EDIs</div>
+        <div style={{fontSize:12,color:C.textSec,marginBottom:16}}>Usa el módulo INTAKE para cargar tu primer documento regulatorio.</div>
+        <button onClick={()=>setView("intake")} style={{background:C.primary,border:"none",borderRadius:8,padding:"10px 20px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Abrir INTAKE</button>
+      </div>
+    ) : filtered.length===0 ? (
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"32px 20px",textAlign:"center",fontSize:13,color:C.textSec}}>Ningún EDI coincide con el filtro.</div>
+    ) : (
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {filtered.map(inst=>{
+          const h=ediHealth(inst); const obs=ediObs(inst.id);
+          const color=hC2(h); const bg=hB2(h);
+          const venc=obs.filter(o=>o.status==="vencido").length;
+          const prox=obs.filter(o=>o.status==="proximo").length;
+          const aldia=obs.filter(o=>o.status==="al_dia").length;
+          const label = inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`;
+          return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+            <div style={{width:44,height:44,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={19} color={color}/></div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                <span style={{fontSize:14,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{label}</span>
+                <StatusDot status={h}/>
+              </div>
+              <div style={{fontSize:11,color:C.textSec,marginBottom:6}}>
+                Radicado: {inst.number||"—"} · {inst.authority_name||"Autoridad por determinar"} {inst.location_dept?`· ${inst.location_dept}`:""}
+              </div>
+              <div style={{display:"flex",gap:14,fontSize:11}}>
+                {venc>0 && <span style={{color:C.red,fontWeight:600}}>● {venc} vencida(s)</span>}
+                {prox>0 && <span style={{color:C.yellow,fontWeight:600}}>● {prox} próxima(s)</span>}
+                {aldia>0 && <span style={{color:C.green}}>● {aldia} al día</span>}
+                {obs.length===0 && <span style={{color:C.textMuted}}>Sin obligaciones registradas</span>}
+              </div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0,display:"flex",alignItems:"center",gap:10}}>
+              <Badge label={`${inst.completeness_pct||0}% completo`} color={(inst.completeness_pct||0)<80?C.yellow:C.green} bg={(inst.completeness_pct||0)<80?C.yellowDim:C.greenDim}/>
+              <ChevronRight size={16} color={C.textSec}/>
+            </div>
+          </div>;
+        })}
+      </div>
+    )}
+  </div>;
+};
+
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1510,7 +1596,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.4.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.5.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
