@@ -249,8 +249,6 @@ oversight: [
 };
 
 // --- INTAKE CONSTANTS ---------------------------------------------------------
-const INTAKE_EDIS = [];
-const INTAKE_OBLIGATIONS = [];
 const DOC_TYPES = {
 norma:{ label:"Norma", color:"#a78bfa", bg:"rgba(167,139,250,0.10)", desc:"Ley, Decreto, Resolucion, Circular" },
 acto_administrativo:{ label:"Acto Administrativo", color:"#ff4d6d", bg:"rgba(255,77,109,0.12)", desc:"Auto, Oficio, Resolucion individual" },
@@ -275,7 +273,7 @@ informativo:{ label:"Solo informativo", color:"#5e7a95" },
 const SEED_INTAKE = [];
 
 // --- INTAKE MODULE -------------------------------------------------------------
-function IntakeModule({ onNewAlert, onNewNorm, clientOrg, sessionToken, onNewInstrument, onNewObligation }) {
+function IntakeModule({ onNewAlert, onNewNorm, clientOrg, sessionToken, onNewInstrument, onNewObligation, instruments = [], obligations = [] }) {
 const [docs, setDocs] = React.useState([]);
 const [selectedDoc, setSelectedDoc] = React.useState(null);
 const [uploadState, setUploadState] = React.useState("idle");
@@ -404,8 +402,9 @@ const analyzeDocument = async (file) => {
 
   const SYSTEM = `Eres el motor de ingestion documental de VIGIA, plataforma de inteligencia regulatoria ambiental colombiana.
 
-EDIs activos: ${INTAKE_EDIS.map(e=>`${e.name} (Instrumento No. ${e.number})`).join(", ")}.
-Obligaciones activas: ${INTAKE_OBLIGATIONS.map(o=>`${o.num}: ${o.name}`).join(", ")}.
+Organización del cliente: ${clientOrg?.name||"(sin definir)"} (sector ${clientOrg?.sector||"—"}).
+EDIs activos (${instruments.length}): ${instruments.length===0?"ninguno registrado":instruments.map(e=>`${e.project_name||e.name||"(sin nombre)"} — instrumento No. ${e.number||"—"}, autoridad ${e.authority_name||"—"}`).join("; ")}.
+Obligaciones activas (${obligations.length}): ${obligations.length===0?"ninguna registrada":obligations.map(o=>`${o.obligation_num||o.num||o.id}: ${o.name} (vence ${o.due_date||"—"}, estado ${o.status||"—"})`).join("; ")}.
 IMPORTANTE: Si el documento es una norma (ley, decreto, resolucion, circular, sentencia), identificalo como tal y extrae sus metadatos normativos completos. Las normas deben agregarse a la base normativa Y generar alertas regulatorias Y proponer cambios a las obligaciones afectadas.
 Responde SOLO en JSON:
 {"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
@@ -439,7 +438,7 @@ setPendingChanges(p=>p.map((c,i)=>i===idx?{...c,applied:true}:c));
 
 const processAndLink = () => {
 if(!analysisResult) return;
-const edi=INTAKE_EDIS.find(e=>e.name===analysisResult.candidate_edi);
+const edi=instruments.find(e=>(e.project_name||e.name)===analysisResult.candidate_edi);
 const newDoc={id:`int_${Date.now()}`,original_name:analysisResult.file_name,file_type:analysisResult.file_type,file_size:analysisResult.file_size,doc_nature:analysisResult.doc_nature,is_norma:analysisResult.is_norma||false,sender:analysisResult.sender,receiver:analysisResult.receiver,doc_date:analysisResult.doc_date||new Date().toISOString().split("T")[0],received_date:new Date().toISOString().split("T")[0],radicado:analysisResult.radicado,subject:analysisResult.subject,content_summary:analysisResult.content_summary,actions_detected:analysisResult.actions_detected,obligations_affected:analysisResult.obligations_affected,confidence_pct:analysisResult.candidate_confidence,edi_id:edi?.id||null,urgency:analysisResult.urgency,status:"procesado",processed_date:new Date().toISOString().split("T")[0],norma_data:analysisResult.norma_data||null,proposed_changes:analysisResult.proposed_changes||[]};
 saveToSupabase(analysisResult, {name:analysisResult.file_name||"documento",type:analysisResult.file_type||"",size:(analysisResult.file_size||0)*1024}).catch(e=>console.log("supabase save",e));
 setDocs(p=>[newDoc,...p]);
@@ -2125,7 +2124,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -2134,7 +2133,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.0.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.1.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
