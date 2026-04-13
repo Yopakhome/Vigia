@@ -876,7 +876,8 @@ function ColombiaLocation({dpto, ciudad, onDpto, onCiudad, A}) {
   );
 }
 
-function SuperAdminModule({reviewerId}) {
+function SuperAdminModule({reviewerId, sessionToken}) {
+  const saCall = (op, payload) => callEdge("superadmin-api", {op, payload}, sessionToken);
   const [tab, setTab] = React.useState("overview");
   const [users, setUsers] = React.useState([]);
   const [orgs, setOrgs] = React.useState([]);
@@ -902,16 +903,11 @@ function SuperAdminModule({reviewerId}) {
   const load = async () => {
     setLoading(true);
     try {
-      const [ur,or2,ob,al] = await Promise.all([
-        adminFetch("/auth/v1/admin/users?page=1&per_page=50"),
-        adminFetch("/rest/v1/organizations?select=*"),
-        adminFetch("/rest/v1/obligations?select=id"),
-        adminFetch("/rest/v1/regulatory_alerts?select=id"),
-      ]);
-      const ul = ur.users||(Array.isArray(ur)?ur:[]);
+      const { users: ur, orgs: or2, obligations: ob, alerts: al } = await saCall("list-overview");
+      const ul = ur?.users || (Array.isArray(ur) ? ur : []);
       setUsers(ul);
       setOrgs(Array.isArray(or2)?or2:[]);
-      setStats({users:ur.total||ul.length,orgs:Array.isArray(or2)?or2.length:0,obligations:Array.isArray(ob)?ob.length:0,alerts:Array.isArray(al)?al.length:0});
+      setStats({users:ur?.total||ul.length, orgs:Array.isArray(or2)?or2.length:0, obligations:Array.isArray(ob)?ob.length:0, alerts:Array.isArray(al)?al.length:0});
     } catch(e) { setMsg({t:"error",m:e.message}); }
     setLoading(false);
   };
@@ -920,7 +916,7 @@ function SuperAdminModule({reviewerId}) {
 
   const loadRequests = async () => {
     try {
-      const data = await adminFetch("/rest/v1/org_update_requests?select=*&order=created_at.desc");
+      const { requests: data } = await saCall("list-requests");
       setRequests(Array.isArray(data)?data:[]);
     } catch(e) { /* ignore */ }
   };
@@ -928,14 +924,7 @@ function SuperAdminModule({reviewerId}) {
   const approveRequest = async (r) => {
     setReviewingId(r.id); setMsg(null);
     try {
-      const orgPatch = await adminFetch(`/rest/v1/organizations?id=eq.${r.org_id}`, "PATCH", r.requested_changes, "return=representation");
-      if(orgPatch && orgPatch.error) throw new Error(JSON.stringify(orgPatch.error));
-      await adminFetch(`/rest/v1/org_update_requests?id=eq.${r.id}`, "PATCH", {
-        status: "approved",
-        reviewed_by: reviewerId || null,
-        reviewed_at: new Date().toISOString(),
-        review_note: null
-      });
+      await saCall("approve-request", { id: r.id, org_id: r.org_id, requested_changes: r.requested_changes, reviewer_id: reviewerId });
       setMsg({t:"success",m:"Solicitud aprobada y aplicada a la organización."});
       await loadRequests();
     } catch(e) { setMsg({t:"error",m:"Error aprobando: "+e.message}); }
@@ -947,12 +936,7 @@ function SuperAdminModule({reviewerId}) {
     if(!note) { setMsg({t:"error",m:"Escribí un motivo antes de rechazar."}); return; }
     setReviewingId(r.id); setMsg(null);
     try {
-      await adminFetch(`/rest/v1/org_update_requests?id=eq.${r.id}`, "PATCH", {
-        status: "rejected",
-        reviewed_by: reviewerId || null,
-        reviewed_at: new Date().toISOString(),
-        review_note: note
-      });
+      await saCall("reject-request", { id: r.id, note, reviewer_id: reviewerId });
       setRejectNoteById(p=>{ const n={...p}; delete n[r.id]; return n; });
       setMsg({t:"success",m:"Solicitud rechazada."});
       await loadRequests();
@@ -966,14 +950,12 @@ function SuperAdminModule({reviewerId}) {
     setSetupRunning(true); setSetupLog([]); setSetupDone(false);
     try {
       addLog("Creando Energia Renovable Demo S.A.S...");
-      var r1 = await adminFetch("/rest/v1/organizations","POST",{id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tier:"free",risk_profile:"estándar",city:"Bogota",sector:"energia",ciudad:"Bogota",departamento:"Cundinamarca",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia"},"resolution=merge-duplicates,return=representation");
-      if(r1 && !r1.error && !r1.raw) { addLog("Energia Renovable Demo - OK","success"); }
-      else { addLog("Energia ERROR: "+JSON.stringify(r1).slice(0,120),"error"); }
+      try { await saCall("create-org", {id:"b1000000-0000-0000-0000-000000000001",name:"Energia Renovable Demo S.A.S.",nit:"901234567-1",tier:"free",risk_profile:"estándar",city:"Bogota",sector:"energia",ciudad:"Bogota",departamento:"Cundinamarca",tipo_persona:"juridica",representante_legal:"Ana Maria Torres Herrera",contacto_vigia:"Carlos Mendez",cargo_contacto:"Coordinador HSE",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia"}); addLog("Energia Renovable Demo - OK","success"); }
+      catch(e) { addLog("Energia ERROR: "+e.message,"error"); }
 
       addLog("Creando Mineria Verde Demo Ltda...");
-      var r2 = await adminFetch("/rest/v1/organizations","POST",{id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tier:"free",risk_profile:"cauteloso",city:"Medellin",sector:"mineria",ciudad:"Medellin",departamento:"Antioquia",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico"},"resolution=merge-duplicates,return=representation");
-      if(r2 && !r2.error && !r2.raw) { addLog("Mineria Verde Demo - OK","success"); }
-      else { addLog("Mineria ERROR: "+JSON.stringify(r2).slice(0,120),"error"); }
+      try { await saCall("create-org", {id:"b2000000-0000-0000-0000-000000000002",name:"Mineria Verde Demo Ltda.",nit:"800987654-2",tier:"free",risk_profile:"cauteloso",city:"Medellin",sector:"mineria",ciudad:"Medellin",departamento:"Antioquia",tipo_persona:"juridica",representante_legal:"Roberto Calderon Pinto",contacto_vigia:"Sandra Rios",cargo_contacto:"Directora Ambiental",plan:"prueba",plan_estado:"activo",limite_edis:5,limite_usuarios:4,limite_intake_mes:100,acepta_terminos:true,consentimiento_datos:true,pais_datos:"Colombia",nivel_confidencialidad:"critico"}); addLog("Mineria Verde Demo - OK","success"); }
+      catch(e) { addLog("Mineria ERROR: "+e.message,"error"); }
 
       var usersToCreate = [
         {email:"admin@enara.co",password:"Vigia2026!",org_id:null,role:"superadmin"},
@@ -985,12 +967,8 @@ function SuperAdminModule({reviewerId}) {
       for(var i=0;i<usersToCreate.length;i++) {
         var u = usersToCreate[i];
         addLog("Creando "+u.email+"...");
-        var ur = await adminFetch("/auth/v1/admin/users","POST",{email:u.email,password:u.password,email_confirm:true});
-        if(!ur.id){ addLog("ERROR: "+(ur.message||JSON.stringify(ur).slice(0,60)),"error"); continue; }
-        if(u.org_id && u.role !== "superadmin") {
-          await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:u.org_id,role:u.role},"resolution=merge-duplicates,return=minimal");
-        }
-        addLog(u.email+" ("+u.role+") - OK","success");
+        try { await saCall("create-user", u); addLog(u.email+" ("+u.role+") - OK","success"); }
+        catch(e) { addLog("ERROR "+u.email+": "+e.message,"error"); }
       }
       addLog("SETUP COMPLETO","success");
       setSetupDone(true);
@@ -1002,12 +980,13 @@ function SuperAdminModule({reviewerId}) {
   const createUser = async function() {
     if(!newUser.email||!newUser.password||!newUser.org_id){ setMsg({t:"error",m:"Completa todos los campos"}); return; }
     setLoading(true); setMsg(null);
-    var ur = await adminFetch("/auth/v1/admin/users","POST",{email:newUser.email,password:newUser.password,email_confirm:true});
-    if(!ur.id){ setMsg({t:"error",m:ur.message||JSON.stringify(ur)}); setLoading(false); return; }
-    await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:newUser.org_id,role:newUser.role},"resolution=merge-duplicates,return=minimal");
-    setMsg({t:"success",m:"Usuario "+newUser.email+" creado OK"});
-    setNewUser({email:"",password:"",org_id:"",role:"viewer"});
-    load(); setLoading(false);
+    try {
+      await saCall("create-user", newUser);
+      setMsg({t:"success",m:"Usuario "+newUser.email+" creado OK"});
+      setNewUser({email:"",password:"",org_id:"",role:"viewer"});
+      load();
+    } catch(e) { setMsg({t:"error",m:e.message}); }
+    setLoading(false);
   };
 
   const addOrgUser = function() {
@@ -1024,10 +1003,10 @@ function SuperAdminModule({reviewerId}) {
       if(!u.email){ log.push({m:"Fila "+(i+1)+": email vacío, saltada",t:"warn"}); continue; }
       log.push({m:"Creando "+u.email+"...",t:"info"});
       setUsersLog([...log]);
-      var ur = await adminFetch("/auth/v1/admin/users","POST",{email:u.email,password:u.password,email_confirm:true});
-      if(!ur.id){ log.push({m:"ERROR "+u.email+": "+(ur.message||JSON.stringify(ur).slice(0,60)),t:"error"}); setUsersLog([...log]); continue; }
-      await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:newOrgCreated.id,role:u.role},"resolution=merge-duplicates,return=minimal");
-      log.push({m:u.email+" ("+u.role+") — OK",t:"success"});
+      try {
+        await saCall("create-user", { email: u.email, password: u.password, org_id: newOrgCreated.id, role: u.role });
+        log.push({m:u.email+" ("+u.role+") — OK",t:"success"});
+      } catch(e) { log.push({m:"ERROR "+u.email+": "+e.message,t:"error"}); }
       setUsersLog([...log]);
     }
     log.push({m:"Proceso completado",t:"success"});
@@ -1059,17 +1038,19 @@ function SuperAdminModule({reviewerId}) {
       fecha_aceptacion_terminos:new Date().toISOString(),
       version_terminos:"1.0"
     });
-    var r = await adminFetch("/rest/v1/organizations","POST",payload,"resolution=merge-duplicates,return=representation");
-    if(r && r.error){
-      var errMsg = r.error.message||JSON.stringify(r);
+    try {
+      const { org: row } = await saCall("create-org", payload);
+      if(row?.id) {
+        setNewOrgCreated(row);
+        setNewOrgMsg({t:"success",m:"Organización '"+row.name+"' creada exitosamente."});
+        load();
+      } else {
+        setNewOrgMsg({t:"error",m:"Respuesta inesperada del servidor"});
+      }
+    } catch(e) {
+      var errMsg = e.message || String(e);
       if(errMsg.includes("nit_key")||errMsg.includes("unique")) errMsg = "Ya existe una organización con ese NIT. Verifícalo.";
       setNewOrgMsg({t:"error",m:errMsg});
-    } else if(Array.isArray(r)&&r[0]){
-      setNewOrgCreated(r[0]);
-      setNewOrgMsg({t:"success",m:"Organización '"+r[0].name+"' creada exitosamente."});
-      load();
-    } else {
-      setNewOrgMsg({t:"error",m:"Error inesperado: "+JSON.stringify(r).slice(0,100)});
     }
     setNewOrgSaving(false);
   };
@@ -2131,7 +2112,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -2140,7 +2121,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.2</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
