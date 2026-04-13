@@ -1338,7 +1338,7 @@ const ORG_FIELD_LABELS = {
   departamento: "Departamento"
 };
 
-function OrgProfileModule({clientOrg, sessionToken}) {
+function OrgProfileModule({clientOrg, sessionToken, userId}) {
   const A = C;
   const [form, setForm] = React.useState({});
   const [reason, setReason] = React.useState("");
@@ -1375,6 +1375,7 @@ function OrgProfileModule({clientOrg, sessionToken}) {
     try {
       await sbInsert("org_update_requests", {
         org_id: clientOrg.id,
+        requested_by: userId,
         requested_changes: diff,
         reason: reason.trim() || null
       }, sessionToken);
@@ -1927,7 +1928,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1936,7 +1937,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.7.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.7.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
