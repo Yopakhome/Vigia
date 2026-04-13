@@ -660,6 +660,9 @@ function SuperAdminModule() {
   const [msg, setMsg] = React.useState(null);
   const [newUser, setNewUser] = React.useState({email:"",password:"",org_id:"",role:"viewer"});
   const [setupLog, setSetupLog] = React.useState([]);
+  const [newOrg, setNewOrg] = React.useState({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+  const [newOrgMsg, setNewOrgMsg] = React.useState(null);
+  const [newOrgSaving, setNewOrgSaving] = React.useState(false);
   const [setupRunning, setSetupRunning] = React.useState(false);
   const [setupDone, setSetupDone] = React.useState(false);
   const A = C;
@@ -733,7 +736,37 @@ function SuperAdminModule() {
     load(); setLoading(false);
   };
 
-  var tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
+  const saveNewOrg = async function() {
+    if(!newOrg.name||!newOrg.nit||!newOrg.representante_legal||!newOrg.sector||!newOrg.ciudad||!newOrg.contacto_vigia){
+      setNewOrgMsg({t:"error",m:"Completa los campos obligatorios (*)"});
+      return;
+    }
+    if(!newOrg.acepta_terminos||!newOrg.consentimiento_datos){
+      setNewOrgMsg({t:"error",m:"El cliente debe aceptar términos y consentimiento de datos"});
+      return;
+    }
+    setNewOrgSaving(true); setNewOrgMsg(null);
+    var payload = Object.assign({},newOrg,{
+      tier:"free", risk_profile:"estándar",
+      country:"CO", city:newOrg.ciudad,
+      plan_estado:"activo",
+      fecha_aceptacion_terminos:new Date().toISOString(),
+      version_terminos:"1.0"
+    });
+    var r = await adminFetch("/rest/v1/organizations","POST",payload,"resolution=merge-duplicates,return=representation");
+    if(r && r.error){
+      setNewOrgMsg({t:"error",m:r.error.message||JSON.stringify(r)});
+    } else if(Array.isArray(r)&&r[0]){
+      setNewOrgMsg({t:"success",m:"Organización '"+r[0].name+"' creada exitosamente. ID: "+r[0].id});
+      setNewOrg({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+      load();
+    } else {
+      setNewOrgMsg({t:"error",m:"Error inesperado: "+JSON.stringify(r).slice(0,100)});
+    }
+    setNewOrgSaving(false);
+  };
+
+    var tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
 
   return (
     <div style={{padding:28,color:A.text}}>
@@ -810,6 +843,111 @@ function SuperAdminModule() {
           <button onClick={createUser} disabled={loading} style={{width:"100%",background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer"}}>{loading?"Creando...":"Crear usuario"}</button>
         </div>
       )}
+
+      {tab==="neworg"&&(
+        <div style={{maxWidth:680}}>
+          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:28}}>
+            <div style={{fontSize:16,fontWeight:700,color:A.text,marginBottom:4}}>Nueva organización cliente</div>
+            <div style={{fontSize:12,color:A.textSec,marginBottom:24}}>Completa todos los campos para activar al cliente en VIGÍA.</div>
+
+            {newOrgMsg&&<div style={{background:newOrgMsg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(newOrgMsg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:newOrgMsg.t==="success"?A.green:A.red,marginBottom:16}}>{newOrgMsg.m}</div>}
+
+            {/* SECCIÓN 1: Datos básicos */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Datos básicos</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Razón social / Nombre *","name","text"],["NIT *","nit","text"],["Representante legal *","representante_legal","text"],["Email corporativo","email_corporativo","email"],["Teléfono","telefono","text"],["CIIU","ciiu","text"]].map(function(f){ return (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ); })}
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Tipo persona *</div>
+                <select value={newOrg.tipo_persona||"juridica"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{tipo_persona:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  <option value="juridica">Jurídica</option>
+                  <option value="natural">Natural</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Sector *</div>
+                <select value={newOrg.sector||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{sector:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  <option value="">Seleccionar...</option>
+                  {["energia","mineria","manufactura","construccion","agro","logistica","servicios","otro"].map(function(s){return <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>;})}
+                </select>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Plan *</div>
+                <select value={newOrg.plan||"prueba"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{plan:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  <option value="prueba">Prueba (30 días)</option>
+                  <option value="basico">Básico</option>
+                  <option value="profesional">Profesional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+            </div>
+
+            {/* SECCIÓN 2: Ubicación */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Ubicación</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Ciudad *","ciudad","text"],["Departamento *","departamento","text"],["Dirección","direccion","text"],["País","pais_datos","text"]].map(function(f){ return (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ); })}
+            </div>
+
+            {/* SECCIÓN 3: Contacto VIGÍA */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Contacto VIGÍA en la empresa</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Nombre contacto *","contacto_vigia","text"],["Cargo","cargo_contacto","text"]].map(function(f){ return (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ); })}
+            </div>
+
+            {/* SECCIÓN 4: Configuración */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Configuración de cuenta</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Límite EDIs","limite_edis",5],["Límite usuarios","limite_usuarios",4],["Intake/mes","limite_intake_mes",100]].map(function(f){ return (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type="number" value={newOrg[f[1]]!==undefined?newOrg[f[1]]:f[2]} onChange={function(e){var v=parseInt(e.target.value);setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ); })}
+            </div>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Nivel de confidencialidad</div>
+              <div style={{display:"flex",gap:8}}>
+                {["estandar","sensible","critico"].map(function(n){ return <button key={n} onClick={function(){setNewOrg(function(p){return Object.assign({},p,{nivel_confidencialidad:n});});}} style={{background:(newOrg.nivel_confidencialidad||"estandar")===n?A.primaryDim:A.surfaceEl,border:"1px solid "+((newOrg.nivel_confidencialidad||"estandar")===n?A.primary+"44":A.border),borderRadius:6,padding:"7px 18px",color:(newOrg.nivel_confidencialidad||"estandar")===n?A.primary:A.textSec,fontSize:12,cursor:"pointer"}}>{n.charAt(0).toUpperCase()+n.slice(1)}</button>; })}
+              </div>
+            </div>
+
+            {/* SECCIÓN 5: Términos */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Términos y consentimiento</div>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+              {[["acepta_terminos","Acepta términos y condiciones de VIGÍA"],["consentimiento_datos","Autoriza tratamiento de datos personales (Ley 1581/2012)"]].map(function(f){ return (
+                <label key={f[0]} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+                  <div onClick={function(){setNewOrg(function(p){return Object.assign({},p,{[f[0]]:!p[f[0]]});});}} style={{width:18,height:18,borderRadius:4,border:"2px solid "+(newOrg[f[0]]?A.primary:A.border),background:newOrg[f[0]]?A.primary:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {newOrg[f[0]]&&<svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" fill="none" stroke="#060c14" strokeWidth="2"/></svg>}
+                  </div>
+                  <span style={{fontSize:12,color:A.textSec}}>{f[1]}</span>
+                </label>
+              ); })}
+            </div>
+
+            <button onClick={saveNewOrg} disabled={newOrgSaving} style={{width:"100%",background:newOrgSaving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"13px",color:newOrgSaving?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:newOrgSaving?"not-allowed":"pointer"}}>
+              {newOrgSaving?"Creando organización...":"Crear organización y activar cliente"}
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {tab==="setup"&&(
         <div style={{maxWidth:520}}>
@@ -1120,7 +1258,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.4</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
