@@ -849,6 +849,7 @@ const [alerts, setAlerts] = useState([]);
 const [normSources, setNormSources] = useState([]);
 const [oversight, setOversight] = useState([]);
 const [dbStatus, setDbStatus] = useState("demo");
+const [clientOrg, setClientOrg] = useState(null);
 const [lastSync, setLastSync] = useState(null);
 const [botInput, setBotInput] = useState("");
 const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGIA activo. Datos de C.I. Energia Solar cargados. Selecciona fuentes y escribe tu consulta."}]);
@@ -870,6 +871,17 @@ if(Array.isArray(inst)&&inst.length>0){
           setAlerts(Array.isArray(alrt)?alrt:[]);
           setNormSources(Array.isArray(norms)?norms:[]);
           setDbStatus("connected");
+          // Fetch client org
+          try {
+            const uid = session?.user?.id;
+            const mapR = await fetch(SB_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:{apikey:SB_ANON,Authorization:"Bearer "+(session?.access_token||"")}});
+            const mapData = await mapR.json();
+            if(mapData?.[0]?.org_id) {
+              const orgR = await fetch(SB_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=id,name,sector,plan", {headers:{apikey:SB_ANON,Authorization:"Bearer "+(session?.access_token||"")}});
+              const orgData = await orgR.json();
+              if(orgData?.[0]) setClientOrg(orgData[0]);
+            }
+          } catch(e) { console.log("org fetch err",e); }
           setLastSync(new Date());
         }
 } catch { setDbStatus("demo"); }
@@ -925,7 +937,7 @@ const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
 <div style={{padding:28}}>
-<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:"Modo demo - C.I. Energia Solar"}</p></div>
+<div style={{marginBottom:24}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:clientOrg ? clientOrg.name : "Panel de cumplimiento"}</p></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
 <StatCard icon={Layers} label="EDIs activos" value={instruments.length} color={C.primary}/>
 <StatCard icon={AlertTriangle} label="Obligaciones vencidas" value={overdue} color={C.red} sub={overdue>0?"Requiere accion inmediata":"Sin vencimientos"}/>
@@ -1080,7 +1092,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.1.9</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
