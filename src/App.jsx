@@ -94,16 +94,26 @@ const uploadAttachment = async (file, orgId, token) => {
   return { path, name: file.name, size: file.size, mime: file.type || "application/pdf" };
 };
 
-const getSignedAttachmentUrl = async (path) => {
-  const res = await fetch(`${SB_URL}/storage/v1/object/sign/org-attachments/${encodeURI(path)}`, {
+const callEdge = async (name, body, token) => {
+  const res = await fetch(`${SB_URL}/functions/v1/${name}`, {
     method: "POST",
-    headers: { apikey: SB_SERVICE, Authorization: `Bearer ${SB_SERVICE}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ expiresIn: 300 })
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${token||SB_KEY}`, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined
   });
-  const data = await res.json();
-  const rel = data.signedURL || data.signedUrl;
-  if (!rel) throw new Error(data.error || "No se pudo firmar URL");
-  return SB_URL + "/storage/v1" + rel;
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data.error || `${name} → ${res.status}`);
+  return data;
+};
+
+const fetchOrgContext = async (token) => {
+  try { return await callEdge("org-lookup", null, token); }
+  catch(e) { console.log("org-lookup error", e); return { org: null, role: null, isSuperAdmin: false }; }
+};
+
+const getSignedAttachmentUrl = async (path, token) => {
+  const data = await callEdge("storage-sign", { path, bucket: "org-attachments", expiresIn: 300 }, token);
+  if (!data.signedUrl) throw new Error(data.error || "No se pudo firmar URL");
+  return data.signedUrl;
 };
 
 const sbInsert = async (table, data, token=SB_KEY) => {
@@ -795,7 +805,6 @@ function LoginScreen({ onLogin }) {
 // ─── SUPERADMIN v2.1.1 ───────────────────────────────────────────────────────────────
 const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a2J1amtxamVzdW50Z2RrdWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk1NzIyNywiZXhwIjoyMDkxNTMzMjI3fQ.0wdZfTZ0Ar-Wys99pxqMACBt7xfBwJdkFW5sNp6ka2Q";
 const SB_ADMIN_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
-const SUPERADMIN_EMAILS = ["demo@vigia.co","admin@enara.co"];
 
 const adminFetch = async (path, method, body, prefer) => {
   const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE, "Content-Type":"application/json"};
@@ -1135,7 +1144,7 @@ function SuperAdminModule({reviewerId}) {
                           <Paperclip size={11} color={A.primary}/>
                           <span style={{flex:1,fontSize:11,color:A.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</span>
                           <span style={{fontSize:10,color:A.textMuted}}>{a.size<1048576?(a.size/1024).toFixed(1)+" KB":(a.size/1048576).toFixed(1)+" MB"}</span>
-                          <button onClick={async function(){ try { const url = await getSignedAttachmentUrl(a.path); window.open(url, "_blank"); } catch(e){ setMsg({t:"error",m:"No se pudo abrir: "+e.message}); } }} style={{background:"transparent",border:"1px solid "+A.border,borderRadius:6,padding:"3px 10px",color:A.primary,fontSize:10,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:4,fontWeight:600}}><Download size={10}/> Ver</button>
+                          <button onClick={async function(){ try { const url = await getSignedAttachmentUrl(a.path, sessionToken); window.open(url, "_blank"); } catch(e){ setMsg({t:"error",m:"No se pudo abrir: "+e.message}); } }} style={{background:"transparent",border:"1px solid "+A.border,borderRadius:6,padding:"3px 10px",color:A.primary,fontSize:10,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:4,fontWeight:600}}><Download size={10}/> Ver</button>
                         </div>
                       );
                     })}
@@ -1699,23 +1708,21 @@ export default function VIGIAApp() {
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userOrgRole, setUserOrgRole] = useState(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  const applyOrgContext = ({ org, role, isSuperAdmin: superFlag }) => {
+    if(org) setClientOrg(org);
+    if(role !== undefined) setUserOrgRole(role||null);
+    if(typeof superFlag === "boolean") setIsSuperAdmin(superFlag);
+  };
 
   useEffect(()=>{
     sbGetSession().then(async s=>{
       setSession(s);
       setAuthLoading(false);
-      if(s?.user?.id) {
-        try {
-          const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
-          const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+s.user.id+"&select=org_id,role", {headers:h});
-          const md = await mr.json();
-          if(md?.[0]?.org_id){
-            setUserOrgRole(md[0].role||null);
-            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=*", {headers:h});
-            const od = await or2.json();
-            if(od?.[0]) setClientOrg(od[0]);
-          }
-        } catch(e){ console.log("org session err",e); }
+      if(s?.access_token) {
+        const ctx = await fetchOrgContext(s.access_token);
+        applyOrgContext(ctx);
       }
     });
   },[]);
@@ -1752,36 +1759,21 @@ const [inst,obs,alrt,norms,ovs]=await Promise.all([sb("instruments","select=*&or
           setOversight(Array.isArray(ovs)?ovs:[]);
           setDbStatus("connected");
           setLastSync(new Date());
-          // Fetch client org (always, even with 0 EDIs)
-          try {
-            const uid = session?.user?.id;
-            const h = {apikey:SB_SERVICE,Authorization:"Bearer "+SB_SERVICE};
-            const mapR = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id,role", {headers:h});
-            const mapData = await mapR.json();
-            if(mapData?.[0]?.org_id) {
-              setUserOrgRole(mapData[0].role||null);
-              const orgR = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+mapData[0].org_id+"&select=*", {headers:h});
-              const orgData = await orgR.json();
-              if(orgData?.[0]) setClientOrg(orgData[0]);
-            }
-          } catch(e) { console.log("org fetch err",e); }
+          // Fetch client org via edge function (no service_role en browser)
+          if(session?.access_token) {
+            const ctx = await fetchOrgContext(session.access_token);
+            applyOrgContext(ctx);
+          }
 } catch { setDbStatus("demo"); }
 };
 if(session) tryConnect();
 },[session]);
 
 const refetchClientOrg = async () => {
-  if(!session?.user?.id) return;
+  if(!session?.access_token) return;
   try {
-    const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
-    const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+session.user.id+"&select=org_id,role", {headers:h});
-    const md = await mr.json();
-    if(md?.[0]?.org_id) {
-      setUserOrgRole(md[0].role||null);
-      const or = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=*", {headers:h});
-      const od = await or.json();
-      if(od?.[0]) setClientOrg(od[0]);
-    }
+    const ctx = await fetchOrgContext(session.access_token);
+    applyOrgContext(ctx);
   } catch(e) {}
 };
 
@@ -1896,24 +1888,16 @@ if(clientOrg?.id && session?.access_token) {
 setBotLoading(false);
 };
 
-const isSuperAdmin=SUPERADMIN_EMAILS.includes(session?.user?.email);
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
   const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
     setSession(s);
-    try {
-      const uid = s?.user?.id;
-      const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
-      const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:h});
-      const md = await mr.json();
-      if(md?.[0]?.org_id){
-        const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:h});
-        const od = await or2.json();
-        if(od?.[0]) setClientOrg(od[0]);
-      }
-    } catch(e){ console.log("org err",e); }
+    if(s?.access_token) {
+      const ctx = await fetchOrgContext(s.access_token);
+      applyOrgContext(ctx);
+    }
   }}/>;
 
   const hC=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
@@ -2158,7 +2142,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.3.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
