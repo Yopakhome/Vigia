@@ -651,6 +651,31 @@ const adminFetch = async (path, method, body, prefer) => {
   try { return JSON.parse(t); } catch { return {raw:t,status:r.status}; }
 };
 
+
+function ColombiaLocation({dpto, ciudad, onDpto, onCiudad, A}) {
+  const deptos = Object.keys(COLOMBIA).sort();
+  const cities = dpto && COLOMBIA[dpto] ? COLOMBIA[dpto].sort() : [];
+  const sel = {width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"};
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div>
+        <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Departamento *</div>
+        <select value={dpto||""} onChange={e=>{onDpto(e.target.value); onCiudad("");}} style={sel}>
+          <option value="">Seleccionar departamento...</option>
+          {deptos.map(d=><option key={d} value={d}>{d}</option>)}
+        </select>
+      </div>
+      <div>
+        <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Ciudad *</div>
+        <select value={ciudad||""} onChange={e=>onCiudad(e.target.value)} disabled={!dpto} style={{...sel,opacity:dpto?1:0.5}}>
+          <option value="">Seleccionar ciudad...</option>
+          {cities.map(c=><option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
+
 function SuperAdminModule() {
   const [tab, setTab] = React.useState("overview");
   const [users, setUsers] = React.useState([]);
@@ -755,7 +780,9 @@ function SuperAdminModule() {
     });
     var r = await adminFetch("/rest/v1/organizations","POST",payload,"resolution=merge-duplicates,return=representation");
     if(r && r.error){
-      setNewOrgMsg({t:"error",m:r.error.message||JSON.stringify(r)});
+      var errMsg = r.error.message||JSON.stringify(r);
+      if(errMsg.includes("nit_key")||errMsg.includes("unique")) errMsg = "Ya existe una organización con ese NIT. Verifícalo.";
+      setNewOrgMsg({t:"error",m:errMsg});
     } else if(Array.isArray(r)&&r[0]){
       setNewOrgMsg({t:"success",m:"Organización '"+r[0].name+"' creada exitosamente. ID: "+r[0].id});
       setNewOrg({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
@@ -837,7 +864,7 @@ function SuperAdminModule() {
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase"}}>Rol</div>
             <div style={{display:"flex",gap:8}}>
-              {["viewer","editor","admin"].map(function(r){ return <button key={r} onClick={function(){ setNewUser(function(p){ return Object.assign({},p,{role:r}); }); }} style={{background:newUser.role===r?A.primaryDim:A.surfaceEl,border:"1px solid "+(newUser.role===r?A.primary+"44":A.border),borderRadius:6,padding:"6px 16px",color:newUser.role===r?A.primary:A.textSec,fontSize:12,cursor:"pointer"}}>{r}</button>; })}
+              {[["viewer","Solo lectura"],["editor","Crea y edita EDIs"],["admin","Admin de org"]].map(function(item){ return <div key={item[0]} style={{flex:1}}><button onClick={function(){ setNewUser(function(p){ return Object.assign({},p,{role:item[0]}); }); }} style={{width:"100%",background:newUser.role===item[0]?A.primaryDim:A.surfaceEl,border:"1px solid "+(newUser.role===item[0]?A.primary+"44":A.border),borderRadius:6,padding:"8px 10px",color:newUser.role===item[0]?A.primary:A.textSec,fontSize:12,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><span style={{fontWeight:600}}>{item[0]}</span><span style={{fontSize:9,opacity:0.7}}>{item[1]}</span></button></div>; })}
             </div>
           </div>
           <button onClick={createUser} disabled={loading} style={{width:"100%",background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer"}}>{loading?"Creando...":"Crear usuario"}</button>
@@ -891,8 +918,15 @@ function SuperAdminModule() {
 
             {/* SECCIÓN 2: Ubicación */}
             <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Ubicación</div>
+            <div style={{marginBottom:14}}>
+              <ColombiaLocation A={A}
+                dpto={newOrg.departamento||""} ciudad={newOrg.ciudad||""}
+                onDpto={function(v){setNewOrg(function(p){return Object.assign({},p,{departamento:v,ciudad:""});});}}
+                onCiudad={function(v){setNewOrg(function(p){return Object.assign({},p,{ciudad:v});});}}
+              />
+            </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-              {[["Ciudad *","ciudad","text"],["Departamento *","departamento","text"],["Dirección","direccion","text"],["País","pais_datos","text"]].map(function(f){ return (
+              {[["Dirección","direccion","text"],["País","pais_datos","text"]].map(function(f){ return (
                 <div key={f[1]}>
                   <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
                   <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
@@ -1258,7 +1292,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
@@ -1273,7 +1307,7 @@ return (
 <div style={{padding:"12px 14px"}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{width:30,height:30,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,fontWeight:700,color:C.primary}}>JR</span></div>
-<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>ENARA Consulting</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
+<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>{isSuperAdmin?"ENARA Consulting":(clientOrg?.name||"Sin organización")}</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
 </div>
 </div>
 </div>
