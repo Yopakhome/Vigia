@@ -652,6 +652,41 @@ const adminFetch = async (path, method, body, prefer) => {
 };
 
 
+const COLOMBIA = {
+  "Amazonas":["Leticia","Puerto Nariño"],
+  "Antioquia":["Medellín","Bello","Envigado","Itagüí","Apartadó","Turbo","Rionegro","Caucasia","Sabaneta","La Estrella","Copacabana","Girardota","Barbosa","Andes","Yarumal"],
+  "Arauca":["Arauca","Saravena","Tame","Fortul"],
+  "Atlántico":["Barranquilla","Soledad","Malambo","Sabanalarga","Baranoa","Galapa","Puerto Colombia"],
+  "Bolívar":["Cartagena","Magangué","Turbaco","Arjona","El Carmen de Bolívar","Mompós"],
+  "Boyacá":["Tunja","Duitama","Sogamoso","Chiquinquirá","Paipa","Moniquirá","Garagoa"],
+  "Caldas":["Manizales","Villamaría","Chinchiná","La Dorada","Riosucio","Supía","Manzanares"],
+  "Caquetá":["Florencia","San Vicente del Caguán","Belén de los Andaquíes"],
+  "Casanare":["Yopal","Aguazul","Villanueva","Tauramena","Monterrey"],
+  "Cauca":["Popayán","Santander de Quilichao","El Bordo","Puerto Tejada","Patía"],
+  "Cesar":["Valledupar","Aguachica","Bosconia","Codazzi","La Paz","San Alberto"],
+  "Chocó":["Quibdó","Istmina","Tadó","Riosucio","Bahía Solano"],
+  "Córdoba":["Montería","Cereté","Lorica","Sahagún","Montelíbano","Tierralta"],
+  "Cundinamarca":["Bogotá D.C.","Soacha","Fusagasugá","Zipaquirá","Facatativá","Chía","Mosquera","Madrid","Funza","Cajicá","Tocancipá","Sopó","La Calera","Girardot","Villeta"],
+  "Guainía":["Inírida"],
+  "Guaviare":["San José del Guaviare","El Retorno","Calamar"],
+  "Huila":["Neiva","Pitalito","Garzón","La Plata","Campoalegre","Rivera"],
+  "La Guajira":["Riohacha","Maicao","Uribia","Manaure","San Juan del Cesar"],
+  "Magdalena":["Santa Marta","Ciénaga","Fundación","El Banco","Plato"],
+  "Meta":["Villavicencio","Acacías","Granada","San Martín","Puerto López","Cumaral"],
+  "Nariño":["Pasto","Tumaco","Ipiales","Túquerres","La Unión","Sandoná"],
+  "Norte de Santander":["Cúcuta","Ocaña","Pamplona","Villa del Rosario","Los Patios","El Zulia"],
+  "Putumayo":["Mocoa","Puerto Asís","Orito","Valle del Guamuez","Puerto Leguízamo"],
+  "Quindío":["Armenia","Montenegro","Calarcá","Quimbaya","La Tebaida","Circasia"],
+  "Risaralda":["Pereira","Dosquebradas","Santa Rosa de Cabal","La Virginia","Quinchía"],
+  "San Andrés":["San Andrés","Providencia"],
+  "Santander":["Bucaramanga","Floridablanca","Girón","Piedecuesta","Barrancabermeja","San Gil","Socorro","Vélez"],
+  "Sucre":["Sincelejo","Corozal","Sampués","San Marcos","Tolú","Morroa"],
+  "Tolima":["Ibagué","El Espinal","Melgar","Chaparral","Honda","Líbano","Fresno"],
+  "Valle del Cauca":["Cali","Buenaventura","Palmira","Tuluá","Buga","Cartago","Yumbo","Jamundí","Dagua","Ginebra"],
+  "Vaupés":["Mitú"],
+  "Vichada":["Puerto Carreño","La Primavera"]
+};
+
 function ColombiaLocation({dpto, ciudad, onDpto, onCiudad, A}) {
   const deptos = Object.keys(COLOMBIA).sort();
   const cities = dpto && COLOMBIA[dpto] ? COLOMBIA[dpto].sort() : [];
@@ -1292,7 +1327,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.2</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
