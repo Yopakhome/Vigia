@@ -1835,9 +1835,8 @@ const handleNewAlert = async (analysisResult) => {
     human_validated: false
   };
   try {
-    const result = await adminFetch("/rest/v1/regulatory_alerts","POST",dbAlert,"return=representation");
-    const saved = Array.isArray(result) ? result[0] : result;
-    if(!saved?.id) throw new Error("respuesta sin id: "+JSON.stringify(result).slice(0,120));
+    const { row: saved } = await callEdge("publish-intel", { kind: "alert", data: dbAlert }, session?.access_token);
+    if(!saved?.id) throw new Error("respuesta sin id");
     setAlerts(p => [{...saved, ...uiExtras}, ...p]);
   } catch(e) {
     console.log("handleNewAlert persist error", e);
@@ -1856,9 +1855,8 @@ const handleNewNorm = async (analysisResult) => {
     is_active: true
   };
   try {
-    const result = await adminFetch("/rest/v1/normative_sources","POST",dbNorm,"return=representation");
-    const saved = Array.isArray(result) ? result[0] : result;
-    if(!saved?.id) throw new Error("respuesta sin id: "+JSON.stringify(result).slice(0,120));
+    const { row: saved } = await callEdge("publish-intel", { kind: "norm", data: dbNorm }, session?.access_token);
+    if(!saved?.id) throw new Error("respuesta sin id");
     setNormSources(p => [saved, ...p]);
   } catch(e) {
     console.log("handleNewNorm persist error", e);
@@ -2142,7 +2140,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.4.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
