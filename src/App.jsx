@@ -1791,11 +1791,27 @@ useEffect(()=>{
   return () => clearInterval(id);
 },[session?.refresh_token, session?.expires_at]);
 
-const overdue=obligations.filter(o=>o.status==="vencido").length;
-const upcoming=obligations.filter(o=>o.status==="proximo").length;
-const compliant=obligations.filter(o=>o.status==="al_dia").length;
+// Deriva el estado efectivo de una obligación desde due_date + days_alert_before.
+// Respeta estados finales (cumplido/suspendido/no_aplica) y el legacy "vencido"
+// si alguien ya lo fijó manualmente. Para el resto, calcula en tiempo real.
+const DERIVED_FINAL_STATUSES = ["cumplido","suspendido","no_aplica"];
+const derivedStatus = (ob) => {
+  if(!ob) return "al_dia";
+  if(DERIVED_FINAL_STATUSES.includes(ob.status)) return ob.status;
+  if(!ob.due_date) return ob.status==="vencido" ? "vencido" : "al_dia";
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(ob.due_date); due.setHours(0,0,0,0);
+  if(isNaN(due.getTime())) return ob.status || "al_dia";
+  const daysUntil = Math.ceil((due - today) / 86400000);
+  if(daysUntil < 0) return "vencido";
+  if(daysUntil <= (ob.days_alert_before || 30)) return "proximo";
+  return "al_dia";
+};
+const overdue=obligations.filter(o=>derivedStatus(o)==="vencido").length;
+const upcoming=obligations.filter(o=>derivedStatus(o)==="proximo").length;
+const compliant=obligations.filter(o=>derivedStatus(o)==="al_dia").length;
 const unreadAlerts=alerts.filter(a=>!a.human_validated).length;
-const ediHealth=(inst)=>{ const obs=obligations.filter(o=>o.instrument_id===inst.id); if(obs.some(o=>o.status==="vencido"))return"critico"; if(obs.some(o=>o.status==="proximo"))return"moderado"; return"al_dia"; };
+const ediHealth=(inst)=>{ const obs=obligations.filter(o=>o.instrument_id===inst.id); if(obs.some(o=>derivedStatus(o)==="vencido"))return"critico"; if(obs.some(o=>derivedStatus(o)==="proximo"))return"moderado"; return"al_dia"; };
 const ediObs=(id)=>obligations.filter(o=>o.instrument_id===id);
 const toggleSource=(k)=>setSources(p=>({...p,[k]:!p[k]}));
 const conf=()=>{ const a=Object.values(sources).filter(Boolean).length; if(a===0)return{label:"Sin fuentes",color:C.red,risk:"ROJO"}; if(sources.validacion)return{label:"Maxima precision con revision humana",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa&&sources.jurisprudencia)return{label:"Alta precision - riesgo bajo",color:C.green,risk:"VERDE"}; if(sources.documentos&&sources.normativa)return{label:"Precision moderada",color:C.yellow,risk:"AMARILLO"}; return{label:"Precision limitada",color:C.yellow,risk:"AMARILLO"}; };
@@ -1905,7 +1921,7 @@ const renderDashboard=()=>(
 <div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>Expedientes Digitales Inteligentes</span><span style={{fontSize:11,color:C.textSec}}>{instruments.length} EDIs activos</span></div>
 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - {inst.authority_name||"Autoridad no definida"} - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>o.status==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>o.status==="vencido").length} vencida(s)</span>}{(obs.filter(o=>o.status==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>o.status==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>o.status==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
+{instruments.map(inst=>{ const h=ediHealth(inst); const obs=ediObs(inst.id); const color=hC(h); const bg=hB(h); return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:42,height:42,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={18} color={color}/></div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</span><StatusDot status={h}/></div><div style={{fontSize:11,color:C.textSec,marginBottom:6}}>Instrumento N. {inst.number} - {inst.authority_name||"Autoridad no definida"} - Nivel {inst.authority_level}</div><div style={{display:"flex",gap:12}}>{obs.filter(o=>derivedStatus(o)==="vencido").length>0&&<span style={{fontSize:11,color:C.red}}>* {obs.filter(o=>derivedStatus(o)==="vencido").length} vencida(s)</span>}{(obs.filter(o=>derivedStatus(o)==="proximo").length>0)&&<span style={{fontSize:11,color:C.yellow}}>* {obs.filter(o=>derivedStatus(o)==="proximo").length} proxima(s)</span>}<span style={{fontSize:11,color:C.green}}>* {obs.filter(o=>derivedStatus(o)==="al_dia").length} al dia</span></div></div><div style={{textAlign:"right",flexShrink:0}}><Badge label={`${inst.completeness_pct}% completo`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/><div style={{marginTop:4}}><ChevronRight size={14} color={C.textSec}/></div></div></div></div>; })}
 </div>
 </div>
 <div>
@@ -1929,20 +1945,21 @@ return <div style={{padding:28}}>
 <button onClick={()=>setView("consultar")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,color:C.primary,borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><MessageSquare size={13}/>Consultar</button>
 </div>
 <div style={{marginTop:16}}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:11,color:C.textSec}}>Cumplimiento general</span><span style={{fontSize:11,fontWeight:600,color:sc}}>{obs.length>0?Math.round((obs.filter(o=>o.status==="al_dia").length/obs.length)*100):0}%</span></div>
-<div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>o.status==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:11,color:C.textSec}}>Cumplimiento general</span><span style={{fontSize:11,fontWeight:600,color:sc}}>{obs.length>0?Math.round((obs.filter(o=>derivedStatus(o)==="al_dia").length/obs.length)*100):0}%</span></div>
+<div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>derivedStatus(o)==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
 </div>
 </div>
 <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Obligaciones del expediente</div>
 <div style={{display:"flex",flexDirection:"column",gap:8}}>
 {obs.map(ob=>{
-const color=ob.status==="vencido"?C.red:(ob.status==="proximo")?C.yellow:C.green;
-const bg=ob.status==="vencido"?C.redDim:(ob.status==="proximo")?C.yellowDim:C.greenDim;
+const ds=derivedStatus(ob);
+const color=ds==="vencido"?C.red:ds==="proximo"?C.yellow:C.green;
+const bg=ds==="vencido"?C.redDim:ds==="proximo"?C.yellowDim:C.greenDim;
 const days=ob.due_date?Math.ceil((new Date(ob.due_date)-new Date())/86400000):null;
-return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ob.status==="vencido"?C.red+"55":C.border}`,borderRadius:10,padding:"14px 18px"}}>
+return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ds==="vencido"?C.red+"55":C.border}`,borderRadius:10,padding:"14px 18px"}}>
 <div style={{display:"grid",gridTemplateColumns:"auto 1fr auto",alignItems:"start",gap:14}}>
 <div style={{width:38,height:38,borderRadius:8,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
-{ob.status==="vencido"?<AlertTriangle size={16} color={color}/>:(ob.status==="proximo")?<Clock size={16} color={color}/>:<CheckCircle size={16} color={color}/>}
+{ds==="vencido"?<AlertTriangle size={16} color={color}/>:ds==="proximo"?<Clock size={16} color={color}/>:<CheckCircle size={16} color={color}/>}
 </div>
 <div>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
@@ -2089,9 +2106,9 @@ const renderEDIs = () => {
         {filtered.map(inst=>{
           const h=ediHealth(inst); const obs=ediObs(inst.id);
           const color=hC2(h); const bg=hB2(h);
-          const venc=obs.filter(o=>o.status==="vencido").length;
-          const prox=obs.filter(o=>o.status==="proximo").length;
-          const aldia=obs.filter(o=>o.status==="al_dia").length;
+          const venc=obs.filter(o=>derivedStatus(o)==="vencido").length;
+          const prox=obs.filter(o=>derivedStatus(o)==="proximo").length;
+          const aldia=obs.filter(o=>derivedStatus(o)==="al_dia").length;
           const label = inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`;
           return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
             <div style={{width:44,height:44,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={19} color={color}/></div>
@@ -2130,7 +2147,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.2</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.3.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
