@@ -723,6 +723,10 @@ function SuperAdminModule() {
   const [newOrg, setNewOrg] = React.useState({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
   const [newOrgMsg, setNewOrgMsg] = React.useState(null);
   const [newOrgSaving, setNewOrgSaving] = React.useState(false);
+  const [newOrgCreated, setNewOrgCreated] = React.useState(null);
+  const [orgUsers, setOrgUsers] = React.useState([{email:"",password:"Vigia2026!",role:"editor"}]);
+  const [addingUsers, setAddingUsers] = React.useState(false);
+  const [usersLog, setUsersLog] = React.useState([]);
   const [setupRunning, setSetupRunning] = React.useState(false);
   const [setupDone, setSetupDone] = React.useState(false);
   const A = C;
@@ -796,6 +800,38 @@ function SuperAdminModule() {
     load(); setLoading(false);
   };
 
+  const addOrgUser = function() {
+    setOrgUsers(function(p){ return [...p, {email:"",password:"Vigia2026!",role:"editor"}]; });
+  };
+  const removeOrgUser = function(i) {
+    setOrgUsers(function(p){ return p.filter(function(_,idx){ return idx!==i; }); });
+  };
+  const saveOrgUsers = async function() {
+    setAddingUsers(true); setUsersLog([]);
+    var log = [];
+    for(var i=0;i<orgUsers.length;i++){
+      var u = orgUsers[i];
+      if(!u.email){ log.push({m:"Fila "+(i+1)+": email vacío, saltada",t:"warn"}); continue; }
+      log.push({m:"Creando "+u.email+"...",t:"info"});
+      setUsersLog([...log]);
+      var ur = await adminFetch("/auth/v1/admin/users","POST",{email:u.email,password:u.password,email_confirm:true});
+      if(!ur.id){ log.push({m:"ERROR "+u.email+": "+(ur.message||JSON.stringify(ur).slice(0,60)),t:"error"}); setUsersLog([...log]); continue; }
+      await adminFetch("/rest/v1/user_org_map","POST",{user_id:ur.id,org_id:newOrgCreated.id,role:u.role},"resolution=merge-duplicates,return=minimal");
+      log.push({m:u.email+" ("+u.role+") — OK",t:"success"});
+      setUsersLog([...log]);
+    }
+    log.push({m:"Proceso completado",t:"success"});
+    setUsersLog([...log]);
+    setAddingUsers(false);
+    load();
+  };
+  const resetNewOrg = function() {
+    setNewOrgCreated(null); setNewOrgMsg(null);
+    setNewOrg({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+    setOrgUsers([{email:"",password:"Vigia2026!",role:"editor"}]);
+    setUsersLog([]);
+  };
+
   const saveNewOrg = async function() {
     if(!newOrg.name||!newOrg.nit||!newOrg.representante_legal||!newOrg.sector||!newOrg.ciudad||!newOrg.contacto_vigia){
       setNewOrgMsg({t:"error",m:"Completa los campos obligatorios (*)"});
@@ -819,8 +855,8 @@ function SuperAdminModule() {
       if(errMsg.includes("nit_key")||errMsg.includes("unique")) errMsg = "Ya existe una organización con ese NIT. Verifícalo.";
       setNewOrgMsg({t:"error",m:errMsg});
     } else if(Array.isArray(r)&&r[0]){
-      setNewOrgMsg({t:"success",m:"Organización '"+r[0].name+"' creada exitosamente. ID: "+r[0].id});
-      setNewOrg({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+      setNewOrgCreated(r[0]);
+      setNewOrgMsg({t:"success",m:"Organización '"+r[0].name+"' creada exitosamente."});
       load();
     } else {
       setNewOrgMsg({t:"error",m:"Error inesperado: "+JSON.stringify(r).slice(0,100)});
@@ -1010,10 +1046,68 @@ function SuperAdminModule() {
               ); })}
             </div>
 
-            <button onClick={saveNewOrg} disabled={newOrgSaving} style={{width:"100%",background:newOrgSaving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"13px",color:newOrgSaving?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:newOrgSaving?"not-allowed":"pointer"}}>
-              {newOrgSaving?"Creando organización...":"Crear organización y activar cliente"}
-            </button>
+            {!newOrgCreated && (
+              <button onClick={saveNewOrg} disabled={newOrgSaving} style={{width:"100%",background:newOrgSaving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"13px",color:newOrgSaving?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:newOrgSaving?"not-allowed":"pointer"}}>
+                {newOrgSaving?"Creando organización...":"Crear organización y activar cliente"}
+              </button>
+            )}
           </div>
+
+          {newOrgCreated && (
+            <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:28,marginTop:16}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+                <div style={{width:36,height:36,borderRadius:8,background:A.greenDim,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={A.green} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:A.text}}>{newOrgCreated.name}</div>
+                  <div style={{fontSize:11,color:A.green}}>Organización creada — ahora agrega los usuarios</div>
+                </div>
+                <button onClick={resetNewOrg} style={{marginLeft:"auto",background:"transparent",border:"1px solid "+A.border,borderRadius:6,padding:"5px 12px",color:A.textSec,fontSize:11,cursor:"pointer"}}>Nueva org</button>
+              </div>
+
+              <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Crear usuarios para esta organización</div>
+
+              {orgUsers.map(function(u,i){ return (
+                <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr auto auto",gap:10,marginBottom:10,alignItems:"end"}}>
+                  <div>
+                    {i===0&&<div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Email</div>}
+                    <input type="email" value={u.email} placeholder="usuario@empresa.co" onChange={function(e){var v=e.target.value;setOrgUsers(function(p){var n=[...p];n[i]=Object.assign({},n[i],{email:v});return n;});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                  </div>
+                  <div>
+                    {i===0&&<div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Rol</div>}
+                    <select value={u.role} onChange={function(e){var v=e.target.value;setOrgUsers(function(p){var n=[...p];n[i]=Object.assign({},n[i],{role:v});return n;});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                      <option value="viewer">viewer — Solo lectura</option>
+                      <option value="editor">editor — Crea y edita EDIs</option>
+                      <option value="admin">admin — Admin de org</option>
+                    </select>
+                  </div>
+                  <div>
+                    {i===0&&<div style={{fontSize:11,color:"transparent",marginBottom:5}}>.</div>}
+                    <input type="text" value={u.password} onChange={function(e){var v=e.target.value;setOrgUsers(function(p){var n=[...p];n[i]=Object.assign({},n[i],{password:v});return n;});}} placeholder="Password" style={{background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",width:120}}/>
+                  </div>
+                  <div>
+                    {i===0&&<div style={{fontSize:11,color:"transparent",marginBottom:5}}>.</div>}
+                    {orgUsers.length>1&&<button onClick={function(){removeOrgUser(i);}} style={{background:A.redDim,border:"1px solid "+A.red+"44",borderRadius:8,padding:"9px 12px",color:A.red,fontSize:12,cursor:"pointer"}}>✕</button>}
+                  </div>
+                </div>
+              ); })}
+
+              <div style={{display:"flex",gap:10,marginTop:4,marginBottom:20}}>
+                <button onClick={addOrgUser} style={{background:"transparent",border:"1px dashed "+A.border,borderRadius:8,padding:"8px 16px",color:A.textSec,fontSize:12,cursor:"pointer"}}>+ Agregar usuario</button>
+              </div>
+
+              {usersLog.length>0&&(
+                <div style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",marginBottom:16,maxHeight:160,overflowY:"auto"}}>
+                  {usersLog.map(function(l,i){ return <div key={i} style={{fontSize:11,color:l.t==="success"?A.green:l.t==="error"?A.red:l.t==="warn"?A.yellow:A.textSec,marginBottom:2}}>{l.m}</div>; })}
+                </div>
+              )}
+
+              <button onClick={saveOrgUsers} disabled={addingUsers} style={{width:"100%",background:addingUsers?A.surfaceEl:"#1a3a2a",border:"1px solid "+A.green+"44",borderRadius:8,padding:"12px",color:addingUsers?A.textSec:A.green,fontSize:14,fontWeight:700,cursor:addingUsers?"not-allowed":"pointer"}}>
+                {addingUsers?"Creando usuarios...":"Crear usuarios y finalizar activación"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1327,7 +1421,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.2</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.3</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
