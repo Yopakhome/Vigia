@@ -197,56 +197,8 @@ return (
 );
 }
 
-// --- SEED DATA ----------------------------------------------------------------
-const SEED = {
-instruments: [
-{ id:"c1000000-0000-0000-0000-000000000001", number:"786/2016", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:75, projects:{ name:"Parque Solar AS I - Baranoa", location_dept:"Atlantico", location_mun:"Baranoa" } },
-{ id:"c2000000-0000-0000-0000-000000000002", number:"556/2017", instrument_type:"licencia_ambiental", domain:"ambiental", authority_level:"regional", edi_status:"activo", completeness_pct:60, projects:{ name:"Parque Solar AS II - Polonuevo", location_dept:"Atlantico", location_mun:"Polonuevo" } },
-],
-obligations: [
-{ id:"o1", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-04", name:"Informe de Cumplimiento Ambiental (ICA) Semestral", obligation_type:"reporte_periodico", frequency:"semestral", due_date:"2026-03-15", status:"vencido", confidence_level:"alta",
-fuente:{ tipo:"administrativa", tipo_acto:"Licencia Ambiental", numero_acto:"786", fecha:"2016-05-12", autoridad_competente:"AUTORIDAD COMPETENTE - Regional", radicado:"2016-786-CRA", objeto:"Obligacion de reporte semestral del ICA para seguimiento de condiciones de la licencia ambiental" }
-},
-{ id:"o2", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-07", name:"Monitoreo Calidad del Recurso Hidrico", obligation_type:"monitoreo_ambiental", frequency:"trimestral", due_date:"2026-04-25", status:"proximo", confidence_level:"alta",
-fuente:{ tipo:"normativa", tipo_norma:"Decreto", numero:"1076", articulo:"Art. 2.2.9.6.1.3", parrafo:"Parr. 2", fecha_expedicion:"2015-05-26", autoridad_emisora:"Ministerio de Ambiente y Desarrollo Sostenible", vigencia:"Vigente" }
-},
-{ id:"o3", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-11", name:"Compensacion Forestal - Fase II", obligation_type:"compensacion", frequency:"unica", due_date:"2026-06-30", status:"proximo", confidence_level:"media",
-fuente:{ tipo:"administrativa", tipo_acto:"Auto de seguimiento", numero_acto:"034", fecha:"2026-03-28", autoridad_competente:"AUTORIDAD COMPETENTE - Regional", radicado:"2026-034-CRA", objeto:"Requerimiento de ejecucion Fase II compensacion forestal area N1, ecosistema seco tropical" }
-},
-{ id:"o4", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-03", name:"Pago Tasa Retributiva", obligation_type:"obligacion_financiera", frequency:"anual", due_date:"2026-04-30", status:"proximo", confidence_level:"alta",
-fuente:{ tipo:"normativa", tipo_norma:"Ley", numero:"99", articulo:"Art. 42", parrafo:"Inc. 1", fecha_expedicion:"1993-12-22", autoridad_emisora:"Congreso de Colombia", vigencia:"Vigente" }
-},
-{ id:"o5", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-02", name:"Monitoreo Calidad del Aire", obligation_type:"monitoreo_ambiental", frequency:"trimestral", due_date:"2026-07-15", status:"al_dia", confidence_level:"alta",
-fuente:{ tipo:"jurisprudencial", tribunal:"Consejo de Estado - Seccion Primera", numero_sentencia:"CE-SP-2024-0892", fecha:"2024-11-15", magistrado_ponente:"Dra. Maria Fernanda Ospina", ratio_decidendi:"Los parametros de calidad del aire del Decreto 1076/2015 son exigibles aunque el instrumento no los mencione expresamente, en virtud del principio de integralidad normativa ambiental.", aplicabilidad:"Aplica a OBL-02 - los parametros minimos del protocolo 0226/2026 son exigibles" }
-},
-{ id:"o6", instrument_id:"c1000000-0000-0000-0000-000000000001", obligation_num:"OBL-08", name:"Informe de Gestion Social", obligation_type:"reporte_periodico", frequency:"anual", due_date:"2026-09-30", status:"al_dia", confidence_level:"alta",
-fuente:{ tipo:"administrativa", tipo_acto:"Licencia Ambiental", numero_acto:"786", fecha:"2016-05-12", autoridad_competente:"AUTORIDAD COMPETENTE - Regional", radicado:"2016-786-CRA", objeto:"Obligacion de reporte anual de gestion social con comunidades del area de influencia directa" }
-},
-],
-alerts: [
-{ id:"a1", norm_title:"Modificacion al procedimiento de reporte periodico de cumplimiento ambiental", norm_type:"resolucion", norm_date:"2026-04-08", issuing_authority:"AUTORIDAD COMPETENTE - Nivel Nacional", impact_type:"derogatoria", urgency:"critica", summary:"El instrumento normativo modifica los plazos y formatos del reporte periodico para proyectos de energia no convencional en operacion.", detailed_analysis:"Reduce el plazo de reporte de 60 a 45 dias calendario. Aplica a proyectos de generacion electrica superior a 1 MW.", suggested_action:"Actualizar calendario OBL-04 y descargar nuevo formato.", confidence_pct:94, human_validated:false,
-fuente_norma:{ tipo_norma:"Resolucion", numero:"0445", fecha_expedicion:"2026-04-08", autoridad_emisora:"Ministerio de Ambiente", vigencia:"Vigente" },
-proposed_changes:[{ obligation_num:"OBL-04", field:"plazo_presentacion", before:"60 dias calendario", after:"45 dias calendario", reason:"Art. 3 Resolucion 0445/2026 modifica expresamente el plazo para proyectos de energia no convencional" }]
-},
-{ id:"a2", norm_title:"Proyecto normativo sobre compensaciones ambientales - En consulta publica", norm_type:"proyecto_normativo", norm_date:"2026-04-02", issuing_authority:"AUTORIDAD COMPETENTE - Nivel Nacional", impact_type:"prospectiva", urgency:"moderada", summary:"De aprobarse, modificaria los coeficientes de compensacion para proyectos con afectacion vegetal superior a 5 hectareas.", detailed_analysis:"Propone incrementar coeficiente de 1:1 a 1:1.5 para ecosistemas secos tropicales.", suggested_action:"Revisar alcance OBL-11 y presentar comentarios antes del cierre de consulta publica.", confidence_pct:78, human_validated:false,
-fuente_norma:{ tipo_norma:"Proyecto de Resolucion", numero:"EN CONSULTA", fecha_expedicion:"2026-04-02", autoridad_emisora:"Ministerio de Ambiente", vigencia:"En consulta publica" },
-proposed_changes:[]
-},
-{ id:"a3", norm_title:"Sentencia - Alcance de obligaciones de monitoreo sin parametro expreso", norm_type:"sentencia_tribunal", norm_date:"2026-03-28", issuing_authority:"Tribunal Contencioso Administrativo", impact_type:"interpretativa", urgency:"informativa", summary:"Cuando el instrumento no especifica el parametro de medicion, aplican los estandares de la norma ambiental sectorial vigente.", detailed_analysis:"Los parametros minimos del Decreto 1076/2015 son exigibles aunque el acto no los mencione expresamente.", suggested_action:"Verificar que OBL-07 y OBL-02 incluyan los minimos del Decreto 1076/2015.", confidence_pct:89, human_validated:true,
-fuente_norma:{ tribunal:"Tribunal Contencioso Administrativo - Sala Ambiental", numero_sentencia:"TCA-SA-2026-0234", fecha:"2026-03-28", magistrado_ponente:"Dr. Carlos Augusto Reyes", ratio_decidendi:"Los estandares normativos sectoriales son exigibles por integracion normativa aunque el acto administrativo no los mencione expresamente." },
-proposed_changes:[]
-},
-],
-normSources: [
-{ id:"n1", norm_type:"decreto", norm_number:"1076", norm_title:"Decreto Unico Reglamentario del Sector Ambiente y Desarrollo Sostenible", issuing_body:"Ministerio de Ambiente", issue_date:"2015-05-26", is_active:true },
-{ id:"n2", norm_type:"ley", norm_number:"99", norm_title:"Ley 99 de 1993 - Sistema Nacional Ambiental (SINA)", issuing_body:"Congreso de Colombia", issue_date:"1993-12-22", is_active:true },
-{ id:"n3", norm_type:"ley", norm_number:"2387", norm_title:"Ley de Transicion Energetica", issuing_body:"Congreso de Colombia", issue_date:"2024-07-18", is_active:true },
-{ id:"n4", norm_type:"resolucion", norm_number:"0226", norm_title:"Protocolo de monitoreo de calidad del aire - 2026", issuing_body:"AUTORIDAD COMPETENTE", issue_date:"2026-01-15", is_active:true },
-],
-oversight: [
-{ id:"ov1", severity:"critico", anomaly_type:"vencimiento_pasado", title:"Obligacion vencida sin evidencia de cumplimiento: OBL-04", description:"La obligacion ICA Semestral vencio el 2026-03-15 sin que se haya registrado evidencia de cumplimiento.", legal_reference:"Art. 8 - Instrumento N. 786/2016", suggested_action:"Verificar si el reporte fue presentado y registrar la evidencia, o presentarlo a la mayor brevedad.", confidence_pct:96, status:"activo" }
-]
-};
+// SEED hardcoded eliminado (v3.1.1). Los datos vienen de Supabase; obligaciones sin
+// `fuente` simplemente no muestran el badge (render ya tiene guards).
 
 // --- INTAKE CONSTANTS ---------------------------------------------------------
 const DOC_TYPES = {
@@ -1742,11 +1694,7 @@ const t=session?.access_token||SB_KEY;
 const [inst,obs,alrt,norms]=await Promise.all([sb("instruments","select=*&order=created_at.desc",t),sb("obligations","select=*&order=due_date.asc",t),sb("regulatory_alerts","select=*&order=norm_date.desc",t),sb("normative_sources","select=*&is_active=eq.true",t)]);
 // Load data regardless of count
           setInstruments(Array.isArray(inst)?inst:[]);
-          const enriched = (Array.isArray(obs)?obs:[]).map(ob => {
-            const seedOb = SEED.obligations.find(s => s.obligation_num === ob.obligation_num || s.id === ob.id);
-            return seedOb?.fuente ? {...ob, fuente: seedOb.fuente} : ob;
-          });
-          setObligations(enriched);
+          setObligations(Array.isArray(obs)?obs:[]);
           setAlerts(Array.isArray(alrt)?alrt:[]);
           setNormSources(Array.isArray(norms)?norms:[]);
           setDbStatus("connected");
@@ -2133,7 +2081,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.1.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.1.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
