@@ -837,7 +837,22 @@ const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(()=>{
-    sbGetSession().then(s=>{ setSession(s); setAuthLoading(false); });
+    sbGetSession().then(async s=>{
+      setSession(s);
+      setAuthLoading(false);
+      if(s?.user?.id) {
+        try {
+          const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
+          const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+s.user.id+"&select=org_id", {headers:h});
+          const md = await mr.json();
+          if(md?.[0]?.org_id){
+            const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:h});
+            const od = await or2.json();
+            if(od?.[0]) setClientOrg(od[0]);
+          }
+        } catch(e){ console.log("org session err",e); }
+      }
+    });
   },[]);
 
   const handleLogout = () => { sbLogout(); setSession(null); };
@@ -930,7 +945,20 @@ const isSuperAdmin=SUPERADMIN_EMAILS.includes(session?.user?.email);
   const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
-  if(!session) return <LoginScreen onLogin={s=>setSession(s)}/>;
+  if(!session) return <LoginScreen onLogin={async s => {
+    setSession(s);
+    try {
+      const uid = s?.user?.id;
+      const h = {apikey:SB_SERVICE, Authorization:"Bearer "+SB_SERVICE};
+      const mr = await fetch(SB_ADMIN_URL+"/rest/v1/user_org_map?user_id=eq."+uid+"&select=org_id", {headers:h});
+      const md = await mr.json();
+      if(md?.[0]?.org_id){
+        const or2 = await fetch(SB_ADMIN_URL+"/rest/v1/organizations?id=eq."+md[0].org_id+"&select=id,name,sector,plan,ciudad", {headers:h});
+        const od = await or2.json();
+        if(od?.[0]) setClientOrg(od[0]);
+      }
+    } catch(e){ console.log("org err",e); }
+  }}/>;
 
   const hC=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
 const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
@@ -1092,7 +1120,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.3</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.2.4</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
