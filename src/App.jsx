@@ -9,6 +9,7 @@ if (!res.ok) throw new Error(res.status);
 return res.json();
 };
 
+
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 const sbAuth = async (endpoint, body) => {
   const res = await fetch(`${SB_URL}/auth/v1/${endpoint}`, {
@@ -62,8 +63,15 @@ const sbWithAuth = async (table, params, token) => {
   return res.json();
 };
 
-const sbInsert = async (table, data) => {
-await fetch(`${SB_URL}/rest/v1/${table}`, { method:"POST", headers:{ apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, "Content-Type":"application/json", Prefer:"return=minimal" }, body:JSON.stringify(data) });
+const sbInsert = async (table, data, token=SB_KEY) => {
+const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+  method:"POST",
+  headers:{ apikey:SB_KEY, Authorization:`Bearer ${token}`, "Content-Type":"application/json", Prefer:"return=representation" },
+  body:JSON.stringify(data)
+});
+const t = await res.text();
+if (!res.ok) throw new Error(`${res.status}: ${t}`);
+try { return JSON.parse(t); } catch { return t; }
 };
 
 // --- DESIGN TOKENS ------------------------------------------------------------
@@ -802,10 +810,13 @@ function ColombiaLocation({dpto, ciudad, onDpto, onCiudad, A}) {
   );
 }
 
-function SuperAdminModule() {
+function SuperAdminModule({reviewerId}) {
   const [tab, setTab] = React.useState("overview");
   const [users, setUsers] = React.useState([]);
   const [orgs, setOrgs] = React.useState([]);
+  const [requests, setRequests] = React.useState([]);
+  const [rejectNoteById, setRejectNoteById] = React.useState({});
+  const [reviewingId, setReviewingId] = React.useState(null);
   const [stats, setStats] = React.useState({users:0,orgs:0,obligations:0,alerts:0});
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState(null);
@@ -839,7 +850,49 @@ function SuperAdminModule() {
     setLoading(false);
   };
 
-  React.useEffect(function() { load(); }, []);
+  React.useEffect(function() { load(); loadRequests(); }, []);
+
+  const loadRequests = async () => {
+    try {
+      const data = await adminFetch("/rest/v1/org_update_requests?select=*&order=created_at.desc");
+      setRequests(Array.isArray(data)?data:[]);
+    } catch(e) { /* ignore */ }
+  };
+
+  const approveRequest = async (r) => {
+    setReviewingId(r.id); setMsg(null);
+    try {
+      const orgPatch = await adminFetch(`/rest/v1/organizations?id=eq.${r.org_id}`, "PATCH", r.requested_changes, "return=representation");
+      if(orgPatch && orgPatch.error) throw new Error(JSON.stringify(orgPatch.error));
+      await adminFetch(`/rest/v1/org_update_requests?id=eq.${r.id}`, "PATCH", {
+        status: "approved",
+        reviewed_by: reviewerId || null,
+        reviewed_at: new Date().toISOString(),
+        review_note: null
+      });
+      setMsg({t:"success",m:"Solicitud aprobada y aplicada a la organización."});
+      await loadRequests();
+    } catch(e) { setMsg({t:"error",m:"Error aprobando: "+e.message}); }
+    setReviewingId(null);
+  };
+
+  const rejectRequest = async (r) => {
+    const note = (rejectNoteById[r.id]||"").trim();
+    if(!note) { setMsg({t:"error",m:"Escribí un motivo antes de rechazar."}); return; }
+    setReviewingId(r.id); setMsg(null);
+    try {
+      await adminFetch(`/rest/v1/org_update_requests?id=eq.${r.id}`, "PATCH", {
+        status: "rejected",
+        reviewed_by: reviewerId || null,
+        reviewed_at: new Date().toISOString(),
+        review_note: note
+      });
+      setRejectNoteById(p=>{ const n={...p}; delete n[r.id]; return n; });
+      setMsg({t:"success",m:"Solicitud rechazada."});
+      await loadRequests();
+    } catch(e) { setMsg({t:"error",m:"Error rechazando: "+e.message}); }
+    setReviewingId(null);
+  };
 
   const addLog = function(m,t) { setSetupLog(function(p) { return [...p,{m:m,t:t||"info",ts:new Date().toLocaleTimeString("es-CO")}]; }); };
 
@@ -955,7 +1008,8 @@ function SuperAdminModule() {
     setNewOrgSaving(false);
   };
 
-    var tabs = [{k:"overview",l:"Overview"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
+    var pendingCount = requests.filter(function(r){ return r.status==="pending"; }).length;
+    var tabs = [{k:"overview",l:"Overview"},{k:"requests",l:"Solicitudes"+(pendingCount>0?" ("+pendingCount+")":"")},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"setup",l:"Setup Demo"}];
 
   return (
     <div style={{padding:28,color:A.text}}>
@@ -980,6 +1034,55 @@ function SuperAdminModule() {
               {[["Supabase","itkbujkqjesuntgdkubt"],["GitHub","Yopakhome/Vigia"],["URL","vigia-five.vercel.app"],["Modelo IA","claude-sonnet-4-20250514"],["Stack","React + Vite + Supabase"],["Auth","Supabase Auth + RLS"]].map(function(item){ return <div key={item[0]} style={{background:A.surfaceEl,borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:A.textMuted,marginBottom:2,textTransform:"uppercase"}}>{item[0]}</div><div style={{fontSize:11,color:A.text,fontWeight:500}}>{item[1]}</div></div>; })}
             </div>
           </div>
+        </div>
+      )}
+
+      {tab==="requests"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14,maxWidth:880}}>
+          {requests.length===0 && <div style={{fontSize:13,color:A.textMuted,padding:"20px 0"}}>No hay solicitudes todavía.</div>}
+          {requests.map(function(r){
+            var org = orgs.find(function(o){ return o.id===r.org_id; });
+            var requester = users.find(function(u){ return u.id===r.requested_by; });
+            var isPending = r.status==="pending";
+            var badge = isPending?{c:A.yellow,b:A.yellowDim,l:"Pendiente"}:r.status==="approved"?{c:A.green,b:A.greenDim,l:"Aprobada"}:{c:A.red,b:A.redDim,l:"Rechazada"};
+            var busy = reviewingId===r.id;
+            return (
+              <div key={r.id} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:12,padding:"16px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10,flexWrap:"wrap"}}>
+                  <div style={{fontSize:10,padding:"3px 10px",borderRadius:6,background:badge.b,color:badge.c,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em"}}>{badge.l}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:A.text}}>{org?org.name:r.org_id.slice(0,8)+"..."}</div>
+                  <div style={{fontSize:11,color:A.textMuted}}>· {requester?requester.email:(r.requested_by||"").slice(0,8)+"..."}</div>
+                  <div style={{fontSize:11,color:A.textMuted,marginLeft:"auto"}}>{new Date(r.created_at).toLocaleString("es-CO")}</div>
+                </div>
+                <div style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",marginBottom:10}}>
+                  {Object.entries(r.requested_changes||{}).map(function(entry){
+                    var k=entry[0], v=entry[1];
+                    var cur = org?(org[k]||""):"";
+                    return (
+                      <div key={k} style={{display:"flex",gap:8,fontSize:12,marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{color:A.textSec,fontWeight:600,minWidth:140}}>{ORG_FIELD_LABELS[k]||k}:</span>
+                        <span style={{color:A.textMuted,textDecoration:"line-through"}}>{String(cur||"—")}</span>
+                        <span style={{color:A.textMuted}}>→</span>
+                        <span style={{color:A.green}}>{String(v)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {r.reason && <div style={{fontSize:11,color:A.textSec,fontStyle:"italic",marginBottom:10}}>Motivo del cliente: {r.reason}</div>}
+                {r.review_note && <div style={{fontSize:11,color:A.textSec,marginBottom:10}}><span style={{fontWeight:600}}>Nota:</span> {r.review_note}</div>}
+                {isPending && (
+                  <div style={{display:"flex",gap:10,alignItems:"flex-end",flexWrap:"wrap"}}>
+                    <div style={{flex:"1 1 280px"}}>
+                      <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Nota (obligatoria para rechazar)</div>
+                      <input value={rejectNoteById[r.id]||""} onChange={function(e){ setRejectNoteById(function(p){ var n={...p}; n[r.id]=e.target.value; return n; }); }} placeholder="Motivo del rechazo..." style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"8px 12px",color:A.text,fontSize:12,outline:"none"}}/>
+                    </div>
+                    <button onClick={function(){ approveRequest(r); }} disabled={busy} style={{background:busy?A.surfaceEl:A.green,border:"none",borderRadius:8,padding:"8px 16px",color:busy?A.textSec:"#060c14",fontSize:12,fontWeight:700,cursor:busy?"not-allowed":"pointer"}}>{busy?"...":"Aprobar"}</button>
+                    <button onClick={function(){ rejectRequest(r); }} disabled={busy} style={{background:"transparent",border:"1px solid "+A.red,borderRadius:8,padding:"8px 16px",color:A.red,fontSize:12,fontWeight:700,cursor:busy?"not-allowed":"pointer"}}>Rechazar</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -1224,6 +1327,140 @@ function SuperAdminModule() {
   );
 }
 
+const ORG_EDITABLE_FIELDS = ["name","sector","representante_legal","contacto_vigia","cargo_contacto","ciudad","departamento"];
+const ORG_FIELD_LABELS = {
+  name: "Razón social",
+  sector: "Sector",
+  representante_legal: "Representante legal",
+  contacto_vigia: "Contacto VIGÍA",
+  cargo_contacto: "Cargo del contacto",
+  ciudad: "Ciudad",
+  departamento: "Departamento"
+};
+
+function OrgProfileModule({clientOrg, sessionToken}) {
+  const A = C;
+  const [form, setForm] = React.useState({});
+  const [reason, setReason] = React.useState("");
+  const [requests, setRequests] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [msg, setMsg] = React.useState(null);
+
+  React.useEffect(()=>{
+    if(!clientOrg) return;
+    const initial = {};
+    ORG_EDITABLE_FIELDS.forEach(k=>{ initial[k] = clientOrg[k] || ""; });
+    setForm(initial);
+  }, [clientOrg?.id]);
+
+  const loadRequests = async () => {
+    if(!clientOrg?.id) return;
+    try {
+      const data = await sb("org_update_requests", "select=*&order=created_at.desc", sessionToken||SB_KEY);
+      setRequests(Array.isArray(data)?data:[]);
+    } catch(e) { /* ignore: RLS o red */ }
+  };
+
+  React.useEffect(()=>{ loadRequests(); }, [clientOrg?.id]);
+
+  const submit = async () => {
+    if(!clientOrg?.id) return;
+    const diff = {};
+    ORG_EDITABLE_FIELDS.forEach(k=>{
+      if((form[k]||"") !== (clientOrg[k]||"")) diff[k] = form[k];
+    });
+    if(Object.keys(diff).length === 0) { setMsg({t:"error",m:"No hay cambios para solicitar."}); return; }
+    if(requests.find(r=>r.status==="pending")) { setMsg({t:"error",m:"Ya tenés una solicitud pendiente. Esperá aprobación o rechazo."}); return; }
+    setLoading(true); setMsg(null);
+    try {
+      await sbInsert("org_update_requests", {
+        org_id: clientOrg.id,
+        requested_changes: diff,
+        reason: reason.trim() || null
+      }, sessionToken);
+      setMsg({t:"success",m:"Solicitud enviada. Un SuperAdmin la revisará."});
+      setReason("");
+      await loadRequests();
+    } catch(e) { setMsg({t:"error",m:e.message}); }
+    setLoading(false);
+  };
+
+  const input = {width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:13,outline:"none",fontFamily:FONT};
+  const statusBadge = (s) => s==="pending"?{color:A.yellow,bg:A.yellowDim,label:"Pendiente"}:s==="approved"?{color:A.green,bg:A.greenDim,label:"Aprobada"}:{color:A.red,bg:A.redDim,label:"Rechazada"};
+
+  return (
+    <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+      <div style={{marginBottom:20}}>
+        <h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>Mi organización</h1>
+        <p style={{fontSize:13,color:A.textSec,margin:"4px 0 0",lineHeight:1.5}}>Los datos definitivos solo los puede actualizar un SuperAdmin de ENARA. Podés solicitar cambios y recibirás el resultado en el historial.</p>
+      </div>
+
+      {msg && <div style={{padding:"10px 14px",borderRadius:8,marginBottom:16,background:msg.t==="error"?A.redDim:A.greenDim,color:msg.t==="error"?A.red:A.green,fontSize:12,fontWeight:500}}>{msg.m}</div>}
+
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"18px 22px",marginBottom:20}}>
+        <div style={{fontSize:13,fontWeight:700,color:A.text,marginBottom:14}}>Datos actuales</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          {ORG_EDITABLE_FIELDS.map(k=>(
+            <div key={k}>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:4,fontWeight:600}}>{ORG_FIELD_LABELS[k]}</div>
+              <div style={{fontSize:13,color:A.text}}>{clientOrg?.[k] || <span style={{color:A.textMuted,fontStyle:"italic"}}>(sin definir)</span>}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:14,paddingTop:14,borderTop:`1px dashed ${A.border}`,display:"flex",gap:18,fontSize:11,color:A.textMuted,flexWrap:"wrap"}}>
+          <div><span style={{fontWeight:600,color:A.textSec}}>NIT:</span> {clientOrg?.nit || "—"}</div>
+          <div><span style={{fontWeight:600,color:A.textSec}}>Plan:</span> {clientOrg?.plan || "—"}</div>
+          <div style={{fontStyle:"italic"}}>(NIT y plan solo los modifica SuperAdmin)</div>
+        </div>
+      </div>
+
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"18px 22px",marginBottom:20}}>
+        <div style={{fontSize:13,fontWeight:700,color:A.text,marginBottom:4}}>Solicitar actualización</div>
+        <div style={{fontSize:11,color:A.textMuted,marginBottom:14}}>Solo se enviarán los campos que modifiques respecto a los datos actuales.</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+          {ORG_EDITABLE_FIELDS.filter(k=>k!=="ciudad"&&k!=="departamento").map(k=>(
+            <div key={k}>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{ORG_FIELD_LABELS[k]}</div>
+              <input value={form[k]||""} onChange={e=>setForm({...form,[k]:e.target.value})} style={input}/>
+            </div>
+          ))}
+        </div>
+        <div style={{marginBottom:14}}>
+          <ColombiaLocation dpto={form.departamento} ciudad={form.ciudad} onDpto={v=>setForm({...form,departamento:v})} onCiudad={v=>setForm({...form,ciudad:v})} A={A}/>
+        </div>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Motivo (opcional)</div>
+          <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ej: actualización de contacto por cambio de HSE manager." rows={2} style={{...input,resize:"vertical",minHeight:58,fontFamily:FONT}}/>
+        </div>
+        <button onClick={submit} disabled={loading} style={{background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"10px 18px",color:loading?"#5e7a95":"#060c14",fontSize:13,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:FONT}}>{loading?"Enviando...":"Enviar solicitud"}</button>
+      </div>
+
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,overflow:"hidden"}}>
+        <div style={{padding:"14px 22px",borderBottom:`1px solid ${A.border}`,fontSize:13,fontWeight:700,color:A.text}}>Historial de solicitudes</div>
+        {requests.length===0 && <div style={{padding:"20px 22px",fontSize:12,color:A.textMuted}}>No has enviado solicitudes todavía.</div>}
+        {requests.map(r=>{
+          const b = statusBadge(r.status);
+          return (
+            <div key={r.id} style={{padding:"14px 22px",borderBottom:`1px solid ${A.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,flexWrap:"wrap"}}>
+                <div style={{fontSize:10,padding:"3px 10px",borderRadius:6,background:b.bg,color:b.color,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em"}}>{b.label}</div>
+                <div style={{fontSize:11,color:A.textMuted}}>{new Date(r.created_at).toLocaleString("es-CO")}</div>
+              </div>
+              <div style={{fontSize:12,color:A.text,marginBottom:6}}>
+                {Object.entries(r.requested_changes||{}).map(([k,v])=>(
+                  <div key={k} style={{marginBottom:3}}><span style={{color:A.textMuted}}>{ORG_FIELD_LABELS[k]||k}:</span> <span style={{color:A.text}}>{String(v)}</span></div>
+                ))}
+              </div>
+              {r.reason && <div style={{fontSize:11,color:A.textSec,fontStyle:"italic",marginTop:6}}>Motivo: {r.reason}</div>}
+              {r.review_note && <div style={{fontSize:11,color:A.textSec,marginTop:6,paddingTop:6,borderTop:`1px dashed ${A.border}`}}><span style={{fontWeight:600}}>Nota SuperAdmin:</span> {r.review_note}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MyTeamModule({orgId, orgName, limiteUsuarios}) {
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -1440,7 +1677,7 @@ setBotLoading(false);
 
 const isSuperAdmin=SUPERADMIN_EMAILS.includes(session?.user?.email);
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"}]:[]),...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
@@ -1690,7 +1927,7 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1699,7 +1936,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.6.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.7.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
