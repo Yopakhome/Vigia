@@ -247,6 +247,218 @@ function MarkdownText({ text }) {
   }
 }
 
+// --- EXPORTACIÓN DE CONVERSACIONES (v3.7.0) ----------------------------------
+// 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
+const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
+const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
+const EXPORT_VIGIA_VERSION = "v3.7.0";
+
+function exportTimestamp() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  const fileStamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const humanStamp = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} COT`;
+  return { fileStamp, humanStamp };
+}
+
+function escapeHtml(str) {
+  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Convierte markdown (mismo subset que MarkdownText) a HTML plano para PDF/Word
+function mdToHtml(md) {
+  if (!md) return "";
+  const lines = String(md).split("\n");
+  const out = []; let list = null;
+  const flushList = () => { if(list) { out.push(list.ordered ? "</ol>" : "</ul>"); list = null; } };
+  const inline = (s) => {
+    let r = escapeHtml(s);
+    r = r.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    r = r.replace(/(^|[\s\(])\*([^*\n]+?)\*(?=[\s\.\,\:\;\)]|$)/g, "$1<em>$2</em>");
+    r = r.replace(/(\[(?:Ley|Decreto|Decreto-Ley|Resoluci[oó]n|Circular|Sentencia|Constituci[oó]n|Art\.?|Art[ií]culo)[^\]]+\])/g,
+      '<span style="color:#00836b;font-weight:600;">$1</span>');
+    return r;
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { flushList(); out.push(""); continue; }
+    const h = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (h) { flushList(); out.push(`<h${h[1].length+1}>${inline(h[2])}</h${h[1].length+1}>`); continue; }
+    const nl = trimmed.match(/^\d+\.\s+(.+)$/);
+    if (nl) { if (!list || !list.ordered) { flushList(); out.push("<ol>"); list = {ordered:true}; } out.push(`<li>${inline(nl[1])}</li>`); continue; }
+    const bl = trimmed.match(/^[-*]\s+(.+)$/);
+    if (bl) { if (!list || list.ordered) { flushList(); out.push("<ul>"); list = {ordered:false}; } out.push(`<li>${inline(bl[1])}</li>`); continue; }
+    flushList();
+    out.push(`<p>${inline(trimmed)}</p>`);
+  }
+  flushList();
+  return out.filter(x => x !== "").join("\n");
+}
+
+// Construye la estructura {items:[{question, answer, sources}]} a partir de botMessages.
+// Un item = un par consulta-respuesta consecutivo (user → assistant).
+function buildExportItems(botMessages, singleMessageIndex = null) {
+  const pairs = [];
+  for (let i = 0; i < botMessages.length; i++) {
+    const m = botMessages[i];
+    if (m.role === "assistant") {
+      // Buscar el user anterior más cercano
+      let userQ = "";
+      for (let j = i - 1; j >= 0; j--) {
+        if (botMessages[j].role === "user") { userQ = botMessages[j].text; break; }
+        if (botMessages[j].role === "assistant") break;
+      }
+      pairs.push({ index: i, question: userQ, answer: m.text, sources: m.sources || [] });
+    }
+  }
+  if (singleMessageIndex !== null) return pairs.filter(p => p.index === singleMessageIndex);
+  return pairs;
+}
+
+function buildMarkdownExport({ items, orgName, isFullConversation }) {
+  const { humanStamp } = exportTimestamp();
+  let md = `# VIGÍA — Inteligencia Regulatoria\n\n`;
+  md += `## ${isFullConversation ? "Conversación" : "Consulta"} exportada\n\n`;
+  md += `**Fecha:** ${humanStamp}  \n**Organización:** ${orgName || "(sin especificar)"}  \n**Versión:** VIGÍA ${EXPORT_VIGIA_VERSION}\n\n---\n\n`;
+  items.forEach((it, i) => {
+    if (isFullConversation && items.length > 1) md += `## Consulta ${i+1}\n\n`;
+    md += `### Pregunta del usuario\n\n${it.question}\n\n`;
+    md += `### Respuesta de VIGÍA\n\n${it.answer}\n\n`;
+    if (it.sources && it.sources.length > 0) {
+      md += `### Fuentes consultadas\n\n`;
+      it.sources.forEach((s, si) => {
+        md += `${si+1}. **${(s.norm_type||"").toUpperCase()} ${s.norm_number}/${s.norm_year}** — ${s.article_label || `Art. ${s.article_number}`} (similitud ${(s.similarity*100).toFixed(0)}%)\n`;
+      });
+      md += `\n`;
+    }
+    if (i < items.length - 1) md += `---\n\n`;
+  });
+  md += `\n---\n\n*${EXPORT_DISCLAIMER}*\n\nURL del producto: ${EXPORT_PRODUCT_URL}  \nVersión: VIGÍA ${EXPORT_VIGIA_VERSION}\n`;
+  return md;
+}
+
+function buildTxtExport({ items, orgName, isFullConversation }) {
+  const { humanStamp } = exportTimestamp();
+  const stripMd = (s) => String(s||"").replace(/\*\*/g,"").replace(/(?<!\*)\*(?!\*)/g,"").replace(/^#{1,3}\s+/gm,"").replace(/^[-*]\s+/gm,"• ");
+  let t = `VIGÍA — INTELIGENCIA REGULATORIA\n${isFullConversation ? "CONVERSACIÓN" : "CONSULTA"} EXPORTADA\n\n`;
+  t += `Fecha: ${humanStamp}\nOrganización: ${orgName || "(sin especificar)"}\nVersión: VIGÍA ${EXPORT_VIGIA_VERSION}\n\n${"=".repeat(60)}\n\n`;
+  items.forEach((it, i) => {
+    if (isFullConversation && items.length > 1) t += `CONSULTA ${i+1}\n${"-".repeat(30)}\n\n`;
+    t += `PREGUNTA DEL USUARIO\n${it.question}\n\n`;
+    t += `RESPUESTA DE VIGÍA\n${stripMd(it.answer)}\n\n`;
+    if (it.sources && it.sources.length > 0) {
+      t += `FUENTES CONSULTADAS\n`;
+      it.sources.forEach((s, si) => {
+        t += `  ${si+1}. ${(s.norm_type||"").toUpperCase()} ${s.norm_number}/${s.norm_year} — ${s.article_label || `Art. ${s.article_number}`} (sim ${(s.similarity*100).toFixed(0)}%)\n`;
+      });
+      t += `\n`;
+    }
+    if (i < items.length - 1) t += `${"=".repeat(60)}\n\n`;
+  });
+  t += `\n${"=".repeat(60)}\n\n${EXPORT_DISCLAIMER}\n\nURL: ${EXPORT_PRODUCT_URL}\nVersión: VIGÍA ${EXPORT_VIGIA_VERSION}\n`;
+  return t;
+}
+
+function buildHtmlBody({ items, orgName, isFullConversation }) {
+  const { humanStamp } = exportTimestamp();
+  let h = `<h1>VIGÍA — Inteligencia Regulatoria</h1>`;
+  h += `<h2>${isFullConversation ? "Conversación" : "Consulta"} exportada</h2>`;
+  h += `<div class="meta"><strong>Fecha:</strong> ${escapeHtml(humanStamp)}<br/>`;
+  h += `<strong>Organización:</strong> ${escapeHtml(orgName || "(sin especificar)")}<br/>`;
+  h += `<strong>Versión:</strong> VIGÍA ${EXPORT_VIGIA_VERSION}</div>`;
+  items.forEach((it, i) => {
+    if (isFullConversation && items.length > 1) h += `<h2>Consulta ${i+1}</h2>`;
+    h += `<h3>Pregunta del usuario</h3><p>${escapeHtml(it.question)}</p>`;
+    h += `<h3>Respuesta de VIGÍA</h3>${mdToHtml(it.answer)}`;
+    if (it.sources && it.sources.length > 0) {
+      h += `<h3>Fuentes consultadas</h3><div class="source-list"><ol>`;
+      it.sources.forEach((s) => {
+        h += `<li><strong>${escapeHtml((s.norm_type||"").toUpperCase())} ${escapeHtml(String(s.norm_number||""))}/${escapeHtml(String(s.norm_year||""))}</strong> — ${escapeHtml(s.article_label || `Art. ${s.article_number||""}`)} <em>(similitud ${(s.similarity*100).toFixed(0)}%)</em></li>`;
+      });
+      h += `</ol></div>`;
+    }
+    if (i < items.length - 1) h += `<hr/>`;
+  });
+  h += `<div class="disclaimer">${escapeHtml(EXPORT_DISCLAIMER)}<br/><br/>URL: ${EXPORT_PRODUCT_URL} · Versión: VIGÍA ${EXPORT_VIGIA_VERSION}</div>`;
+  return h;
+}
+
+function downloadBlob(content, filename, mime) {
+  try {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.style.display = "none";
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+    return true;
+  } catch (e) { alert("No se pudo descargar: " + e.message); return false; }
+}
+
+function exportAsPdf(payload) {
+  const w = window.open("", "_blank");
+  if (!w) { alert("El navegador bloqueó la ventana de impresión. Permitir popups para VIGÍA y reintentar."); return; }
+  const body = buildHtmlBody(payload);
+  const { fileStamp } = exportTimestamp();
+  const title = `VIGÍA ${payload.isFullConversation ? "conversación" : "consulta"} ${fileStamp}`;
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>
+body { font-family: Georgia, "Times New Roman", serif; color: #1a1a1a; background: #fff; padding: 40px; max-width: 820px; margin: 0 auto; font-size: 11pt; line-height: 1.55; }
+h1 { font-size: 20pt; color: #00836b; margin: 0 0 4pt 0; border-bottom: 2px solid #00836b; padding-bottom: 6pt; }
+h2 { font-size: 14pt; margin: 18pt 0 6pt; color: #1a1a1a; }
+h3 { font-size: 12pt; margin: 14pt 0 4pt; color: #333; }
+h4 { font-size: 11pt; margin: 10pt 0 4pt; font-weight: 700; }
+p { margin: 6pt 0; line-height: 1.55; }
+ul, ol { padding-left: 22pt; margin: 6pt 0; }
+li { margin: 3pt 0; }
+strong { font-weight: 700; }
+em { font-style: italic; }
+hr { border: none; border-top: 1px solid #ccc; margin: 20pt 0; }
+.meta { color: #555; font-size: 10pt; background: #f4f4f4; padding: 10pt 14pt; border-radius: 4pt; margin-bottom: 20pt; line-height: 1.7; }
+.source-list { background: #f8f8f8; border-left: 3px solid #00836b; padding: 8pt 16pt; font-size: 10pt; }
+.source-list em { color: #666; font-size: 9pt; }
+.disclaimer { font-size: 9pt; color: #666; border-top: 1px solid #ccc; padding-top: 14pt; margin-top: 32pt; font-style: italic; line-height: 1.5; }
+@media print {
+  body { padding: 0; max-width: none; color: #000; }
+  h1 { color: #000; border-color: #000; }
+  .meta { background: transparent; border: 1px solid #999; }
+  .source-list { background: transparent; }
+  @page { margin: 18mm; }
+}
+</style></head><body>${body}</body></html>`);
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch(e) {} }, 350);
+}
+
+function exportAsWord(payload) {
+  const body = buildHtmlBody(payload);
+  const { fileStamp } = exportTimestamp();
+  const filename = `vigia-${payload.isFullConversation ? "conversacion" : "consulta"}-${fileStamp}.doc`;
+  const wordHtml = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>VIGÍA</title>
+<style>
+body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; }
+h1 { font-size: 20pt; color: #00836b; }
+h2 { font-size: 14pt; margin-top: 18pt; }
+h3 { font-size: 12pt; margin-top: 12pt; color: #333; }
+.meta { background: #f4f4f4; padding: 10pt; font-size: 10pt; }
+.source-list { background: #f8f8f8; padding: 8pt 14pt; font-size: 10pt; }
+.disclaimer { font-size: 9pt; color: #666; font-style: italic; margin-top: 28pt; padding-top: 10pt; border-top: 1px solid #ccc; }
+</style></head><body>${body}</body></html>`;
+  downloadBlob(wordHtml, filename, "application/msword");
+}
+
+function exportAsMarkdownFile(payload) {
+  const md = buildMarkdownExport(payload);
+  const { fileStamp } = exportTimestamp();
+  downloadBlob(md, `vigia-${payload.isFullConversation ? "conversacion" : "consulta"}-${fileStamp}.md`, "text/markdown;charset=utf-8");
+}
+
+function exportAsTxtFile(payload) {
+  const txt = buildTxtExport(payload);
+  const { fileStamp } = exportTimestamp();
+  downloadBlob(txt, `vigia-${payload.isFullConversation ? "conversacion" : "consulta"}-${fileStamp}.txt`, "text/plain;charset=utf-8");
+}
+
 // --- FUENTE BADGE -------------------------------------------------------------
 function FuenteBadge({fuente}) {
 if(!fuente) return null;
@@ -1961,6 +2173,26 @@ const [ediFilter, setEdiFilter] = useState("todos");
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
 const [normScopeFilter, setNormScopeFilter] = useState("todos");
+const [exportMenu, setExportMenu] = useState(null); // null | "conv" | messageIndex
+useEffect(() => {
+  if (exportMenu === null) return;
+  const close = () => setExportMenu(null);
+  document.addEventListener("click", close);
+  return () => document.removeEventListener("click", close);
+}, [exportMenu]);
+
+const runExport = (format, singleMessageIndex = null) => {
+  const items = buildExportItems(botMessages, singleMessageIndex);
+  if (items.length === 0) { alert("No hay respuestas para exportar todavía."); return; }
+  const payload = { items, orgName: clientOrg?.name || "", isFullConversation: singleMessageIndex === null };
+  try {
+    if (format === "md") exportAsMarkdownFile(payload);
+    else if (format === "txt") exportAsTxtFile(payload);
+    else if (format === "pdf") exportAsPdf(payload);
+    else if (format === "doc") exportAsWord(payload);
+  } catch (e) { alert("Error exportando: " + e.message); }
+  setExportMenu(null);
+};
 
 const loadNormArticles = async (norm_id) => {
   if (!norm_id || normArticles[norm_id]) return;
@@ -2350,7 +2582,7 @@ const renderOversight=()=><div style={{padding:28}}>
 
   </div>;
 
-const renderConsultar=()=>{ const c=conf(); return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}{msg.role==="assistant"?<MarkdownText text={msg.text}/>:<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>}{msg.role==="assistant"&&Array.isArray(msg.sources)&&msg.sources.length>0&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.primary,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Fuentes consultadas ({msg.sources.length})</div><div style={{display:"flex",flexDirection:"column",gap:4}}>{msg.sources.map((s,si)=>(<div key={si} onClick={()=>{setView("normativa");setSelectedNorm(s.norm_id);}} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",background:C.bg,borderRadius:4,fontSize:10,color:C.textSec,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background=C.bg}><span style={{color:C.primary,fontWeight:600,minWidth:20}}>[{si+1}]</span><span style={{textTransform:"uppercase",fontWeight:600,color:C.blue}}>{s.norm_type}</span><span style={{color:C.text}}>{s.norm_number}/{s.norm_year}</span><span style={{color:C.textMuted}}>·</span><span>{s.article_label||`Art. ${s.article_number}`}</span><span style={{marginLeft:"auto",fontSize:9,color:C.textMuted}}>{(s.similarity*100).toFixed(0)}%</span></div>))}</div></div>}{msg.layers&&msg.role==="assistant"&&!Array.isArray(msg.sources)&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
+const renderConsultar=()=>{ const c=conf(); const hasAssistantMsgs = botMessages.some(m=>m.role==="assistant"); const convMenuOpen = exportMenu==="conv"; return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div>{hasAssistantMsgs&&<div style={{position:"relative"}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(convMenuOpen?null:"conv")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,borderRadius:8,padding:"7px 14px",color:C.primary,fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><Download size={13}/>Exportar conversación</button>{convMenuOpen&&<div style={{position:"absolute",top:"calc(100% + 4px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:180,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f)} style={{padding:"9px 14px",fontSize:12,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`,transition:"background 0.12s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}</div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px",position:"relative"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}{msg.role==="assistant"&&msg.text&&!msg.text.startsWith("Error:")&&<div style={{position:"absolute",top:6,right:6}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(exportMenu===i?null:i)} title="Exportar esta respuesta" style={{background:"transparent",border:"none",padding:4,borderRadius:4,cursor:"pointer",color:C.textMuted,display:"flex"}} onMouseEnter={e=>{e.currentTarget.style.background=C.bg;e.currentTarget.style.color=C.primary;}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=C.textMuted;}}><Download size={12}/></button>{exportMenu===i&&<div style={{position:"absolute",top:"calc(100% + 2px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:6,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:170,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f,i)} style={{padding:"8px 12px",fontSize:11,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}{msg.role==="assistant"?<MarkdownText text={msg.text}/>:<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>}{msg.role==="assistant"&&Array.isArray(msg.sources)&&msg.sources.length>0&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.primary,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Fuentes consultadas ({msg.sources.length})</div><div style={{display:"flex",flexDirection:"column",gap:4}}>{msg.sources.map((s,si)=>(<div key={si} onClick={()=>{setView("normativa");setSelectedNorm(s.norm_id);}} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",background:C.bg,borderRadius:4,fontSize:10,color:C.textSec,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background=C.bg}><span style={{color:C.primary,fontWeight:600,minWidth:20}}>[{si+1}]</span><span style={{textTransform:"uppercase",fontWeight:600,color:C.blue}}>{s.norm_type}</span><span style={{color:C.text}}>{s.norm_number}/{s.norm_year}</span><span style={{color:C.textMuted}}>·</span><span>{s.article_label||`Art. ${s.article_number}`}</span><span style={{marginLeft:"auto",fontSize:9,color:C.textMuted}}>{(s.similarity*100).toFixed(0)}%</span></div>))}</div></div>}{msg.layers&&msg.role==="assistant"&&!Array.isArray(msg.sources)&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
 
 const renderEDIs = () => {
   const hC2=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
@@ -2442,7 +2674,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.6.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.7.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
