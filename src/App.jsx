@@ -354,12 +354,23 @@ const analyzeDocument = async (file) => {
   } catch { base64Data=null; }
   for(let i=1;i<=5;i++){ await new Promise(r=>setTimeout(r,500)); setAnalysisStep(i); }
 
+  const oblNums = obligations.map(o=>o.obligation_num||o.num).filter(Boolean);
   const SYSTEM = `Eres el motor de ingestion documental de VIGIA, plataforma de inteligencia regulatoria ambiental colombiana.
 
 Organización del cliente: ${clientOrg?.name||"(sin definir)"} (sector ${clientOrg?.sector||"—"}).
 EDIs activos (${instruments.length}): ${instruments.length===0?"ninguno registrado":instruments.map(e=>`${e.project_name||e.name||"(sin nombre)"} — instrumento No. ${e.number||"—"}, autoridad ${e.authority_name||"—"}`).join("; ")}.
 Obligaciones activas (${obligations.length}): ${obligations.length===0?"ninguna registrada":obligations.map(o=>`${o.obligation_num||o.num||o.id}: ${o.name} (vence ${o.due_date||"—"}, estado ${o.status||"—"})`).join("; ")}.
 IMPORTANTE: Si el documento es una norma (ley, decreto, resolucion, circular, sentencia), identificalo como tal y extrae sus metadatos normativos completos. Las normas deben agregarse a la base normativa Y generar alertas regulatorias Y proponer cambios a las obligaciones afectadas.
+
+REGLAS ESTRICTAS PARA proposed_changes:
+- obligation_num DEBE ser exactamente uno de los siguientes valores literales: ${oblNums.length===0?"(no hay obligaciones registradas, devuelve proposed_changes: [])":oblNums.join(", ")}. Prohibido inventar, prohibido "TODAS", "GLOBAL", "N/A", null, o cualquier valor fuera de esa lista.
+- field DEBE ser exactamente uno de estos nombres de columna reales de la tabla obligations: due_date, frequency, description, obligation_type, source_article, status, days_alert_before, start_date, end_date. No inventes campos.
+- after DEBE respetar el tipo y los CHECK del campo:
+  · frequency ∈ {única, diaria, semanal, quincenal, mensual, bimestral, trimestral, semestral, anual, por_hito}.
+  · status ∈ {al_dia, proximo, vencido, cumplido, suspendido, no_aplica, pendiente}.
+  · due_date, start_date, end_date en formato YYYY-MM-DD.
+  · days_alert_before es un entero positivo.
+- Si no puedes proponer un cambio concreto y aplicable que cumpla TODAS las reglas anteriores, devuelve proposed_changes: []. No inventes para llenar.
 Responde SOLO en JSON:
 {"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
 
@@ -386,12 +397,15 @@ Responde SOLO en JSON:
   setUploadState("result");
 };
 
+const EDITABLE_OBLIGATION_FIELDS = ["due_date","frequency","description","obligation_type","source_article","status","days_alert_before","start_date","end_date"];
 const applyChange = async (idx) => {
   const ch = pendingChanges[idx];
   if(!ch || !clientOrg?.id) return;
+  if(!ch.obligation_num || /^(todas|todos|global|n\/?a)$/i.test(String(ch.obligation_num))) { alert(`El cambio propuesto apunta a "${ch.obligation_num}", que no es una obligación válida. Editá manualmente si aplica.`); return; }
   const target = obligations.find(o => (o.obligation_num||o.num) === ch.obligation_num && o.org_id === clientOrg.id);
   if(!target?.id) { alert(`No se encontró la obligación ${ch.obligation_num} en tu organización.`); return; }
   if(!ch.field) { alert("El cambio propuesto no indica qué campo actualizar."); return; }
+  if(!EDITABLE_OBLIGATION_FIELDS.includes(ch.field)) { alert(`El campo "${ch.field}" no es editable. Campos permitidos: ${EDITABLE_OBLIGATION_FIELDS.join(", ")}.`); return; }
   try {
     const token = sessionToken || SB_SERVICE;
     const r = await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${target.id}`, {
@@ -2111,7 +2125,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
