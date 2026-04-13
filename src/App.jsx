@@ -225,7 +225,7 @@ informativo:{ label:"Solo informativo", color:"#5e7a95" },
 const SEED_INTAKE = [];
 
 // --- INTAKE MODULE -------------------------------------------------------------
-function IntakeModule({ onNewAlert, onNewNorm }) {
+function IntakeModule({ onNewAlert, onNewNorm, clientOrg, sessionToken, onNewInstrument, onNewObligation }) {
 const [docs, setDocs] = React.useState([]);
 const [selectedDoc, setSelectedDoc] = React.useState(null);
 const [uploadState, setUploadState] = React.useState("idle");
@@ -238,6 +238,94 @@ const [pendingChanges, setPendingChanges] = React.useState([]);
 const fileRef = React.useRef();
 
 const I = C;
+
+const sbPost = async (table, body) => {
+  const token = sessionToken || SB_SERVICE;
+  const r = await fetch(SB_URL+"/rest/v1/"+table, {
+    method:"POST",
+    headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
+    body:JSON.stringify(body)
+  });
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { return {error:t}; }
+};
+
+const saveToSupabase = async (analysisResult, file) => {
+  if(!clientOrg?.id) return null;
+  const orgId = clientOrg.id;
+  const now = new Date().toISOString().split("T")[0];
+
+  // 1. Create or find instrument
+  let instrId = null;
+  try {
+    const instrPayload = {
+      org_id: orgId,
+      instrument_type: analysisResult.doc_nature === "norma" ? "Norma" : (analysisResult.candidate_edi || "Acto Administrativo"),
+      number: analysisResult.radicado || "SIN-RADICADO-"+Date.now(),
+      issue_date: analysisResult.doc_date || now,
+      authority_name: analysisResult.sender || "Por determinar",
+      domain: clientOrg.sector || "ambiental",
+      edi_status: "activo",
+      completeness_pct: analysisResult.candidate_confidence || 60,
+      has_confidential_sections: false,
+      ingested_at: new Date().toISOString()
+    };
+    const instrRes = await sbPost("instruments", instrPayload);
+    if(Array.isArray(instrRes) && instrRes[0]?.id) {
+      instrId = instrRes[0].id;
+      if(onNewInstrument) onNewInstrument(instrRes[0]);
+    }
+  } catch(e) { console.log("instrument save error", e); }
+
+  // 2. Save document record
+  if(instrId) {
+    try {
+      const docPayload = {
+        org_id: orgId,
+        instrument_id: instrId,
+        original_name: file.name,
+        file_type: file.type || "application/octet-stream",
+        file_size_kb: Math.round(file.size/1024),
+        doc_role: analysisResult.doc_nature || "otro",
+        doc_label: analysisResult.subject || file.name,
+        accessibility: "restringido",
+        ocr_status: "procesado",
+        extracted_text: analysisResult.content_summary || ""
+      };
+      await sbPost("documents", docPayload);
+    } catch(e) { console.log("document save error", e); }
+
+    // 3. Save extracted obligations
+    if(analysisResult.obligations_affected?.length > 0) {
+      const newObs = [];
+      for(let i=0; i<analysisResult.obligations_affected.length; i++){
+        try {
+          const oNum = analysisResult.obligations_affected[i];
+          const dl = analysisResult.deadlines_found?.[i] || null;
+          const obPayload = {
+            instrument_id: instrId,
+            org_id: orgId,
+            obligation_num: oNum,
+            name: oNum + " — Extraída de " + (analysisResult.subject||file.name).slice(0,80),
+            description: analysisResult.content_summary || "",
+            obligation_type: "ambiental",
+            frequency: "unica",
+            due_date: dl ? null : null,
+            status: "al_dia",
+            confidence_level: analysisResult.candidate_confidence > 70 ? "alta" : "media",
+            ai_interpretation: "Extraída automáticamente por VIGÍA INTAKE v2.3",
+            requires_human_validation: analysisResult.requires_confirmation || false,
+            has_regulatory_update: analysisResult.is_norma || false
+          };
+          const obRes = await sbPost("obligations", obPayload);
+          if(Array.isArray(obRes) && obRes[0]) newObs.push(obRes[0]);
+        } catch(e) { console.log("obligation save error", e); }
+      }
+      if(newObs.length > 0 && onNewObligation) onNewObligation(newObs);
+    }
+  }
+  return instrId;
+};
 
 const analyzeDocument = async (file) => {
 setUploadState("analyzing");
@@ -289,6 +377,7 @@ const processAndLink = () => {
 if(!analysisResult) return;
 const edi=INTAKE_EDIS.find(e=>e.name===analysisResult.candidate_edi);
 const newDoc={id:`int_${Date.now()}`,original_name:analysisResult.file_name,file_type:analysisResult.file_type,file_size:analysisResult.file_size,doc_nature:analysisResult.doc_nature,is_norma:analysisResult.is_norma||false,sender:analysisResult.sender,receiver:analysisResult.receiver,doc_date:analysisResult.doc_date||new Date().toISOString().split("T")[0],received_date:new Date().toISOString().split("T")[0],radicado:analysisResult.radicado,subject:analysisResult.subject,content_summary:analysisResult.content_summary,actions_detected:analysisResult.actions_detected,obligations_affected:analysisResult.obligations_affected,confidence_pct:analysisResult.candidate_confidence,edi_id:edi?.id||null,urgency:analysisResult.urgency,status:"procesado",processed_date:new Date().toISOString().split("T")[0],norma_data:analysisResult.norma_data||null,proposed_changes:analysisResult.proposed_changes||[]};
+saveToSupabase(analysisResult, {name:analysisResult.file_name||"documento",type:analysisResult.file_type||"",size:(analysisResult.file_size||0)*1024}).catch(e=>console.log("supabase save",e));
 setDocs(p=>[newDoc,...p]);
 if(analysisResult.is_norma&&onNewNorm) onNewNorm(analysisResult);
 if(analysisResult.is_norma&&onNewAlert) onNewAlert(analysisResult);
@@ -1412,7 +1501,7 @@ const renderOversight=()=><div style={{padding:28}}>
 
 const renderConsultar=()=>{ const c=conf(); return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>{msg.layers&&msg.role==="assistant"&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm}/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);}}/>; if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -1421,7 +1510,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.3.3</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v2.4.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
