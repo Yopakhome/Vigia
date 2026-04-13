@@ -252,6 +252,11 @@ const sbPost = async (table, body) => {
 
 const saveToSupabase = async (analysisResult, file) => {
   if(!clientOrg?.id) return null;
+  // Normas, jurisprudencia y actos administrativos NO son EDIs propios del cliente.
+  // El EDI es un instrumento de manejo/permiso otorgado por autoridad; las normas
+  // alimentan la base normativa (normative_sources) y, si tienen impacto, una alerta
+  // en regulatory_alerts. Eso lo disparan onNewNorm/onNewAlert desde processAndLink.
+  if(["norma","jurisprudencia"].includes(analysisResult.doc_nature)) return null;
   const orgId = clientOrg.id;
   const now = new Date().toISOString().split("T")[0];
 
@@ -2125,7 +2130,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.1</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.2.2</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
