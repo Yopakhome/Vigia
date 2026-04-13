@@ -252,11 +252,16 @@ const sbPost = async (table, body) => {
 
 const saveToSupabase = async (analysisResult, file) => {
   if(!clientOrg?.id) return null;
-  // Normas, jurisprudencia y actos administrativos NO son EDIs propios del cliente.
-  // El EDI es un instrumento de manejo/permiso otorgado por autoridad; las normas
-  // alimentan la base normativa (normative_sources) y, si tienen impacto, una alerta
-  // en regulatory_alerts. Eso lo disparan onNewNorm/onNewAlert desde processAndLink.
-  if(["norma","jurisprudencia"].includes(analysisResult.doc_nature)) return null;
+  // Ramificación por doc_nature:
+  // - norma/jurisprudencia: van a normative_sources + regulatory_alerts vía
+  //   onNewNorm/onNewAlert desde processAndLink. No crear instrument aquí.
+  // - acto_administrativo: crea EDI (único caso legítimo de instrument nuevo
+  //   desde INTAKE: el acto administrativo es el otorgamiento del permiso).
+  // - evidencia_cumplimiento, documento_tecnico, comunicacion, otro: aún no
+  //   tienen flujo de persistencia automática (van a tablas evidences/
+  //   communications, requieren elegir EDI destino y UI específica).
+  //   Se omite el guardado y se avisa al usuario en processAndLink.
+  if(analysisResult.doc_nature !== "acto_administrativo") return null;
   const orgId = clientOrg.id;
   const now = new Date().toISOString().split("T")[0];
 
@@ -429,8 +434,14 @@ const applyChange = async (idx) => {
   }
 };
 
+const UNSUPPORTED_INTAKE_NATURES = ["evidencia_cumplimiento","documento_tecnico","comunicacion","otro"];
 const processAndLink = () => {
 if(!analysisResult) return;
+if(UNSUPPORTED_INTAKE_NATURES.includes(analysisResult.doc_nature)) {
+  const label = DOC_TYPES[analysisResult.doc_nature]?.label || analysisResult.doc_nature;
+  const ok = confirm(`Este documento fue clasificado como "${label}". El flujo de guardado para este tipo aún no está implementado — por ahora sólo quedará registrado en esta pantalla (no se guarda en Supabase). ¿Continuar?`);
+  if(!ok) return;
+}
 const edi=instruments.find(e=>(e.project_name||e.name)===analysisResult.candidate_edi);
 const newDoc={id:`int_${Date.now()}`,original_name:analysisResult.file_name,file_type:analysisResult.file_type,file_size:analysisResult.file_size,doc_nature:analysisResult.doc_nature,is_norma:analysisResult.is_norma||false,sender:analysisResult.sender,receiver:analysisResult.receiver,doc_date:analysisResult.doc_date||new Date().toISOString().split("T")[0],received_date:new Date().toISOString().split("T")[0],radicado:analysisResult.radicado,subject:analysisResult.subject,content_summary:analysisResult.content_summary,actions_detected:analysisResult.actions_detected,obligations_affected:analysisResult.obligations_affected,confidence_pct:analysisResult.candidate_confidence,edi_id:edi?.id||null,urgency:analysisResult.urgency,status:"procesado",processed_date:new Date().toISOString().split("T")[0],norma_data:analysisResult.norma_data||null,proposed_changes:analysisResult.proposed_changes||[]};
 saveToSupabase(analysisResult, {name:analysisResult.file_name||"documento",type:analysisResult.file_type||"",size:(analysisResult.file_size||0)*1024}).catch(e=>console.log("supabase save",e));
@@ -613,7 +624,7 @@ return (
 
       <div style={{display:"flex",gap:10}}>
         <button onClick={processAndLink} style={{flex:1,background:analysisResult.is_norma?I.purple:I.primary,border:"none",borderRadius:8,padding:"11px",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          <CheckCircle size={14}/> {analysisResult.is_norma?"Agregar a normativa y generar alertas":"Procesar y vincular al EDI"}
+          <CheckCircle size={14}/> {analysisResult.is_norma?"Agregar a normativa y generar alertas":analysisResult.doc_nature==="acto_administrativo"?"Crear EDI y vincular obligaciones":"Registrar en lista local (sin persistir)"}
         </button>
         <button onClick={()=>{setUploadState("idle");setAnalysisResult(null);}} style={{background:I.surfaceEl,border:`1px solid ${I.border}`,borderRadius:8,padding:"11px 18px",color:I.textSec,fontSize:13,cursor:"pointer"}}>Cancelar</button>
       </div>
@@ -2147,7 +2158,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.3.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.3.1</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
