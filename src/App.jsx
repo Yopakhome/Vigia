@@ -3,6 +3,16 @@ import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
+const SB_SERVICE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a2J1amtxamVzdW50Z2RrdWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk1NzIyNywiZXhwIjoyMDkxNTMzMjI3fQ.0wdZfTZ0Ar-Wys99pxqMACBt7xfBwJdkFW5sNp6ka2Q";
+const sbServicePost = async (table, payload) => {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_SERVICE}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`${table}: ${res.status} ${t.slice(0,200)}`); }
+  return true;
+};
 const sb = async (table, params="", token=SB_KEY) => {
 const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
 if (!res.ok) throw new Error(res.status);
@@ -247,11 +257,11 @@ function MarkdownText({ text }) {
   }
 }
 
-// --- EXPORTACIÓN DE CONVERSACIONES (v3.7.0) ----------------------------------
+// --- EXPORTACIÓN DE CONVERSACIONES (v3.8.0) ----------------------------------
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.7.0";
+const EXPORT_VIGIA_VERSION = "v3.8.0";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1213,6 +1223,9 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [catalogSearch, setCatalogSearch] = React.useState("");
   const [setupRunning, setSetupRunning] = React.useState(false);
   const [setupDone, setSetupDone] = React.useState(false);
+  const [seedRunning, setSeedRunning] = React.useState(false);
+  const [seedDone, setSeedDone] = React.useState(false);
+  const [seedLog, setSeedLog] = React.useState([]);
   const A = C;
 
   const load = async () => {
@@ -1290,6 +1303,74 @@ function SuperAdminModule({reviewerId, sessionToken}) {
       load();
     } catch(e) { addLog("Error: "+e.message,"error"); }
     setSetupRunning(false);
+  };
+
+  const addSeedLog = function(m, t) { setSeedLog(function(p) { return [...p, {m, t: t||"info", ts: new Date().toLocaleTimeString("es-CO")}]; }); };
+
+  const runSeedData = async function() {
+    setSeedRunning(true); setSeedLog([]); setSeedDone(false);
+    const ORG_E = "b1000000-0000-0000-0000-000000000001";
+    const ORG_M = "b2000000-0000-0000-0000-000000000002";
+    const today = new Date();
+    const dt = (d) => { const x = new Date(today); x.setDate(x.getDate() + d); return x.toISOString().split("T")[0]; };
+    const instruments = [
+      {id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,project_name:"Parque Solar Cundinamarca I",instrument_type:"Licencia Ambiental",number:"R0848-2021",authority_name:"ANLA",authority_level:"Nacional",domain:"ambiental",edi_status:"activo",completeness_pct:92,location_dept:"Cundinamarca",sector:"energia"},
+      {id:"e1000001-0000-0000-0000-000000000002",org_id:ORG_E,project_name:"Parque Solar Cundinamarca I",instrument_type:"Concesión de Aguas",number:"CA-2019-0234",authority_name:"CAR",authority_level:"Regional",domain:"ambiental",edi_status:"activo",completeness_pct:78,location_dept:"Cundinamarca",sector:"energia"},
+      {id:"e1000001-0000-0000-0000-000000000003",org_id:ORG_E,project_name:"Parque Solar Cundinamarca I",instrument_type:"Permiso de Vertimiento",number:"PV-BGT-2020-112",authority_name:"SDA",authority_level:"Distrital",domain:"ambiental",edi_status:"activo",completeness_pct:65,location_dept:"Cundinamarca",sector:"energia"},
+      {id:"e1000001-0000-0000-0000-000000000004",org_id:ORG_E,project_name:"Subestación Solar Sur",instrument_type:"Permiso Emisiones Atmosféricas",number:"PEA-2022-089",authority_name:"ANLA",authority_level:"Nacional",domain:"ambiental",edi_status:"activo",completeness_pct:88,location_dept:"Cundinamarca",sector:"energia"},
+      {id:"e2000002-0000-0000-0000-000000000001",org_id:ORG_M,project_name:"Mina El Porvenir",instrument_type:"Licencia Ambiental",number:"001-2018-ANLA",authority_name:"ANLA",authority_level:"Nacional",domain:"ambiental",edi_status:"activo",completeness_pct:85,location_dept:"Antioquia",sector:"mineria"},
+      {id:"e2000002-0000-0000-0000-000000000002",org_id:ORG_M,project_name:"Mina El Porvenir",instrument_type:"Plan de Manejo Ambiental",number:"PMA-MIN-2018-044",authority_name:"CORANTIOQUIA",authority_level:"Regional",domain:"ambiental",edi_status:"activo",completeness_pct:70,location_dept:"Antioquia",sector:"mineria"},
+      {id:"e2000002-0000-0000-0000-000000000003",org_id:ORG_M,project_name:"Mina El Porvenir",instrument_type:"Permiso de Vertimiento",number:"PV-MED-2019-078",authority_name:"CORANTIOQUIA",authority_level:"Regional",domain:"ambiental",edi_status:"activo",completeness_pct:55,location_dept:"Antioquia",sector:"mineria"},
+      {id:"e2000002-0000-0000-0000-000000000004",org_id:ORG_M,project_name:"Mina El Porvenir",instrument_type:"Plan de Cierre de Mina",number:"PCM-2022-015",authority_name:"ANLA",authority_level:"Nacional",domain:"ambiental",edi_status:"activo",completeness_pct:90,location_dept:"Antioquia",sector:"mineria"},
+    ];
+    const obligations = [
+      {id:"ob10000-0001",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-001",name:"Informe semestral monitoreo aves y murciélagos",description:"Presentar ante ANLA informe con metodología transectos y análisis de colisiones. Res. 0848/2021 Art. 12.",due_date:dt(-14),frequency:"semestral",obligation_type:"ambiental",source_article:"Art. 12 Res. 0848/2021",confidence_level:"alta",days_alert_before:30,status:"vencido"},
+      {id:"ob10000-0002",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-002",name:"Medición de ruido perimetral y comunidades",description:"Campaña de monitoreo acústico en 5 puntos. Informe a ANLA con comparativo vs línea base.",due_date:dt(16),frequency:"semestral",obligation_type:"ambiental",source_article:"Art. 15 Res. 0848/2021",confidence_level:"alta",days_alert_before:30,status:"activo"},
+      {id:"ob10000-0003",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-003",name:"Verificación plantación compensatoria",description:"Visita de campo georeferenciada. Supervivencia mínima 80%. Registro fotográfico.",due_date:dt(76),frequency:"anual",obligation_type:"ambiental",source_article:"Art. 22 Res. 0848/2021",confidence_level:"alta",days_alert_before:30,status:"activo"},
+      {id:"ob10000-0004",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-004",name:"Informe de gestión ambiental anual consolidado",description:"Consolidado anual de todos los componentes: suelo, agua, aire, fauna, flora, social.",due_date:dt(261),frequency:"anual",obligation_type:"ambiental",source_article:"Art. 5 Res. 0848/2021",confidence_level:"alta",days_alert_before:45,status:"activo"},
+      {id:"ob10000-0005",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-005",name:"Reunión semestral Consejo Comunitario vereda El Progreso",description:"Espacio de participación comunitaria. Acta firmada y lista de asistencia. Mínimo 20 participantes.",due_date:dt(47),frequency:"semestral",obligation_type:"social",source_article:"Art. 28 Res. 0848/2021",confidence_level:"media",days_alert_before:15,status:"activo"},
+      {id:"ob10000-0006",instrument_id:"e1000001-0000-0000-0000-000000000001",org_id:ORG_E,obligation_num:"OB-006",name:"Actualización Plan de Contingencia Ambiental",description:"Revisar y actualizar PCA con escenarios de falla. Someter a aprobación ANLA.",due_date:dt(-5),frequency:"anual",obligation_type:"ambiental",source_article:"Art. 31 Res. 0848/2021",confidence_level:"alta",days_alert_before:30,status:"vencido"},
+      {id:"ob10000-0007",instrument_id:"e1000001-0000-0000-0000-000000000002",org_id:ORG_E,obligation_num:"CA-001",name:"Reporte trimestral caudal captado Quebrada Honda",description:"Informe mensual acumulado al trimestre con lecturas de aforador. Caudal máx 3.2 L/s.",due_date:dt(25),frequency:"trimestral",obligation_type:"hidrico",source_article:"Art. 7 Res. CAR 2019-0234",confidence_level:"alta",days_alert_before:15,status:"activo"},
+      {id:"ob10000-0008",instrument_id:"e1000001-0000-0000-0000-000000000002",org_id:ORG_E,obligation_num:"CA-002",name:"Pago tasa por utilización de aguas Q1 2026",description:"Liquidación y pago de tasa por utilización de aguas al sistema de recaudo CAR.",due_date:dt(-4),frequency:"trimestral",obligation_type:"financiero",source_article:"Dec. 155/2004",confidence_level:"alta",days_alert_before:10,status:"vencido"},
+      {id:"ob10000-0009",instrument_id:"e1000001-0000-0000-0000-000000000002",org_id:ORG_E,obligation_num:"CA-003",name:"Monitoreo calidad fisicoquímica agua de retorno",description:"Parámetros: SST, DBO5, pH, temperatura. Muestreo compuesto 24h. Laboratorio acreditado IDEAM.",due_date:dt(96),frequency:"semestral",obligation_type:"hidrico",source_article:"Art. 12 Res. CAR 2019-0234",confidence_level:"alta",days_alert_before:20,status:"activo"},
+      {id:"ob10000-0010",instrument_id:"e1000001-0000-0000-0000-000000000003",org_id:ORG_E,obligation_num:"PV-001",name:"Pago tasa retributiva vertimientos industriales Q1",description:"Cálculo según carga contaminante DBO y SST. Pago ante CAR o sistema en línea.",due_date:dt(-10),frequency:"trimestral",obligation_type:"financiero",source_article:"Dec. 2667/2012",confidence_level:"alta",days_alert_before:15,status:"vencido"},
+      {id:"ob10000-0011",instrument_id:"e1000001-0000-0000-0000-000000000003",org_id:ORG_E,obligation_num:"PV-002",name:"Reporte trimestral residuos sólidos generados",description:"Manifiestos de almacenamiento, transporte y disposición final. Gestor autorizado SSPD.",due_date:dt(47),frequency:"trimestral",obligation_type:"residuos",source_article:"Art. 19 PV-BGT-2020-112",confidence_level:"media",days_alert_before:15,status:"activo"},
+      {id:"ob20000-0001",instrument_id:"e2000002-0000-0000-0000-000000000001",org_id:ORG_M,obligation_num:"LA-001",name:"Monitoreo calidad del aire PM10 y PM2.5",description:"Estación fija en zona de explotación. Datos continuos. Informe trimestral a ANLA. Límite 100 µg/m³.",due_date:dt(-21),frequency:"trimestral",obligation_type:"atmosferico",source_article:"Art. 8 Lic. 001-2018-ANLA",confidence_level:"alta",days_alert_before:30,status:"vencido"},
+      {id:"ob20000-0002",instrument_id:"e2000002-0000-0000-0000-000000000001",org_id:ORG_M,obligation_num:"LA-002",name:"Informe semestral revegetalización de taludes",description:"Registro fotográfico georeferenciado y área revegetalizada en m². Meta 85% cobertura en 36 meses.",due_date:dt(55),frequency:"semestral",obligation_type:"ambiental",source_article:"Art. 14 Lic. 001-2018-ANLA",confidence_level:"alta",days_alert_before:30,status:"activo"},
+      {id:"ob20000-0003",instrument_id:"e2000002-0000-0000-0000-000000000001",org_id:ORG_M,obligation_num:"LA-003",name:"Pago compensación forestal 3:1 área intervenida",description:"Transferencia a CORANTIOQUIA por m² de bosque intervenido. Liquidación semestral.",due_date:dt(18),frequency:"semestral",obligation_type:"financiero",source_article:"Art. 21 Lic. 001-2018-ANLA",confidence_level:"alta",days_alert_before:20,status:"activo"},
+      {id:"ob20000-0004",instrument_id:"e2000002-0000-0000-0000-000000000001",org_id:ORG_M,obligation_num:"LA-004",name:"Informe de gestión ambiental anual consolidado",description:"Todos los componentes PMA. Presentar en enero del año siguiente ante ANLA.",due_date:dt(261),frequency:"anual",obligation_type:"ambiental",source_article:"Art. 5 Lic. 001-2018-ANLA",confidence_level:"alta",days_alert_before:45,status:"activo"},
+      {id:"ob20000-0005",instrument_id:"e2000002-0000-0000-0000-000000000002",org_id:ORG_M,obligation_num:"PMA-001",name:"Monitoreo niveles freáticos red piezométrica",description:"Lectura mensual de 12 piezómetros. Alerta si nivel desciende >2m vs línea base.",due_date:dt(16),frequency:"mensual",obligation_type:"hidrico",source_article:"Cap. 3 PMA-MIN-2018-044",confidence_level:"alta",days_alert_before:10,status:"activo"},
+      {id:"ob20000-0006",instrument_id:"e2000002-0000-0000-0000-000000000002",org_id:ORG_M,obligation_num:"PMA-002",name:"Actualización Plan de Manejo de Fauna",description:"Protocolo de rescate y relocalización de fauna antes de cada frente de explotación.",due_date:dt(-7),frequency:"semestral",obligation_type:"ambiental",source_article:"Cap. 7 PMA-MIN-2018-044",confidence_level:"media",days_alert_before:20,status:"vencido"},
+      {id:"ob20000-0007",instrument_id:"e2000002-0000-0000-0000-000000000002",org_id:ORG_M,obligation_num:"PMA-003",name:"Capacitación ambiental personal operativo trimestral",description:"Mínimo 4 horas por trimestre. Temas: residuos, derrames, fauna. Actas firmadas.",due_date:dt(33),frequency:"trimestral",obligation_type:"social",source_article:"Cap. 9 PMA-MIN-2018-044",confidence_level:"media",days_alert_before:15,status:"activo"},
+    ];
+    const alerts_data = [
+      {id:"al10000-0001",org_id:ORG_E,title:"Resolución ANLA 2026-034 — Nuevos límites ruido parques solares",norm_date:"2026-03-28",urgency:"alta",body:"La ANLA expidió la Res. 2026-034 que actualiza límites de ruido para parques solares en zonas rurales. Las empresas con licencias vigentes tienen 90 días hábiles para presentar plan de adecuación. Nuevo límite diurno: 55 dB(A) en zona de influencia directa.",is_active:true},
+      {id:"al10000-0002",org_id:ORG_E,title:"CAR — Declaratoria escasez hídrica cuenca río Bogotá",norm_date:"2026-04-05",urgency:"alta",body:"La CAR declaró estado de escasez hídrica en cuenca alta del río Bogotá (Acuerdo 010/2026). Concesiones de agua superficial suspendidas en 30% por 60 días. Ajustar captación Quebrada Honda al nuevo caudal autorizado.",is_active:true},
+      {id:"al20000-0001",org_id:ORG_M,title:"Decreto 189/2026 — Reporte pasivos ambientales mineros",norm_date:"2026-04-02",urgency:"alta",body:"Ministerio de Ambiente expidió Dec. 189/2026 que obliga a empresas mineras (>50 Ha) a presentar ante ANLA inventario georeferenciado de pasivos ambientales antes del 30 jun 2026. Incumplimiento: suspensión de Licencia Ambiental.",is_active:true},
+      {id:"al20000-0002",org_id:ORG_M,title:"CORANTIOQUIA — Nueva metodología compensación forestal",norm_date:"2026-03-20",urgency:"media",body:"CORANTIOQUIA actualizó metodología de compensación forestal (Acuerdo 009/2026). Factor sube de 3:1 a 3.5:1 para bosque húmedo tropical. Vigente desde 1 mayo 2026. Revisar pagos programados del segundo semestre.",is_active:true},
+    ];
+    try {
+      addSeedLog("Insertando 8 EDIs...");
+      for(var ii=0; ii<instruments.length; ii++) {
+        try { await sbServicePost("instruments", instruments[ii]); }
+        catch(e) { if(!e.message.includes("23505")) addSeedLog("EDI err "+ii+": "+e.message.slice(0,80),"error"); }
+      }
+      addSeedLog("8 EDIs procesados","success");
+      addSeedLog("Insertando "+obligations.length+" obligaciones...");
+      for(var kk=0; kk<obligations.length; kk++) {
+        try { await sbServicePost("obligations", obligations[kk]); }
+        catch(e) { if(!e.message.includes("23505")) addSeedLog("Ob err "+kk+": "+e.message.slice(0,80),"error"); }
+      }
+      addSeedLog(obligations.length+" obligaciones procesadas","success");
+      addSeedLog("Insertando "+alerts_data.length+" alertas regulatorias...");
+      for(var aa=0; aa<alerts_data.length; aa++) {
+        try { await sbServicePost("regulatory_alerts", alerts_data[aa]); }
+        catch(e) { if(!e.message.includes("23505")) addSeedLog("Alerta err "+aa+": "+e.message.slice(0,80),"error"); }
+      }
+      addSeedLog("SEED COMPLETO — 8 EDIs · "+obligations.length+" obligaciones · "+alerts_data.length+" alertas","success");
+      setSeedDone(true);
+    } catch(e) { addSeedLog("Error inesperado: "+e.message,"error"); }
+    setSeedRunning(false);
   };
 
   const createUser = async function() {
@@ -1828,6 +1909,23 @@ function SuperAdminModule({reviewerId, sessionToken}) {
           {setupLog.length>0&&(
             <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"12px 16px",maxHeight:280,overflowY:"auto"}}>
               {setupLog.map(function(l,i){ return <div key={i} style={{fontSize:11,color:l.t==="success"?A.green:l.t==="error"?A.red:A.textSec,marginBottom:3,display:"flex",gap:8}}><span style={{color:A.textMuted,flexShrink:0}}>{l.ts}</span><span>{l.m}</span></div>; })}
+            </div>
+          )}
+          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:24,marginTop:16}}>
+            <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:4}}>Seed datos demo</div>
+            <div style={{fontSize:12,color:A.textSec,lineHeight:1.6,marginBottom:16}}>Inserta EDIs, obligaciones y alertas realistas en las 2 orgs demo. Requiere que Setup Demo ya se haya ejecutado. Es idempotente — puede correrse múltiples veces sin duplicar.</div>
+            <div style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",marginBottom:16,fontSize:11,color:A.textSec}}>
+              <div style={{fontWeight:600,color:A.text,marginBottom:6}}>Se insertarán:</div>
+              <div>• 4 EDIs Energía Renovable: Lic. Ambiental ANLA, Concesión Aguas CAR, Permiso Vertimiento SDA, Permiso Emisiones</div>
+              <div>• 4 EDIs Minería Verde: Lic. Ambiental ANLA, PMA CORANTIOQUIA, Permiso Vertimiento, Plan de Cierre</div>
+              <div>• 11 obligaciones Energía + 7 obligaciones Minería (mix: 4 vencidas, 7 próximas, 7 al día)</div>
+              <div>• 2 alertas regulatorias por org (CAR, ANLA, CORANTIOQUIA, Ministerio)</div>
+            </div>
+            <button onClick={runSeedData} disabled={seedRunning||seedDone} style={{width:"100%",background:seedDone?A.greenDim:seedRunning?A.surfaceEl:A.primary,border:"1px solid "+(seedDone?A.green:A.primary)+"44",borderRadius:8,padding:"12px",color:seedDone?A.green:seedRunning?A.textSec:"#fff",fontSize:14,fontWeight:700,cursor:seedRunning||seedDone?"not-allowed":"pointer"}}>{seedDone?"Seed completado ✓":seedRunning?"Insertando datos...":"Seed EDIs + Obligaciones + Alertas"}</button>
+          </div>
+          {seedLog.length>0&&(
+            <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"12px 16px",maxHeight:280,overflowY:"auto",marginTop:10}}>
+              {seedLog.map(function(l,i){ return <div key={i} style={{fontSize:11,color:l.t==="success"?A.green:l.t==="error"?A.red:A.textSec,marginBottom:3,display:"flex",gap:8}}><span style={{color:A.textMuted,flexShrink:0}}>{l.ts}</span><span>{l.m}</span></div>; })}
             </div>
           )}
         </div>
@@ -2674,7 +2772,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.7.0</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.8.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
