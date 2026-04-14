@@ -1,0 +1,82 @@
+{
+  "total_candidates": 3,
+  "downloaded_ok": 3,
+  "errors": 0,
+  "total_bytes": 2124957,
+  "total_mb": 2.03,
+  "elapsed_seconds": 10.8,
+  "records": [
+    {
+      "url": "https://www.anla.gov.co/eureka/jurisprudencia/sentencias/sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm",
+      "path": "/eureka/jurisprudencia/sentencias/sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm",
+      "subcategory_slug": "sentencias",
+      "slug": "sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm",
+      "title": "Sentencia radicación 2019 – 00262 de fecha 12 de febrero de 2026 del Consejo de Estado – Nulidad del Decreto Reglamentario 1500 de 2018 – ´Línea Negra´ de la Sierra Nevada de Santa Marta (SNSM)",
+      "cached": true,
+      "cache_file": "html_cache_jurisprudencia/sentencias__sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm.html",
+      "from_cache": false,
+      "doc_title": "Sentencia radicación 2019 – 00262 de fecha 12 de febrero de 2026 del Consejo de Estado – Nulidad del Decreto Reglamentario 1500 de 2018 – ´Línea Negra´ de la Sierra Nevada de Santa Marta (SNSM)",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2026_ce_sent_decreto1500_2018.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2026_ce_sent_decreto1500_2018.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples_jurisprudencia/sentencias__sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm.pdf",
+      "size_bytes": 1067962
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/jurisprudencia/sentencias/sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-control-por-parte-de-la-jurisdiccion-de-lo",
+      "path": "/eureka/jurisprudencia/sentencias/sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-control-por-parte-de-la-jurisdiccion-de-lo",
+      "subcategory_slug": "sentencias",
+      "slug": "sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-control-por-parte-de-la-jurisdiccion-de-lo",
+      "title": "Sentencia radicación 2007 – 00383 de fecha 17 de junio de 2022 del Consejo de Estado – Medidas Preventivas en el Procedimiento Sancionatorio Ambiental son Actos Administrativos Definitivos y pueden ser objeto de Control por parte de la Jurisdicción de lo",
+      "cached": true,
+      "cache_file": "html_cache_jurisprudencia/sentencias__sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-con__2a3a5fd15f.html",
+      "from_cache": false,
+      "doc_title": "Sentencia radicación 2007 – 00383 de fecha 17 de junio de 2022 del Consejo de Estado – Medidas Preventivas en el Procedimiento Sancionatorio Ambiental son Actos Administrativos Definitivos y pueden ser objeto de Control por parte de la Jurisdicción de lo",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2022_ce_sent_2007_00383_medidas_preventivas.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2022_ce_sent_2007_00383_medidas_preventivas.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples_jurisprudencia/sentencias__sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-cont__2a3a5fd15f.pdf",
+      "size_bytes": 799067
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/jurisprudencia/sentencias/sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango",
+      "path": "/eureka/jurisprudencia/sentencias/sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango",
+      "subcategory_slug": "sentencias",
+      "slug": "sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango",
+      "title": "Sentencia T – 038 de 2019 del Tribunal Superior de Medellín – Río Cauca: su Cuenca y Afluentes como Entidad Sujeto de Derechos – Las Generaciones Futuras son Sujetos de Derecho de Especial Protección – Proyecto Hidroituango",
+      "cached": true,
+      "cache_file": "html_cache_jurisprudencia/sentencias__sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango.html",
+      "from_cache": false,
+      "doc_title": "Sentencia T – 038 de 2019 del Tribunal Superior de Medellín – Río Cauca: su Cuenca y Afluentes como Entidad Sujeto de Derechos – Las Generaciones Futuras son Sujetos de Derecho de Especial Protección – Proyecto Hidroituango",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2019_Sentencia_TSM_Rio_Cauca.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2019_Sentencia_TSM_Rio_Cauca.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples_jurisprudencia/sentencias__sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango.pdf",
+      "size_bytes": 257928
+    }
+  ]
+}

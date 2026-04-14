@@ -1,0 +1,88 @@
+{
+  "total_parsed": 3,
+  "elapsed_seconds": 3.1,
+  "parse_quality_distribution": {
+    "full_text": 3
+  },
+  "norm_type_distribution": {
+    "Decreto Reglamentario": 1
+  },
+  "docs_by_subcategory": {
+    "sentencias": 3
+  },
+  "pct_scan": 0.0,
+  "pct_excellent": 0.0,
+  "pct_good": 0.0,
+  "pct_manual_review": 0.0,
+  "per_doc": [
+    {
+      "slug": "sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm",
+      "subcat": "sentencias",
+      "pdf": "sentencias__sentencia-radicacion-2019-00262-de-fecha-12-de-febrero-de-2026-del-consejo-de-estado-nulidad-del-decreto-reglamentario-1500-de-2018-linea-negra-de-la-sierra-nevada-de-santa-marta-snsm.pdf",
+      "title": "Sentencia radicación 2019 – 00262 de fecha 12 de febrero de 2026 del Consejo de Estado – Nulidad del Decreto Reglamentario 1500 de 2018 – ´Línea Negra´ de la Sierra Nevada de Santa Marta (SNSM)",
+      "pages": 76,
+      "has_text_layer": true,
+      "char_count": 258487,
+      "articles_detected": 8,
+      "article_numbers_sample": [
+        "332",
+        "1",
+        "10",
+        "11",
+        "5",
+        "8",
+        "2.1.2.1.6",
+        "188"
+      ],
+      "norm_type_detected": "Decreto Reglamentario",
+      "norm_number_detected": "1500",
+      "norm_year_detected": 2018,
+      "parse_quality": "full_text"
+    },
+    {
+      "slug": "sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-control-por-parte-de-la-jurisdiccion-de-lo",
+      "subcat": "sentencias",
+      "pdf": "sentencias__sentencia-radicacion-2007-00383-de-fecha-17-de-junio-de-2022-del-consejo-de-estado-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental-son-actos-administrativos-definitivos-y-pueden-ser-objeto-de-cont__2a3a5fd15f.pdf",
+      "title": "Sentencia radicación 2007 – 00383 de fecha 17 de junio de 2022 del Consejo de Estado – Medidas Preventivas en el Procedimiento Sancionatorio Ambiental son Actos Administrativos Definitivos y pueden ser objeto de Control por parte de la Jurisdicción de lo",
+      "pages": 76,
+      "has_text_layer": true,
+      "char_count": 140739,
+      "articles_detected": 6,
+      "article_numbers_sample": [
+        "85",
+        "28",
+        "243",
+        "10",
+        "11",
+        "29"
+      ],
+      "norm_type_detected": null,
+      "norm_number_detected": "3",
+      "norm_year_detected": 2007,
+      "parse_quality": "full_text"
+    },
+    {
+      "slug": "sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango",
+      "subcat": "sentencias",
+      "pdf": "sentencias__sentencia-t-038-de-2019-del-tribunal-superior-de-medellin-rio-cauca-su-cuenca-y-afluentes-como-entidad-sujeto-de-derechos-las-generaciones-futuras-son-sujetos-de-derecho-de-especial-proteccion-proyecto-hidroituango.pdf",
+      "title": "Sentencia T – 038 de 2019 del Tribunal Superior de Medellín – Río Cauca: su Cuenca y Afluentes como Entidad Sujeto de Derechos – Las Generaciones Futuras son Sujetos de Derecho de Especial Protección – Proyecto Hidroituango",
+      "pages": 46,
+      "has_text_layer": true,
+      "char_count": 84351,
+      "articles_detected": 7,
+      "article_numbers_sample": [
+        "6",
+        "1",
+        "3",
+        "4",
+        "5",
+        "12",
+        "95"
+      ],
+      "norm_type_detected": null,
+      "norm_number_detected": "038",
+      "norm_year_detected": 2019,
+      "parse_quality": "full_text"
+    }
+  ]
+}
