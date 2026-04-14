@@ -1,0 +1,274 @@
+{
+  "total_candidates": 11,
+  "downloaded_ok": 11,
+  "errors": 0,
+  "total_bytes": 12123613,
+  "total_mb": 11.56,
+  "elapsed_seconds": 39.1,
+  "records": [
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+      "path": "/eureka/normativa/circulares-externas/circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+      "subcategory_slug": "circulares-externas",
+      "slug": "circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+      "title": "Circular 000006-7 de 2024 – Terceros Intervinientes – Reconocimiento de Terceros Intervinientes durante la Etapa de Control y Seguimiento Ambiental",
+      "cached": true,
+      "cache_file": "html_cache/circulares-externas__circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental.html",
+      "from_cache": false,
+      "doc_title": "Circular 000006-7 de 2024 – Terceros Intervinientes – Reconocimiento de Terceros Intervinientes durante la Etapa de Control y Seguimiento Ambiental",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2024_circular_terceros.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2024_circular_terceros.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/circulares-externas__circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental.pdf",
+      "size_bytes": 353022
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente",
+      "path": "/eureka/normativa/circulares-externas/circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente",
+      "subcategory_slug": "circulares-externas",
+      "slug": "circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente",
+      "title": "Circular Externa 12 de 2023 – Actualización de los Lineamientos y Recomendaciones para la Prevención del Daño Antijurídico en materia de la Responsabilidad Penal por Daños al Medio Ambiente",
+      "cached": true,
+      "cache_file": "html_cache/circulares-externas__circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente.html",
+      "from_cache": false,
+      "doc_title": "Circular Externa 12 de 2023 – Actualización de los Lineamientos y Recomendaciones para la Prevención del Daño Antijurídico en materia de la Responsabilidad Penal por Daños al Medio Ambiente",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2023_circular_12_23_andje.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2023_circular_12_23_andje.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/circulares-externas__circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente.pdf",
+      "size_bytes": 886201
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn",
+      "path": "/eureka/normativa/circulares-externas/circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn",
+      "subcategory_slug": "circulares-externas",
+      "slug": "circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn",
+      "title": "Circular 003 de 2024 – Estrategia Nacional para el Control de la Minería Ilegal y Contaminación por Mercurio expedida por la Procuraduría General de la Nación (PGN)",
+      "cached": true,
+      "cache_file": "html_cache/circulares-externas__circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn.html",
+      "from_cache": false,
+      "doc_title": "Circular 003 de 2024 – Estrategia Nacional para el Control de la Minería Ilegal y Contaminación por Mercurio expedida por la Procuraduría General de la Nación (PGN)",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2024_circular_003_pgn.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2024_circular_003_pgn.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/circulares-externas__circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn.pdf",
+      "size_bytes": 296568
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+      "path": "/eureka/normativa/circulares-externas/circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+      "subcategory_slug": "circulares-externas",
+      "slug": "circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+      "title": "Circular Externa 12 de 2024 – Lineamientos para la Prevención del Daño Antijurídico del litigio en materia de Consulta Previa, con énfasis en Proyectos Mineros y Energéticos",
+      "cached": true,
+      "cache_file": "html_cache/circulares-externas__circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos.html",
+      "from_cache": false,
+      "doc_title": "Circular Externa 12 de 2024 – Lineamientos para la Prevención del Daño Antijurídico del litigio en materia de Consulta Previa, con énfasis en Proyectos Mineros y Energéticos",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/circular_12_2024_cp.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/circular_12_2024_cp.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/circulares-externas__circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos.pdf",
+      "size_bytes": 5066168
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+      "path": "/eureka/normativa/decisiones/decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+      "subcategory_slug": "decisiones",
+      "slug": "decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+      "title": "Decisión Andina 436 de 1998 – Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola (PQUA)",
+      "cached": true,
+      "cache_file": "html_cache/decisiones__decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua.html",
+      "from_cache": false,
+      "doc_title": "Decisión Andina 436 de 1998 – Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola (PQUA)",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/1998_decision_436_ca.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/1998_decision_436_ca.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/decisiones__decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua.pdf",
+      "size_bytes": 219589
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+      "path": "/eureka/normativa/decisiones/decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+      "subcategory_slug": "decisiones",
+      "slug": "decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+      "title": "Decisión Andina 804 de 2015 de la Comunidad Andina – Modificación de la Decisión 436 de 1998: Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola",
+      "cached": true,
+      "cache_file": "html_cache/decisiones__decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola.html",
+      "from_cache": false,
+      "doc_title": "Decisión Andina 804 de 2015 de la Comunidad Andina – Modificación de la Decisión 436 de 1998: Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2015_decision_andina_804.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2015_decision_andina_804.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/decisiones__decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola.pdf",
+      "size_bytes": 347225
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias",
+      "path": "/eureka/normativa/decretos/decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias",
+      "subcategory_slug": "decretos",
+      "slug": "decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias",
+      "title": "Decreto Reglamentario 1682 de 2017 – Modifica la Estructura del Ministerio de Ambiente y Desarrollo Sostenible y se determinan las funciones de sus dependencias",
+      "cached": true,
+      "cache_file": "html_cache/decretos__decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias.html",
+      "from_cache": false,
+      "doc_title": "Decreto Reglamentario 1682 de 2017 – Modifica la Estructura del Ministerio de Ambiente y Desarrollo Sostenible y se determinan las funciones de sus dependencias",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2017_decreto_1682_mads.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2017_decreto_1682_mads.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/decretos__decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias.pdf",
+      "size_bytes": 558649
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/directivas-presidenciales/directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+      "path": "/eureka/normativa/directivas-presidenciales/directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+      "subcategory_slug": "directivas-presidenciales",
+      "slug": "directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+      "title": "Directiva Presidencial 08 de 2020 – Guía para la realización de la Consulta Previa – Consulta Previa – Comunidades Étnicas",
+      "cached": true,
+      "cache_file": "html_cache/directivas-presidenciales__directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas.html",
+      "from_cache": false,
+      "doc_title": "Directiva Presidencial 08 de 2020 – Guía para la realización de la Consulta Previa – Consulta Previa – Comunidades Étnicas",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2020_directiva_08_cp.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2020_directiva_08_cp.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/directivas-presidenciales__directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas.pdf",
+      "size_bytes": 239343
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+      "path": "/eureka/normativa/resoluciones/resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+      "subcategory_slug": "resoluciones",
+      "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+      "title": "Resolución 631 de 2015 – Vertimientos – Establece los Parámetros y los Valores Límites Máximos Permisibles en los Vertimientos Puntuales a Cuerpos de Aguas Superficiales y a los Sistemas de Alcantarillado Público",
+      "cached": true,
+      "cache_file": "html_cache/resoluciones__resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico.html",
+      "from_cache": false,
+      "doc_title": "Resolución 631 de 2015 – Vertimientos – Establece los Parámetros y los Valores Límites Máximos Permisibles en los Vertimientos Puntuales a Cuerpos de Aguas Superficiales y a los Sistemas de Alcantarillado Público",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/resoluciones__resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico.pdf",
+      "size_bytes": 3922172
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales",
+      "path": "/eureka/normativa/resoluciones/resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales",
+      "subcategory_slug": "resoluciones",
+      "slug": "resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales",
+      "title": "Resolución 1552 de 2005 – Se adoptan los Manuales para la Evaluación de Estudios Ambientales y de Seguimiento Ambiental de Proyecto / Licencias Ambientales",
+      "cached": true,
+      "cache_file": "html_cache/resoluciones__resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales.html",
+      "from_cache": false,
+      "doc_title": "Resolución 1552 de 2005 – Se adoptan los Manuales para la Evaluación de Estudios Ambientales y de Seguimiento Ambiental de Proyecto / Licencias Ambientales",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/resolucion_1552_2005.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/resolucion_1552_2005.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/resoluciones__resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales.pdf",
+      "size_bytes": 168042
+    },
+    {
+      "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+      "path": "/eureka/normativa/resoluciones/resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+      "subcategory_slug": "resoluciones",
+      "slug": "resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+      "title": "Resolución 1367 del 29 de diciembre de 2000 – Procedimiento para Autorizaciones de Importación y Exportación de Especímenes Biológicos No Incluidos en CITES",
+      "cached": true,
+      "cache_file": "html_cache/resoluciones__resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites.html",
+      "from_cache": false,
+      "doc_title": "Resolución 1367 del 29 de diciembre de 2000 – Procedimiento para Autorizaciones de Importación y Exportación de Especímenes Biológicos No Incluidos en CITES",
+      "inline_pdf_count": 1,
+      "inline_pdfs": [
+        "https://www.anla.gov.co/eureka/images/documentos/res_1367_291200.pdf"
+      ],
+      "external_link_count": 0,
+      "external_links": [],
+      "primary_source": {
+        "kind": "inline_pdf",
+        "url": "https://www.anla.gov.co/eureka/images/documentos/res_1367_291200.pdf"
+      },
+      "download_ok": true,
+      "pdf_path": "samples/normativa/resoluciones__resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites.pdf",
+      "size_bytes": 66634
+    }
+  ]
+}

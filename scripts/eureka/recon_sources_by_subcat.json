@@ -1,0 +1,485 @@
+{
+  "probes": {
+    "circulares-externas": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+        "doc_title": "Circular 000006-7 de 2024 – Terceros Intervinientes – Reconocimiento de Terceros Intervinientes durante la Etapa de Control y Seguimiento Ambiental",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/2024_circular_terceros.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/2024_circular_terceros.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+          "path": "/eureka/normativa/circulares-externas/circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+          "subcategory_slug": "circulares-externas",
+          "slug": "circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+          "title": "Circular 000006-7 de 2024 – Terceros Intervinientes – Reconocimiento de Terceros Intervinientes durante la Etapa de Control y Seguimiento Ambiental"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+        "doc_title": "Circular Externa 12 de 2024 – Lineamientos para la Prevención del Daño Antijurídico del litigio en materia de Consulta Previa, con énfasis en Proyectos Mineros y Energéticos",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/circular_12_2024_cp.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/circular_12_2024_cp.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/circulares-externas/circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+          "path": "/eureka/normativa/circulares-externas/circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+          "subcategory_slug": "circulares-externas",
+          "slug": "circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+          "title": "Circular Externa 12 de 2024 – Lineamientos para la Prevención del Daño Antijurídico del litigio en materia de Consulta Previa, con énfasis en Proyectos Mineros y Energéticos"
+        }
+      }
+    ],
+    "constitucion-politica-de-colombia": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/constitucion-politica-de-colombia/constitucion-politica-de-1991-constitucion-verde-o-ecologica",
+        "doc_title": "Constitución Política de 1991 – Constitución Verde o Ecológica",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.suin-juriscol.gov.co",
+            "href": "https://www.suin-juriscol.gov.co/viewDocument.asp?ruta=Constitucion/1687988",
+            "text": "Constitución Política de 1991",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": true
+          }
+        ],
+        "primary_source": {
+          "kind": "external_official",
+          "url": "https://www.suin-juriscol.gov.co/viewDocument.asp?ruta=Constitucion/1687988",
+          "host": "www.suin-juriscol.gov.co",
+          "text": "Constitución Política de 1991"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/constitucion-politica-de-colombia/constitucion-politica-de-1991-constitucion-verde-o-ecologica",
+          "path": "/eureka/normativa/constitucion-politica-de-colombia/constitucion-politica-de-1991-constitucion-verde-o-ecologica",
+          "subcategory_slug": "constitucion-politica-de-colombia",
+          "slug": "constitucion-politica-de-1991-constitucion-verde-o-ecologica",
+          "title": "Constitución Política de 1991 – Constitución Verde o Ecológica"
+        }
+      }
+    ],
+    "decisiones": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+        "doc_title": "Decisión Andina 436 de 1998 – Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola (PQUA)",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/1998_decision_436_ca.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/1998_decision_436_ca.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+          "path": "/eureka/normativa/decisiones/decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+          "subcategory_slug": "decisiones",
+          "slug": "decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+          "title": "Decisión Andina 436 de 1998 – Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola (PQUA)"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+        "doc_title": "Decisión Andina 804 de 2015 de la Comunidad Andina – Modificación de la Decisión 436 de 1998: Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/2015_decision_andina_804.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/2015_decision_andina_804.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/decisiones/decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+          "path": "/eureka/normativa/decisiones/decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+          "subcategory_slug": "decisiones",
+          "slug": "decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+          "title": "Decisión Andina 804 de 2015 de la Comunidad Andina – Modificación de la Decisión 436 de 1998: Norma Andina para el Registro y Control de Plaguicidas Químicos de Uso Agrícola"
+        }
+      }
+    ],
+    "decretos": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-reglamentario-1374-de-2013-reservas-de-recursos-naturales-de-manera-temporal-parametros-para-el-senalamiento-de-unas-reservas-de-recursos-naturales-de-manera-temporal",
+        "doc_title": "Decreto Reglamentario 1374 de 2013 – Reservas de Recursos Naturales de Manera Temporal – Parámetros para el Señalamiento de unas Reservas de Recursos Naturales de Manera Temporal",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.suin-juriscol.gov.co",
+            "href": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=1275585",
+            "text": "Decreto Reglamentario 1374 de 2013",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": true
+          }
+        ],
+        "primary_source": {
+          "kind": "external_official",
+          "url": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=1275585",
+          "host": "www.suin-juriscol.gov.co",
+          "text": "Decreto Reglamentario 1374 de 2013"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-reglamentario-1374-de-2013-reservas-de-recursos-naturales-de-manera-temporal-parametros-para-el-senalamiento-de-unas-reservas-de-recursos-naturales-de-manera-temporal",
+          "path": "/eureka/normativa/decretos/decreto-reglamentario-1374-de-2013-reservas-de-recursos-naturales-de-manera-temporal-parametros-para-el-senalamiento-de-unas-reservas-de-recursos-naturales-de-manera-temporal",
+          "subcategory_slug": "decretos",
+          "slug": "decreto-reglamentario-1374-de-2013-reservas-de-recursos-naturales-de-manera-temporal-parametros-para-el-senalamiento-de-unas-reservas-de-recursos-naturales-de-manera-temporal",
+          "title": "Decreto Reglamentario 1374 de 2013 – Reservas de Recursos Naturales de Manera Temporal – Parámetros para el Señalamiento de unas Reservas de Recursos Naturales de Manera Temporal"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-44-de-2024-ordenamiento-minero-ambiental-principio-de-precaucion",
+        "doc_title": "Decreto Reglamentario 44 de 2024 – Reservas de Recursos Naturales de Carácter Temporal en el Marco del Ordenamiento Minero-Ambiental",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.suin-juriscol.gov.co",
+            "href": "https://www.suin-juriscol.gov.co/clp/contenidos.dll/Decretos/30051037",
+            "text": "Decreto Reglamentario 44 de 2024",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": true
+          }
+        ],
+        "primary_source": {
+          "kind": "external_official",
+          "url": "https://www.suin-juriscol.gov.co/clp/contenidos.dll/Decretos/30051037",
+          "host": "www.suin-juriscol.gov.co",
+          "text": "Decreto Reglamentario 44 de 2024"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-44-de-2024-ordenamiento-minero-ambiental-principio-de-precaucion",
+          "path": "/eureka/normativa/decretos/decreto-44-de-2024-ordenamiento-minero-ambiental-principio-de-precaucion",
+          "subcategory_slug": "decretos",
+          "slug": "decreto-44-de-2024-ordenamiento-minero-ambiental-principio-de-precaucion",
+          "title": "Decreto Reglamentario 44 de 2024 – Reservas de Recursos Naturales de Carácter Temporal en el Marco del Ordenamiento Minero-Ambiental"
+        }
+      }
+    ],
+    "directivas-presidenciales": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/directivas-presidenciales/directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa-con-comunidades-etnicas-consulta-previa-comunidades-etnicas",
+        "doc_title": "Directiva Presidencial 10 de 2013 – Guía para la Realización de Consulta Previa con Comunidades Étnicas – Consulta Previa – Comunidades Étnicas",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.cancilleria.gov.co",
+            "href": "https://www.cancilleria.gov.co/normograma/compilacion/docs/directiva_presidencia_0010_2013.htm",
+            "text": "Directiva Presidencial 10 de 2013",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": false
+          }
+        ],
+        "primary_source": {
+          "kind": "external_other",
+          "url": "https://www.cancilleria.gov.co/normograma/compilacion/docs/directiva_presidencia_0010_2013.htm",
+          "host": "www.cancilleria.gov.co",
+          "text": "Directiva Presidencial 10 de 2013"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/directivas-presidenciales/directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa-con-comunidades-etnicas-consulta-previa-comunidades-etnicas",
+          "path": "/eureka/normativa/directivas-presidenciales/directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa-con-comunidades-etnicas-consulta-previa-comunidades-etnicas",
+          "subcategory_slug": "directivas-presidenciales",
+          "slug": "directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa-con-comunidades-etnicas-consulta-previa-comunidades-etnicas",
+          "title": "Directiva Presidencial 10 de 2013 – Guía para la Realización de Consulta Previa con Comunidades Étnicas – Consulta Previa – Comunidades Étnicas"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/directivas-presidenciales/directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+        "doc_title": "Directiva Presidencial 08 de 2020 – Guía para la realización de la Consulta Previa – Consulta Previa – Comunidades Étnicas",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/2020_directiva_08_cp.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/2020_directiva_08_cp.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/directivas-presidenciales/directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+          "path": "/eureka/normativa/directivas-presidenciales/directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+          "subcategory_slug": "directivas-presidenciales",
+          "slug": "directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+          "title": "Directiva Presidencial 08 de 2020 – Guía para la realización de la Consulta Previa – Consulta Previa – Comunidades Étnicas"
+        }
+      }
+    ],
+    "leyes": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/leyes/ley-2219-de-2022-constitucion-y-operacion-de-las-asociaciones-campesinas-y-de-las-asociaciones-agropecuarias-y-tema-ambiental",
+        "doc_title": "Ley 2219 de 2022 – Constitución y Operación de las Asociaciones Campesinas y de las Asociaciones Agropecuarias y Tema Ambiental",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.suin-juriscol.gov.co",
+            "href": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=30044358",
+            "text": "Ley 2219 de 2022",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": true
+          }
+        ],
+        "primary_source": {
+          "kind": "external_official",
+          "url": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=30044358",
+          "host": "www.suin-juriscol.gov.co",
+          "text": "Ley 2219 de 2022"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/leyes/ley-2219-de-2022-constitucion-y-operacion-de-las-asociaciones-campesinas-y-de-las-asociaciones-agropecuarias-y-tema-ambiental",
+          "path": "/eureka/normativa/leyes/ley-2219-de-2022-constitucion-y-operacion-de-las-asociaciones-campesinas-y-de-las-asociaciones-agropecuarias-y-tema-ambiental",
+          "subcategory_slug": "leyes",
+          "slug": "ley-2219-de-2022-constitucion-y-operacion-de-las-asociaciones-campesinas-y-de-las-asociaciones-agropecuarias-y-tema-ambiental",
+          "title": "Ley 2219 de 2022 – Constitución y Operación de las Asociaciones Campesinas y de las Asociaciones Agropecuarias y Tema Ambiental"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/leyes/ley-1333-de-2009-procedimiento-sancionatorio-ambiental",
+        "doc_title": "Ley 1333 de 2009 – Procedimiento Sancionatorio Ambiental – Infracciones Ambientales – Daño Ambiental – Sanciones Ambientales",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.suin-juriscol.gov.co",
+            "href": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=1677544",
+            "text": "Ley 1333 de 2009",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": true
+          }
+        ],
+        "primary_source": {
+          "kind": "external_official",
+          "url": "https://www.suin-juriscol.gov.co/viewDocument.asp?id=1677544",
+          "host": "www.suin-juriscol.gov.co",
+          "text": "Ley 1333 de 2009"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/leyes/ley-1333-de-2009-procedimiento-sancionatorio-ambiental",
+          "path": "/eureka/normativa/leyes/ley-1333-de-2009-procedimiento-sancionatorio-ambiental",
+          "subcategory_slug": "leyes",
+          "slug": "ley-1333-de-2009-procedimiento-sancionatorio-ambiental",
+          "title": "Ley 1333 de 2009 – Procedimiento Sancionatorio Ambiental – Infracciones Ambientales – Daño Ambiental – Sanciones Ambientales"
+        }
+      }
+    ],
+    "resoluciones": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+        "doc_title": "Resolución 631 de 2015 – Vertimientos – Establece los Parámetros y los Valores Límites Máximos Permisibles en los Vertimientos Puntuales a Cuerpos de Aguas Superficiales y a los Sistemas de Alcantarillado Público",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+          "path": "/eureka/normativa/resoluciones/resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+          "subcategory_slug": "resoluciones",
+          "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+          "title": "Resolución 631 de 2015 – Vertimientos – Establece los Parámetros y los Valores Límites Máximos Permisibles en los Vertimientos Puntuales a Cuerpos de Aguas Superficiales y a los Sistemas de Alcantarillado Público"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+        "doc_title": "Resolución 1367 del 29 de diciembre de 2000 – Procedimiento para Autorizaciones de Importación y Exportación de Especímenes Biológicos No Incluidos en CITES",
+        "inline_pdf_count": 1,
+        "inline_pdfs": [
+          "https://www.anla.gov.co/eureka/images/documentos/res_1367_291200.pdf"
+        ],
+        "external_link_count": 0,
+        "external_sample": [],
+        "primary_source": {
+          "kind": "inline_pdf",
+          "url": "https://www.anla.gov.co/eureka/images/documentos/res_1367_291200.pdf"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/resoluciones/resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+          "path": "/eureka/normativa/resoluciones/resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+          "subcategory_slug": "resoluciones",
+          "slug": "resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+          "title": "Resolución 1367 del 29 de diciembre de 2000 – Procedimiento para Autorizaciones de Importación y Exportación de Especímenes Biológicos No Incluidos en CITES"
+        }
+      }
+    ],
+    "declaraciones": [
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/declaraciones/declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+        "doc_title": "Declaración de Río sobre el Medio Ambiente y el Desarrollo de 1992",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.un.org",
+            "href": "https://www.un.org/spanish/esa/sustdev/agenda21/riodeclaration.htm",
+            "text": "Declaración de Río sobre el Medio Ambiente y el Desarrollo de 1992",
+            "is_pdf": false,
+            "is_doc": false,
+            "is_official": false
+          }
+        ],
+        "primary_source": {
+          "kind": "external_other",
+          "url": "https://www.un.org/spanish/esa/sustdev/agenda21/riodeclaration.htm",
+          "host": "www.un.org",
+          "text": "Declaración de Río sobre el Medio Ambiente y el Desarrollo de 1992"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/declaraciones/declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+          "path": "/eureka/normativa/declaraciones/declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+          "subcategory_slug": "declaraciones",
+          "slug": "declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+          "title": "Declaración de Río sobre el Medio Ambiente y el Desarrollo de 1992"
+        }
+      },
+      {
+        "url": "https://www.anla.gov.co/eureka/normativa/declaraciones/declaracion-de-las-naciones-unidas-sobre-los-derechos-de-los-pueblos-indigenas-aprobada-en-2007",
+        "doc_title": "Declaración de las Naciones Unidas sobre los derechos de los pueblos indígenas aprobada en 2007",
+        "inline_pdf_count": 0,
+        "inline_pdfs": [],
+        "external_link_count": 1,
+        "external_sample": [
+          {
+            "host": "www.un.org",
+            "href": "https://www.un.org/esa/socdev/unpfii/documents/DRIPS_es.pdf",
+            "text": "Declaración de las Naciones Unidas sobre los derechos de los pueblos indígenas aprobada en 2007",
+            "is_pdf": true,
+            "is_doc": false,
+            "is_official": false
+          }
+        ],
+        "primary_source": {
+          "kind": "external_other",
+          "url": "https://www.un.org/esa/socdev/unpfii/documents/DRIPS_es.pdf",
+          "host": "www.un.org",
+          "text": "Declaración de las Naciones Unidas sobre los derechos de los pueblos indígenas aprobada en 2007"
+        },
+        "source_item": {
+          "url": "https://www.anla.gov.co/eureka/normativa/declaraciones/declaracion-de-las-naciones-unidas-sobre-los-derechos-de-los-pueblos-indigenas-aprobada-en-2007",
+          "path": "/eureka/normativa/declaraciones/declaracion-de-las-naciones-unidas-sobre-los-derechos-de-los-pueblos-indigenas-aprobada-en-2007",
+          "subcategory_slug": "declaraciones",
+          "slug": "declaracion-de-las-naciones-unidas-sobre-los-derechos-de-los-pueblos-indigenas-aprobada-en-2007",
+          "title": "Declaración de las Naciones Unidas sobre los derechos de los pueblos indígenas aprobada en 2007"
+        }
+      }
+    ]
+  },
+  "summary": {
+    "circulares-externas": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "inline_pdf",
+        "inline_pdf"
+      ],
+      "hosts": []
+    },
+    "constitucion-politica-de-colombia": {
+      "sample_size": 1,
+      "primary_kinds": [
+        "external_official"
+      ],
+      "hosts": [
+        "www.suin-juriscol.gov.co"
+      ]
+    },
+    "decisiones": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "inline_pdf",
+        "inline_pdf"
+      ],
+      "hosts": []
+    },
+    "decretos": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "external_official",
+        "external_official"
+      ],
+      "hosts": [
+        "www.suin-juriscol.gov.co",
+        "www.suin-juriscol.gov.co"
+      ]
+    },
+    "directivas-presidenciales": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "external_other",
+        "inline_pdf"
+      ],
+      "hosts": [
+        "www.cancilleria.gov.co"
+      ]
+    },
+    "leyes": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "external_official",
+        "external_official"
+      ],
+      "hosts": [
+        "www.suin-juriscol.gov.co",
+        "www.suin-juriscol.gov.co"
+      ]
+    },
+    "resoluciones": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "inline_pdf",
+        "inline_pdf"
+      ],
+      "hosts": []
+    },
+    "declaraciones": {
+      "sample_size": 2,
+      "primary_kinds": [
+        "external_other",
+        "external_other"
+      ],
+      "hosts": [
+        "www.un.org",
+        "www.un.org"
+      ]
+    }
+  }
+}

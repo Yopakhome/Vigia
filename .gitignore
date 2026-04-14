@@ -7,3 +7,7 @@ scripts/classify_report.json
 scripts/ingest_result.json
 scripts/ingest_result_scans.json
 scripts/ocr_scans_result.json
+# Sprint A2 — cache HTML de EUREKA (estado intermedio, re-generable con classify_and_cache_details.py)
+scripts/eureka/html_cache/
+# Sprint A2 — PDFs descargados de ANLA (binarios reproducibles con download_anla_pdfs.py ~39s)
+scripts/eureka/samples/
