@@ -2,6 +2,12 @@ VIGIA_bootstrap_claude_code.md
 .DS_Store
 node_modules/
 dist/
+# Environment files con keys (nunca commitear)
+.env
+.env.local
+scripts/eureka/.env.local
+**/.env
+**/.env.local
 # Output efímero de scripts (se regenera con cada corrida)
 scripts/classify_report.json
 scripts/ingest_result.json
