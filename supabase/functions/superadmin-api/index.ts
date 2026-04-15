@@ -116,6 +116,33 @@ Deno.serve(async (req: Request) => {
         instruments: inst, obligations: obs, documents: docs
       });
     }
+    if (op === "list-client-notes") {
+      const { org_id } = payload || {};
+      if (!org_id) return jsonResponse({ error: "Falta org_id" }, 400);
+      const data = await adminReq(`/rest/v1/client_notes?org_id=eq.${org_id}&select=*&order=created_at.desc&limit=50`);
+      return jsonResponse({ notes: data });
+    }
+    if (op === "save-client-note") {
+      const { org_id, content, tags, author_id } = payload || {};
+      if (!org_id || !content?.trim()) return jsonResponse({ error: "Faltan org_id y content" }, 400);
+      const saved = await adminReq("/rest/v1/client_notes", "POST",
+        { org_id, content: content.trim(), tags: tags || [], author_id: author_id || null },
+        "resolution=merge-duplicates,return=representation"
+      ) as any[];
+      const row = Array.isArray(saved) ? saved[0] : saved;
+      return jsonResponse({ note: row });
+    }
+    if (op === "update-client-type") {
+      const { org_id, client_type } = payload || {};
+      if (!org_id || !client_type) return jsonResponse({ error: "Faltan org_id y client_type" }, 400);
+      if (!["vigia_subscriber","enara_consulting","both"].includes(client_type)) {
+        return jsonResponse({ error: "client_type inválido" }, 400);
+      }
+      await adminReq(`/rest/v1/organizations?id=eq.${org_id}`, "PATCH",
+        { client_type }, "return=minimal"
+      );
+      return jsonResponse({ ok: true });
+    }
     return jsonResponse({ error: `op desconocida: ${op}` }, 400);
   } catch (e) {
     return jsonResponse({ error: (e as Error).message }, 500);
