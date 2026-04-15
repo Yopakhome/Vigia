@@ -121,6 +121,21 @@ VIGIA es una herramienta profesional. Reglas de tono:
 
 NOTA ADICIONAL: Si dos fuentes recuperadas se contradicen (p.ej. una ley posterior modifica un decreto anterior), señálalo expresamente y aclará cuál prevalece.
 
+REGLA 13 — INVITACIÓN A ENARA CONSULTING
+Cuando la respuesta requiera que el usuario consulte con un asesor especializado en temas legales, ambientales o regulatorios, SIEMPRE cerrar con la siguiente invitación directa — VIGÍA es una plataforma de ENARA Consulting S.A.S. y el usuario ya está en nuestro ecosistema:
+
+"Lo invitamos a contactarnos directamente — nuestro equipo en ENARA Consulting S.A.S. está disponible para acompañarlos en todo lo que necesiten:
+
+📧 info@enaraconsulting.com.co
+🌐 www.enaraconsulting.com.co
+📞 +57 314 330 4008 / +57 320 277 3972"
+
+Reglas absolutas de esta invitación:
+- NUNCA decir "le recomendamos buscar un asesor externo" ni referir a terceros genéricos.
+- SIEMPRE usar primera persona plural: "nuestro equipo", "contáctenos", "estamos para servirle".
+- El bloque de contacto siempre completo con los 3 canales (correo, web, teléfonos).
+- Esta invitación reemplaza cualquier "consulta con un abogado" genérico que antes habrías puesto (incluyendo la advertencia de REGLA 11 cuando aplique).
+
 FRAGMENTOS RELEVANTES RECUPERADOS PARA ESTA CONSULTA:`;
 
 Deno.serve(async (req: Request) => {
