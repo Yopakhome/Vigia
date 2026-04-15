@@ -67,13 +67,30 @@ async function matchEurekaResumen(embedding: number[], top_k: number) {
 }
 
 async function matchOrgDocs(embedding: number[], top_k: number, orgId: string) {
-  // Busca en documents con embedding del org del usuario
-  const url = `${SUPABASE_URL}/rest/v1/documents?select=id,name,doc_type_detected,category,format_type,raw_text,uploaded_at&org_id=eq.${orgId}&embedding=not.is.null&limit=${top_k}`;
-  const r = await fetch(url, { headers: srv });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_org_documents`, {
+    method: "POST",
+    headers: srv,
+    body: JSON.stringify({
+      query_embedding: embedding,
+      match_count: top_k,
+      filter_org_id: orgId
+    })
+  });
   if (!r.ok) return [];
-  // Sin RPC vectorial dedicado aún — retornamos los docs más recientes como fallback.
-  // TODO: crear match_org_documents RPC en próxima iteración.
-  return r.json();
+  const rows = await r.json();
+  return (rows || []).map((row: any) => ({
+    source_type: "documento_org",
+    document_id: row.document_id,
+    org_id: row.org_id,
+    instrument_id: row.instrument_id,
+    norm_title: row.original_name || "Documento propio",
+    doc_type_detected: row.doc_type_detected,
+    doc_role: row.doc_role,
+    category: row.category,
+    content: String(row.raw_text || "").slice(0, CONTENT_TRUNC),
+    similarity: row.similarity || 0,
+    distance: 1 - (row.similarity || 0)
+  }));
 }
 
 async function getUserOrgId(userId: string): Promise<string | null> {
@@ -118,14 +135,14 @@ Deno.serve(async (req: Request) => {
     const jurTopK = Math.max(2, Math.floor(topK * 0.3));
     const euTopK = Math.max(2, Math.floor(topK * 0.2));
 
-    const promises: Promise<any>[] = [matchNormative(embedding, topK, filters)];
-    if (include_jur) promises.push(matchJurisprudence(embedding, jurTopK));
-    if (include_eureka) promises.push(matchEurekaResumen(embedding, euTopK));
+    const orgId = include_org ? await getUserOrgId((user as any).id) : null;
+    const orgDocsTopK = Math.max(2, Math.floor(topK * 0.3));
 
-    const [normRows, jurRows, euRows] = await Promise.all([
-      promises[0],
-      include_jur ? promises[1] : Promise.resolve([]),
-      include_eureka ? promises[promises.length-1] : Promise.resolve([]),
+    const [normRows, jurRows, euRows, orgDocsRows] = await Promise.all([
+      matchNormative(embedding, topK, filters),
+      include_jur ? matchJurisprudence(embedding, jurTopK) : Promise.resolve([]),
+      include_eureka ? matchEurekaResumen(embedding, euTopK) : Promise.resolve([]),
+      (include_org && orgId) ? matchOrgDocs(embedding, orgDocsTopK, orgId) : Promise.resolve([]),
     ]);
 
     const results: any[] = [];
@@ -180,6 +197,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Documentos de la organización (REGLA 18 — prioridad máxima)
+    for (const r of (orgDocsRows as any[])) {
+      results.push(r);
+    }
+
     // Mix y sort global por distancia
     results.sort((a, b) => (a.distance ?? 1) - (b.distance ?? 1));
 
@@ -188,7 +210,7 @@ Deno.serve(async (req: Request) => {
       ok: true, results, total_returned: results.length,
       query, top_k: topK, filters,
       content_truncation: CONTENT_TRUNC, elapsed_ms: t_total,
-      capas: { normas: normRowsFiltered.length, sentencias: jurRows.length, resumenes_editoriales: euRows.length, pedagogico_included: include_pedagogico, excluded_pedagogico_ids: excluded_norm_ids.length }
+      capas: { normas: normRowsFiltered.length, sentencias: jurRows.length, resumenes_editoriales: euRows.length, documentos_org: (orgDocsRows as any[]).length, pedagogico_included: include_pedagogico, excluded_pedagogico_ids: excluded_norm_ids.length }
     });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
