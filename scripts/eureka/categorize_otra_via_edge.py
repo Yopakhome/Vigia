@@ -87,9 +87,9 @@ def main():
         if i > 1 and i % 10 == 1: time.sleep(0.3)  # pequeño throttle
         cat, err, tin, tout = classify(token, title, summary)
         tokens_in_total += tin; tokens_out_total += tout
-        if err and cat == "Otra":
-            print(f"[{i}/{len(rows)}] {title[:60]} → SKIP ({err[:50]})")
-            skipped += 1
+        if cat is None:
+            print(f"[{i}/{len(rows)}] {title[:60]} → ERR ({(err or 'no_cat')[:50]})")
+            errors += 1
             continue
         if cat == "Otra":
             skipped += 1
