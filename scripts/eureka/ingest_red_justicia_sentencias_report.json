@@ -1,0 +1,174 @@
+{
+  "total": 27,
+  "created_sources": 27,
+  "skipped_existing": 0,
+  "chunks_inserted": 77,
+  "errors": [],
+  "tokens": 191219,
+  "per_doc": [
+    {
+      "rad": "C-123/2014",
+      "chunks": 4,
+      "tokens": 11065,
+      "kind": "html"
+    },
+    {
+      "rad": "C-036/2014",
+      "chunks": 3,
+      "tokens": 8881,
+      "kind": "html"
+    },
+    {
+      "rad": "C-094/2015",
+      "chunks": 4,
+      "tokens": 11295,
+      "kind": "html"
+    },
+    {
+      "rad": "C-371/2014",
+      "chunks": 4,
+      "tokens": 11386,
+      "kind": "html"
+    },
+    {
+      "rad": "C-326/2012",
+      "chunks": 1,
+      "tokens": 2978,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-276/2011",
+      "chunks": 3,
+      "tokens": 6339,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-216/2011",
+      "chunks": 4,
+      "tokens": 11400,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-1048/2004",
+      "chunks": 2,
+      "tokens": 3621,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-620/2003",
+      "chunks": 4,
+      "tokens": 11455,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-251/2003",
+      "chunks": 4,
+      "tokens": 10551,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-891/2002",
+      "chunks": 4,
+      "tokens": 10625,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-215/1999",
+      "chunks": 3,
+      "tokens": 6707,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-193/1998",
+      "chunks": 2,
+      "tokens": 5579,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-243/1997",
+      "chunks": 3,
+      "tokens": 3775,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-221/1997",
+      "chunks": 3,
+      "tokens": 7158,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-359/1996",
+      "chunks": 2,
+      "tokens": 3747,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-305/1995",
+      "chunks": 2,
+      "tokens": 4136,
+      "kind": "pdf"
+    },
+    {
+      "rad": "C-389/1994",
+      "chunks": 1,
+      "tokens": 2801,
+      "kind": "pdf"
+    },
+    {
+      "rad": "SU-383/2003",
+      "chunks": 4,
+      "tokens": 11135,
+      "kind": "pdf"
+    },
+    {
+      "rad": "T-362/2014",
+      "chunks": 3,
+      "tokens": 7291,
+      "kind": "html"
+    },
+    {
+      "rad": "T-204/2014",
+      "chunks": 3,
+      "tokens": 7414,
+      "kind": "html"
+    },
+    {
+      "rad": "T-462A/2014",
+      "chunks": 3,
+      "tokens": 8292,
+      "kind": "html"
+    },
+    {
+      "rad": "T-1077/2012",
+      "chunks": 2,
+      "tokens": 3580,
+      "kind": "pdf"
+    },
+    {
+      "rad": "T-774/2004",
+      "chunks": 4,
+      "tokens": 9894,
+      "kind": "pdf"
+    },
+    {
+      "rad": "T-257/1996",
+      "chunks": 1,
+      "tokens": 2840,
+      "kind": "pdf"
+    },
+    {
+      "rad": "T-444/1993",
+      "chunks": 2,
+      "tokens": 3388,
+      "kind": "pdf"
+    },
+    {
+      "rad": "T-231/1993",
+      "chunks": 2,
+      "tokens": 3886,
+      "kind": "pdf"
+    }
+  ],
+  "finished": "2026-04-14T23:55:30-0500",
+  "cost_usd": 0.003824
+}
