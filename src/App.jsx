@@ -261,7 +261,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.11";
+const EXPORT_VIGIA_VERSION = "v3.9.12";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2192,6 +2192,7 @@ const [alerts, setAlerts] = useState([]);
 const [normSources, setNormSources] = useState([]);
 const [oversight, setOversight] = useState([]);
 const [orgProfile, setOrgProfile] = useState(null);
+const [complianceAlerts, setComplianceAlerts] = useState([]);
 const [dbStatus, setDbStatus] = useState("demo");
 const [clientOrg, setClientOrg] = useState(null);
 const [lastSync, setLastSync] = useState(null);
@@ -2253,6 +2254,10 @@ const [inst,obs,alrt,norms,ovs]=await Promise.all([sb("instruments","select=*&or
               const op = await sb("org_profile", `select=*&org_id=eq.${clientOrg.id}&limit=1`, t);
               if (Array.isArray(op) && op[0]) setOrgProfile(op[0]);
             } catch(e) { console.log("org_profile fetch silenced:", e); }
+            try {
+              const cm = await sb("compliance_matrix", `select=*&org_id=eq.${clientOrg.id}&alert_level=neq.OK&order=alert_level&limit=20`, t);
+              setComplianceAlerts(Array.isArray(cm) ? cm : []);
+            } catch(e) { console.log("compliance_matrix fetch silenced:", e); }
           }
           setDbStatus("connected");
           setLastSync(new Date());
@@ -2451,6 +2456,32 @@ const renderDashboard=()=>(
         </div>}
       </div>
     )}
+  </div>
+)}
+{!isSuperAdmin && complianceAlerts.length > 0 && (
+  <div style={{marginTop:0,marginBottom:24,padding:"20px 24px",background:C.surface,border:`1px solid ${C.border}`,borderRadius:12}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+      <div style={{fontSize:14,fontWeight:700,color:C.text}}>Alertas de Cumplimiento</div>
+      <span style={{fontSize:11,color:C.textSec}}>{complianceAlerts.length} alerta{complianceAlerts.length!==1?"s":""} activa{complianceAlerts.length!==1?"s":""}</span>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {complianceAlerts.slice(0,10).map(a=>{
+        const crit = a.alert_level==="FUNDAMENTO_DEROGADO" || a.alert_level==="VENCIDA";
+        const warn = a.alert_level==="FUNDAMENTO_MODIFICADO" || a.alert_level==="PROXIMA_30D";
+        const col = crit?C.red:warn?C.yellow:C.green;
+        const icon = a.alert_level==="FUNDAMENTO_DEROGADO"?"⚠️":a.alert_level==="FUNDAMENTO_MODIFICADO"?"📝":a.alert_level==="VENCIDA"?"🔴":a.alert_level==="PROXIMA_30D"?"🟡":"✅";
+        return <div key={a.obligation_id} style={{padding:"10px 14px",background:col+"11",border:`1px solid ${col}44`,borderRadius:8,display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:16}}>{icon}</span>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:12,fontWeight:600,color:C.text}}>{a.obligation_num}: {(a.description||"").slice(0,90)}</div>
+            {a.alert_level==="FUNDAMENTO_DEROGADO" && <div style={{fontSize:11,color:C.red}}>⚠️ Fundamento ({a.norma_fundamento}) derogado{a.derogado_por?` por ${a.derogado_por}`:""}</div>}
+            {a.alert_level==="FUNDAMENTO_MODIFICADO" && <div style={{fontSize:11,color:C.yellow}}>📝 Fundamento modificado{a.modificado_por?` por ${a.modificado_por}`:""}</div>}
+            {a.due_date && <div style={{fontSize:10,color:C.textMuted}}>Vencimiento: {new Date(a.due_date).toLocaleDateString("es-CO")}</div>}
+          </div>
+          <span style={{fontSize:10,color:col,fontWeight:700,textTransform:"uppercase"}}>{a.alert_level.replace(/_/g," ")}</span>
+        </div>;
+      })}
+    </div>
   </div>
 )}
 <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:16}}>
@@ -2769,7 +2800,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.11</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.12</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>

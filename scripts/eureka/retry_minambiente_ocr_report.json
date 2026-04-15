@@ -1,0 +1,107 @@
+{
+  "total": 19,
+  "recovered": 0,
+  "still_empty": 18,
+  "chunks": 0,
+  "tokens": 0,
+  "ocr_tokens_in": 0,
+  "ocr_tokens_out": 0,
+  "errors": [
+    {
+      "tag": "auto 18/2026",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 17/2026",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 16/2026",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 15/2026",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 73/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "circular 1000/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 172/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 435/2024",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 265/2024",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 210/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 192/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "resolucion 1720/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 246/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "resolucion 1648/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "resolucion 1630/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 238/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "auto 226/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    },
+    {
+      "tag": "resolucion 1491/2025",
+      "stage": "zip_not_supported"
+    },
+    {
+      "tag": "auto 206/2025",
+      "stage": "ocr",
+      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+    }
+  ],
+  "per_doc": [],
+  "cost_usd_est": 0.0
+}
