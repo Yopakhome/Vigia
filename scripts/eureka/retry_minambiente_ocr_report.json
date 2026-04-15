@@ -1,96 +1,90 @@
 {
   "total": 19,
-  "recovered": 0,
-  "still_empty": 18,
-  "chunks": 0,
-  "tokens": 0,
-  "ocr_tokens_in": 0,
-  "ocr_tokens_out": 0,
+  "recovered": 1,
+  "still_empty": 16,
+  "chunks": 1,
+  "tokens": 2913,
+  "ocr_tokens_in": 22418,
+  "ocr_tokens_out": 10982,
   "errors": [
     {
       "tag": "auto 18/2026",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 17/2026",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 16/2026",
-      "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "stage": "insert_source"
     },
     {
       "tag": "auto 15/2026",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 73/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
-    },
-    {
-      "tag": "circular 1000/2025",
-      "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 172/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 435/2024",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 265/2024",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 210/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 192/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "resolucion 1720/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 246/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "resolucion 1648/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "resolucion 1630/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 238/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "auto 226/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     },
     {
       "tag": "resolucion 1491/2025",
@@ -99,9 +93,16 @@
     {
       "tag": "auto 206/2025",
       "stage": "ocr",
-      "error": "Claude OCR falló: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+      "error": "{'code': 'IDLE_TIMEOUT', 'message': 'Request idle timeout limit (150s) reached'}"
     }
   ],
-  "per_doc": [],
-  "cost_usd_est": 0.0
+  "per_doc": [
+    {
+      "tag": "circular 1000/2025",
+      "chars": 15268,
+      "arts": 1,
+      "tokens": 2913
+    }
+  ],
+  "cost_usd_est": 0.232
 }
