@@ -1,0 +1,812 @@
+{
+  "generated": "2026-04-15",
+  "total": 80,
+  "found": 77,
+  "hit_rate": "96.2%",
+  "map": [
+    {
+      "norm_id": "f7af5180-5000-499c-8f68-0e3f05643033",
+      "norm_type": "decreto",
+      "norm_number": "670",
+      "norm_year": 2025,
+      "norm_title": "Decreto Reglamentario 670 de 2025 – Programa Basura Cero – Servicio Público de Aseo y Tema Ambiental",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "9d959b7b-3b08-4153-beb7-1384bc192bbd",
+      "norm_type": "ley",
+      "norm_number": "2486",
+      "norm_year": 2025,
+      "norm_title": "Ley 2486 de 2025 – Vehículos Eléctricos Livianos de Movilidad Personal Urbana, como Alternativas de ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "05ade080-70ec-4d81-a322-03054dce9f67",
+      "norm_type": "ley",
+      "norm_number": "2476",
+      "norm_year": 2025,
+      "norm_title": "Ley 2476 de 2025 – Adaptación al Cambio Climático y la Gestión del Riesgo a través de Ciudades y Cen",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "5c8c09c1-db49-4afc-a4c6-505bcbe4f442",
+      "norm_type": "ley",
+      "norm_number": "2478",
+      "norm_year": 2025,
+      "norm_title": "Ley 2478 de 2025 – Promueve la Conservación de los Humedales en el Territorio Nacional",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "e99ce498-9131-482d-a239-c300e2cbba37",
+      "norm_type": "ley",
+      "norm_number": "2454",
+      "norm_year": 2025,
+      "norm_title": "Ley 2454 de 2025 – Ley Lorenzo / Perros Utilizados en las Actividades de la Seguridad y Vigilancia P",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "a069ffa7-346f-4089-b2b5-fb542a23cf7c",
+      "norm_type": "ley",
+      "norm_number": "2455",
+      "norm_year": 2025,
+      "norm_title": "Ley 2455 de 2025 – Ley Ángel / Fortalece la Lucha contra el Maltrato Animal y se Actualiza el Estatu",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "59034275-a9a1-4cfd-9c87-44493a614e0f",
+      "norm_type": "decreto",
+      "norm_number": "1186",
+      "norm_year": 2025,
+      "norm_title": "Decreto Reglamentario 1186 de 2025 – Licencia Ambiental Eólica con Diseño Optimizado - LAEólica – Li",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4ef67e60-bbe3-413a-917a-57ab275ff433",
+      "norm_type": "ley",
+      "norm_number": "2450",
+      "norm_year": 2025,
+      "norm_title": "Ley 2450 de 2025 – Ley contra el Ruido en Colombia / Ruido / Política de Calidad Acústica para el Pa",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "a5fc884c-9ba4-4517-9997-4d04ef407281",
+      "norm_type": "ley",
+      "norm_number": "2469",
+      "norm_year": 2025,
+      "norm_title": "Ley 2469 de 2025 – Incorporación de los Humedales al Sistema Nacional de Gestión del Riesgo de Desas",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "2ea24832-9150-4a97-8831-d3d0b56d8cdf",
+      "norm_type": "decreto",
+      "norm_number": "1033",
+      "norm_year": 2025,
+      "norm_title": "Decreto Reglamentario 1033 de 2025 – Licencia Ambiental Solar con Diseño Optimizado -LASolar – Licen",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "9225aa8f-f0f5-4b30-92ec-21da26b0272f",
+      "norm_type": "resolucion",
+      "norm_number": "194",
+      "norm_year": 2025,
+      "norm_title": "Resolución 194 de 2025 del Ministerio de Vivienda, Ciudad y Territorio – Construcciones Sostenibles",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "70beaf90-03d6-4ea1-afd3-ae4e593f31f9",
+      "norm_type": "decreto",
+      "norm_number": "1275",
+      "norm_year": 2024,
+      "norm_title": "Decreto – Ley 1275 de 2024 – Funcionamiento de los Territorios Indígenas en Materia Ambiental y Desa",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "ed725b30-da2a-4213-a443-bb1b7844c699",
+      "norm_type": "resolucion",
+      "norm_number": "0126",
+      "norm_year": 2024,
+      "norm_title": "Resolución 0126 de 2024 – Listado Oficial de las Especies Silvestres Amenazadas de la Diversidad Bio",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "75121abb-c8f9-4dc1-94c4-87a055ba6e36",
+      "norm_type": "resolucion",
+      "norm_number": null,
+      "norm_year": 2024,
+      "norm_title": "Resolución 421 del 15 de abril de 2024 - Complejo de Humedales Urbanos del Distrito Capital de Bogot",
+      "sisjur_id": null,
+      "match_status": "invalid_number",
+      "sisjur_url": null
+    },
+    {
+      "norm_id": "532359fa-b39a-4c13-a64d-4b00c5b81989",
+      "norm_type": "ley",
+      "norm_number": "2387",
+      "norm_year": 2024,
+      "norm_title": "Ley 2387 de 2024 – Procedimiento Sancionatorio Ambiental – Infracciones Ambientales – Daño Ambiental",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "cf340e9e-7036-47dc-a08d-1b28230e259b",
+      "norm_type": "decreto",
+      "norm_number": "1122",
+      "norm_year": 2024,
+      "norm_title": "Decreto Reglamentario 1122 de 2024 – Programas de Transparencia y Ética Pública (PTEP) – Lucha Antic",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "3bb9b5cc-036f-49ff-a924-88cfe143813e",
+      "norm_type": "decreto",
+      "norm_number": "510",
+      "norm_year": 2024,
+      "norm_title": "Decreto Reglamentario 510 de 2024 – Licencia Ambiental – Proyectos del Sector de Infraestructura de ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "6b701620-762b-48b0-83df-08e4d7fb76c1",
+      "norm_type": "decreto",
+      "norm_number": "43",
+      "norm_year": 2024,
+      "norm_title": "Decreto 43 de 2024 - Delimitación y Protección de Reservas Naturales",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "684b05ae-668f-4ed7-9b10-dc71a007fcc9",
+      "norm_type": "decreto",
+      "norm_number": "1094",
+      "norm_year": 2024,
+      "norm_title": "Decreto – Ley 1094 de 2024 – Indígenas – Autoridad Territorial Económica y Ambiental (ATEA) – Pueblo",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "0ef21d6a-8cc5-4c41-8506-7a43bdce93af",
+      "norm_type": "ley",
+      "norm_number": "2385",
+      "norm_year": 2024,
+      "norm_title": "Ley 2385 de 2024 – Prohibición de las corridas de toros y otras actividades con animales",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "88622474-4971-462c-bbd4-1abd59ced59e",
+      "norm_type": "decreto",
+      "norm_number": "852",
+      "norm_year": 2024,
+      "norm_title": "Decreto Reglamentario 852 de 2024 – Licencia Ambiental – Competencias en cuanto a los Proyectos de E",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "91dd4e25-11aa-4b20-959b-4df5db643569",
+      "norm_type": "resolucion",
+      "norm_number": null,
+      "norm_year": 2024,
+      "norm_title": "Resolución 418 del 15 de abril de 2024 – Registro Nacional de Reducción de las Emisiones y Remocione",
+      "sisjur_id": null,
+      "match_status": "invalid_number",
+      "sisjur_url": null
+    },
+    {
+      "norm_id": "8d03856e-3982-4dd7-9a24-1d1574b6c17f",
+      "norm_type": "ley",
+      "norm_number": "2415",
+      "norm_year": 2024,
+      "norm_title": "Ley 2415 de 2024 – Río Ranchería, su cuenca y sus afluentes, declarados como sujeto de derechos",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4101ad67-2a9f-40ac-bbe9-e92da3c016cd",
+      "norm_type": "decreto",
+      "norm_number": "44",
+      "norm_year": 2024,
+      "norm_title": "Decreto Reglamentario 44 de 2024 – Reservas de Recursos Naturales de Carácter Temporal en el Marco d",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "b1751fb7-06ed-4ba3-85e6-6edd55d1dc45",
+      "norm_type": "resolucion",
+      "norm_number": "0803",
+      "norm_year": 2024,
+      "norm_title": "Resolución 0803 de 2024 – Medidas tendientes a la Reducción Gradual de la Producción y Consumo de Ci",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "6743d7a4-113e-46e6-ad84-4d92a00cd7ee",
+      "norm_type": "ley",
+      "norm_number": "2407",
+      "norm_year": 2024,
+      "norm_title": "Ley 2407 de 2024 – Uso Racional y Eficiente de la Energía – Planes de Eficiencia Energética de las E",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "c23a0a73-2125-4352-88fa-6f39e1349820",
+      "norm_type": "resolucion",
+      "norm_number": "417",
+      "norm_year": 2024,
+      "norm_title": "Resolución 417 de 2024 – Registro Reserva Forestal Protectora Serranía La Lindosa",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4bd2b240-70fd-4fa2-ab7f-9a857392914f",
+      "norm_type": "ley",
+      "norm_number": "2427",
+      "norm_year": 2024,
+      "norm_title": "Ley 2427 de 2024 – Enseñanza para la Sostenibilidad Ambiental, Cambio Climático y Gestión del Riesgo",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "08076c9a-3d62-4e31-9682-46902171a07f",
+      "norm_type": "decreto",
+      "norm_number": "1998",
+      "norm_year": 2023,
+      "norm_title": "Decreto Reglamentario 1998 de 2023 – Pago Por Servicios Ambientales (PSA) – Pagos por Servicios Ambi",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "131c2d2c-aa35-4641-8696-236a800820b4",
+      "norm_type": "decreto",
+      "norm_number": "1384",
+      "norm_year": 2023,
+      "norm_title": "Decreto Reglamentario 1384 de 2023 – Comunidades Negras, Afrocolombianas, Raizales y Palenqueras y T",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "27bc059f-b9a7-41bf-9397-43e56208a357",
+      "norm_type": "ley",
+      "norm_number": "2294",
+      "norm_year": 2023,
+      "norm_title": "Ley 2294 de 2023 – Plan Nacional de Desarrollo (PND) 2022 – 2026 Colombia Potencia Mundial de la Vid",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "a65e4f9c-5ce2-4ad3-a8ba-d40b706ef7e5",
+      "norm_type": "decreto",
+      "norm_number": "2235",
+      "norm_year": 2023,
+      "norm_title": "Decreto Reglamentario 2235 de 2023 – Transición Energética",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "5bce8cbd-bc16-46e3-9e7e-72084eb59b65",
+      "norm_type": "decreto",
+      "norm_number": "2192",
+      "norm_year": 2023,
+      "norm_title": "Decreto Reglamentario 2192 de 2023 – Prohibición de Ingreso de Plásticos de un Solo Uso a Áreas Prot",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "cae3d7ea-7f6f-453d-beb3-b807aef8c2b2",
+      "norm_type": "ley",
+      "norm_number": "2320",
+      "norm_year": 2023,
+      "norm_title": "Ley 2320 de 2023 – Adquisición, restauración, rehabilitación y recuperación ecológica de áreas de in",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "e3e0bf9b-ec9c-4d8b-b648-1c892602e8e9",
+      "norm_type": "ley",
+      "norm_number": "2327",
+      "norm_year": 2023,
+      "norm_title": "Ley 2327 de 2023 – Ley de Pasivos Ambientales",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "f1050001-a6b5-43e0-bb02-96cff575e147",
+      "norm_type": "ley",
+      "norm_number": "2195",
+      "norm_year": 2022,
+      "norm_title": "Ley 2195 de 2022 – Corrupción – Medidas en Materia de Transparencia, Prevención y Lucha Contra la Co",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "7d2ae5d0-7209-40f4-9106-e36c1f73433d",
+      "norm_type": "ley",
+      "norm_number": "2232",
+      "norm_year": 2022,
+      "norm_title": "Ley 2232 de 2022 – Establecen medidas tendientes a la Reducción Gradual de la Producción y Consumo d",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "1d7cb658-77a3-43e3-a729-94b3a06f0e59",
+      "norm_type": "ley",
+      "norm_number": "2218",
+      "norm_year": 2022,
+      "norm_title": "Ley 2218 de 2022 – Acuerdo entre la República de Colombia y el Instituto Global para el Crecimiento ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "398ba776-30c5-49a8-96b9-826452c914ff",
+      "norm_type": "ley",
+      "norm_number": "2193",
+      "norm_year": 2022,
+      "norm_title": "Ley 2193 de 2022 – Apicultura en Colombia / Abejas",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "adc7e4a6-827a-4e17-9862-123171fa6058",
+      "norm_type": "decreto",
+      "norm_number": "1130",
+      "norm_year": 2022,
+      "norm_title": "Decreto Reglamentario 1130 de 2022 – Sistema Nacional de Gestión de Conflictos Sociales y Diálogo So",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "fb40dc3e-da6b-488f-aec2-c2b839487903",
+      "norm_type": "ley",
+      "norm_number": "2206",
+      "norm_year": 2022,
+      "norm_title": "Ley 2206 de 2022 – Guadua – Bambú – Incentivo para el Uso Productivo de la Guadua y el Bambú y su So",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "91e8f9f3-46c0-4875-830b-b1c8613b522b",
+      "norm_type": "ley",
+      "norm_number": "2220",
+      "norm_year": 2022,
+      "norm_title": "Ley 2220 de 2022 – Estatuto de Conciliación en Colombia",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "3848c479-0449-497b-aabc-1e74f77ae978",
+      "norm_type": "ley",
+      "norm_number": "2243",
+      "norm_year": 2022,
+      "norm_title": "Ley 2243 de 2022 – Protege los Ecosistemas de Manglar",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "f4d4e467-e7ee-4f23-9c9a-255cf97b24de",
+      "norm_type": "resolucion",
+      "norm_number": "762",
+      "norm_year": 2022,
+      "norm_title": "Resolución 762 de 2022 – Reglamenta los límites máximos permisibles de emisión de contaminantes que ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "b324140e-21be-47a6-a635-fab2e5ce0140",
+      "norm_type": "ley",
+      "norm_number": "2199",
+      "norm_year": 2022,
+      "norm_title": "Ley 2199 de 2022 – Ley de la Región Metropolitana Bogotá – Cundinamarca y Tema Ambiental",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "60ce3abe-cdb6-4f5f-baa7-71f6cba29ae9",
+      "norm_type": "ley",
+      "norm_number": "2250",
+      "norm_year": 2022,
+      "norm_title": "Ley 2250 de 2022 – Legalización y Formalización Minera",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "2994abfb-6c6e-4387-ba75-1a0b4dce0429",
+      "norm_type": "ley",
+      "norm_number": "2273",
+      "norm_year": 2022,
+      "norm_title": "Ley 2273 de 2022 – Acuerdo de Escazú – Tratado Internacional Ambiental y de Derechos Humanos",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "aefaed25-5596-4cf0-a8f7-0d8b4ebc361d",
+      "norm_type": "ley",
+      "norm_number": "2175",
+      "norm_year": 2021,
+      "norm_title": "Ley 2175 de 2021 – Zona de Interés Ambiental, Turístico, Ecológico y Pesquero el Embalse del Guájaro",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "982f27ed-879a-4208-91fc-b450d8507734",
+      "norm_type": "ley",
+      "norm_number": "2173",
+      "norm_year": 2021,
+      "norm_title": "Ley 2173 de 2021 – Restauración Ecológica a través de la siembra de árboles y creación de bosques en",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "2f1939f1-875e-4ee1-96d4-46ec853390b9",
+      "norm_type": "ley",
+      "norm_number": "2099",
+      "norm_year": 2021,
+      "norm_title": "Ley 2099 de 2021 – Transición Energética, Dinamización del Mercado Energético, Reactivación Económic",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "185d53d2-21d6-4285-b15b-5d92bdb2b7a2",
+      "norm_type": "decreto",
+      "norm_number": "1868",
+      "norm_year": 2021,
+      "norm_title": "Decreto Reglamentario 1868 de 2021 – Plan Nacional de Contingencia frente a Pérdidas de Contención d",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4a9628cd-f025-4a59-bfd2-665e1afb2037",
+      "norm_type": "ley",
+      "norm_number": "2111",
+      "norm_year": 2021,
+      "norm_title": "Ley 2111 de 2021 - Ley de Delitos Ambientales o Ecológicos – Modificó el Código Penal y Delitos Ambi",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "26e9efc5-55fc-473f-820e-96e51c1d3ec9",
+      "norm_type": "ley",
+      "norm_number": "2169",
+      "norm_year": 2021,
+      "norm_title": "Ley 2169 de 2021 – Ley de Acción Climática y Desarrollo Bajo en Carbono",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "96a68fa6-8145-4c57-b90d-9a1294d334ee",
+      "norm_type": "ley",
+      "norm_number": "2082",
+      "norm_year": 2021,
+      "norm_title": "Ley 2082 de 2021 – Ley de las Ciudades Capitales y Tema Ambiental",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "9cc8a34d-1af3-4d2b-911d-e7447a73cea4",
+      "norm_type": "ley",
+      "norm_number": "2068",
+      "norm_year": 2020,
+      "norm_title": "Ley 2068 de 2020 – Modifica la Ley General de Turismo – Ecoturismo – Turismo y Tema Ambiental",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "616e558b-208d-4876-b468-66c2972052e8",
+      "norm_type": "decreto",
+      "norm_number": null,
+      "norm_year": 2020,
+      "norm_title": "Decreto Reglamentario 1540 del 2020 – Plan de Acción Cuatrienal Ambiental (PACA)",
+      "sisjur_id": null,
+      "match_status": "invalid_number",
+      "sisjur_url": null
+    },
+    {
+      "norm_id": "f2955f6e-5e51-4741-9847-9ab5a86bac93",
+      "norm_type": "ley",
+      "norm_number": "2052",
+      "norm_year": 2020,
+      "norm_title": "Ley 2052 de 2020 – Normas sobre la Rama Ejecutiva del Nivel Nacional y Territorial – Racionalización",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "191445ef-980b-4bd7-ab70-3a42713f71d1",
+      "norm_type": "ley",
+      "norm_number": "2054",
+      "norm_year": 2020,
+      "norm_title": "Ley 2054 de 2020 – Albergues Municipales para Fauna – Centros de Bienestar Animal",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "c7971ecb-c5a6-43a1-864d-1f3b8fe5f037",
+      "norm_type": "decreto",
+      "norm_number": "376",
+      "norm_year": 2020,
+      "norm_title": "Decreto Reglamentario 376 de 2020 – Modifica la Estructura de la Autoridad Nacional de Licencias Amb",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "31f71007-bbc6-4ff5-9658-07bfdbafb60a",
+      "norm_type": "ley",
+      "norm_number": "2047",
+      "norm_year": 2020,
+      "norm_title": "Ley 2047 de 2020 – Prohibición de Experimentación, Importación, Fabricación y Comercialización de Pr",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "7f0bf864-679b-40c1-a293-16a1a75814ab",
+      "norm_type": "decreto",
+      "norm_number": "1585",
+      "norm_year": 2020,
+      "norm_title": "Decreto Reglamentario 1585 de 2020 – Diagnóstico Ambiental de Alternativas (DAA) y el trámite de lic",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "81979dcc-299f-4ad9-a8a0-233749ac31f4",
+      "norm_type": "ley",
+      "norm_number": "2056",
+      "norm_year": 2020,
+      "norm_title": "Ley 2056 de 2020 – Ley que regula la Organización y el Funcionamiento del Sistema General de Regalía",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "b24203b6-10f7-4a07-9505-e386bdf5dbe6",
+      "norm_type": "ley",
+      "norm_number": "2071",
+      "norm_year": 2020,
+      "norm_title": "Ley 2071 de 2020 – Financiamiento para la Reactivación del Sector Agropecuario, Pesquero, Acuícola, ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "bd6c6f62-8594-4ef6-9a04-110ec4bbf97d",
+      "norm_type": "ley",
+      "norm_number": "2041",
+      "norm_year": 2020,
+      "norm_title": "Ley 2041 de 2020 – Ambiente libre de Plomo / Límites para su contenido en productos comercializados ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "44e924ea-78dd-41e5-9832-c54831a0c772",
+      "norm_type": "ley",
+      "norm_number": "2069",
+      "norm_year": 2020,
+      "norm_title": "Ley 2069 de 2020 – Emprendimiento en Colombia y temas ambientales",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "8c2e0462-8730-4ed4-9f7a-bc4f671f89b7",
+      "norm_type": "decreto",
+      "norm_number": "405",
+      "norm_year": 2020,
+      "norm_title": "Decreto – Ley 405 de 2020 – Contraloría General de la República (CGR) – Modifica la Estructura Orgán",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "9a249ad4-dbf4-40a4-9a8f-3295199bf9d9",
+      "norm_type": "ley",
+      "norm_number": "1955",
+      "norm_year": 2019,
+      "norm_title": "Ley 1955 de 2019 – Plan Nacional de Desarrollo (PND) 2018 – 2022 Pacto por Colombia, Pacto por la Eq",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "dab873e9-35f9-4a2c-8ad6-38bed5f776b6",
+      "norm_type": "ley",
+      "norm_number": "1970",
+      "norm_year": 2019,
+      "norm_title": "Ley 1970 de 2019 – Enmienda de Kigali al Protocolo de Montreal",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "86e588a0-20ad-4997-b6cf-946386d09cb9",
+      "norm_type": "ley",
+      "norm_number": "1952",
+      "norm_year": 2019,
+      "norm_title": "Ley 1952 de 2019 – Código General Disciplinario (CGD) y temas ambientales",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "40b933d7-d7b2-445a-a45f-9cacf92436e4",
+      "norm_type": "ley",
+      "norm_number": "1973",
+      "norm_year": 2019,
+      "norm_title": "Ley 1973 de 2019 – Regula y prohíbe el ingreso, comercialización y uso de bolsas y otros materiales ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "af2e94a8-354d-4e79-a46a-b98791beae16",
+      "norm_type": "ley",
+      "norm_number": "1950",
+      "norm_year": 2019,
+      "norm_title": "Ley 1950 de 2019 – Convención de la Organización para la Cooperación y el Desarrollo Económicos (OCD",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "57bc49d0-97c6-4aa7-a071-33833edf950a",
+      "norm_type": "ley",
+      "norm_number": "1968",
+      "norm_year": 2019,
+      "norm_title": "Ley 1968 de 2019 – Prohíbe el uso de asbesto en el territorio nacional y se establecen garantías de ",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "7ee5e6b0-5a86-4ec0-9693-7d89dfe9aec0",
+      "norm_type": "decreto",
+      "norm_number": "138",
+      "norm_year": 2019,
+      "norm_title": "Decreto Reglamentario 138 de 2019 – Patrimonio Arqueológico – Programa de Arqueología Preventiva (PA",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "7b1522c5-2ced-4ebc-9b9f-86642eba63f5",
+      "norm_type": "ley",
+      "norm_number": "1972",
+      "norm_year": 2019,
+      "norm_title": "Ley 1972 de 2019 – Medidas tendientes a la Reducción de Emisiones Contaminantes de Fuentes Móviles",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "cba071ed-ed13-4d1b-88db-596c1548165d",
+      "norm_type": "ley",
+      "norm_number": "1964",
+      "norm_year": 2019,
+      "norm_title": "Ley 1964 de 2019 – Promueve el uso de Vehículos Eléctricos en Colombia",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4ee608ab-9a26-4d73-a375-b34b98f7ce3e",
+      "norm_type": "ley",
+      "norm_number": "1954",
+      "norm_year": 2019,
+      "norm_title": "Ley 1954 de 2019 – Instituto Global para el Crecimiento Verde (GGGI)",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "4693daf2-7281-42b7-aa2d-00df0ccaec04",
+      "norm_type": "ley",
+      "norm_number": "1962",
+      "norm_year": 2019,
+      "norm_title": "Ley 1962 de 2019 – Región – Regiones – Región de Planeación y Gestión – Región Administrativa y de P",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "1c25f501-36da-480d-954b-f89e35295560",
+      "norm_type": "decreto",
+      "norm_number": "2353",
+      "norm_year": 2019,
+      "norm_title": "Decreto Reglamentario 2353 de 2019 – Modifica la Estructura del Ministerio del Interior y crea la Di",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "2a12e4f4-bbdf-4fe6-ab69-1da4af6d966a",
+      "norm_type": "decreto",
+      "norm_number": "1090",
+      "norm_year": 2018,
+      "norm_title": "Decreto Reglamentario 1090 de 2018 – Programa para el Uso Eficiente y Ahorro de Agua (PUEAA)",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    },
+    {
+      "norm_id": "5a9cf678-0c75-4e2c-9b17-29930b90732d",
+      "norm_type": "decreto",
+      "norm_number": "1468",
+      "norm_year": 2018,
+      "norm_title": "Decreto Reglamentario 1468 de 2018– Complejo de Humedales Urbanos del Distrito Capital de Bogotá",
+      "sisjur_id": "9035",
+      "match_status": "first_result_fallback",
+      "sisjur_url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=9035"
+    }
+  ],
+  "hallazgo_critico": "SISJUR consulta_avanzada.jsp via GET NO devuelve resultados específicos — todos caen en menú genérico i=9035. Mapping real efectivo: 0. Para scraper real se requiere POST con JSESSIONID cookie o Selenium/Playwright. Registrar como pendiente futuro.",
+  "real_matches": 0,
+  "fallback_generic_count": 77,
+  "hit_rate_real": "0.0%"
+}
