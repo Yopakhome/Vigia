@@ -261,7 +261,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.4";
+const EXPORT_VIGIA_VERSION = "v3.9.5";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2475,6 +2475,10 @@ const renderNormativa=()=>{
                 {detail.norm_number && <Badge label={`N. ${detail.norm_number}/${detail.norm_year||""}`} color={C.textSec} bg={C.surfaceEl}/>}
                 {detail.scope && <Badge label={SCOPE_LABELS[detail.scope]||detail.scope} color={SCOPE_COLORS[detail.scope]||C.textSec} bg={`${SCOPE_COLORS[detail.scope]||C.textSec}22`}/>}
                 {detail.total_articles>0 && <Badge label={`${detail.total_articles} artículos`} color={C.green} bg={C.greenDim}/>}
+                {detail.vigencia_global==="vigente" && <Badge label="✓ Vigente" color={C.green} bg={C.greenDim}/>}
+                {detail.vigencia_global==="derogada_parcial" && <Badge label="⚠ Derogada parcial" color={C.yellow} bg={C.yellowDim}/>}
+                {detail.vigencia_global==="derogada_total" && <Badge label="✗ Derogada" color={C.red} bg={C.redDim}/>}
+                {detail.category && <Badge label={detail.category} color={C.purple} bg={C.purpleDim||C.surfaceEl}/>}
               </div>
               {detail.issuing_body && <div style={{fontSize:11,color:C.textSec,marginBottom:4}}>{detail.issuing_body}{detail.issue_date?` · ${detail.issue_date}`:""}</div>}
               {detail.summary && <div style={{fontSize:12,color:C.text,lineHeight:1.5,marginTop:8,padding:"8px 12px",background:C.surfaceEl,borderRadius:6}}>{detail.summary}</div>}
@@ -2517,6 +2521,8 @@ const renderNormativa=()=>{
                     {n.norm_number && <span style={{color:C.text}}>{n.norm_number}/{n.norm_year||""}</span>}
                     {n.issuing_body && <><span>·</span><span>{n.issuing_body.slice(0,60)}</span></>}
                     {n.total_articles>0 && <><span>·</span><span style={{color:C.green}}>{n.total_articles} art.</span></>}
+                    {n.vigencia_global==="derogada_total" && <><span>·</span><span style={{color:C.red,fontWeight:700}}>✗ DEROGADA</span></>}
+                    {n.vigencia_global==="derogada_parcial" && <><span>·</span><span style={{color:C.yellow,fontWeight:600}}>⚠ parcial</span></>}
                   </div>
                 </div>
                 <ChevronRight size={14} color={C.textSec}/>
@@ -2630,7 +2636,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.4</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.5</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
