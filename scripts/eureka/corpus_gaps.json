@@ -2,16 +2,19 @@
   "generated": "2026-04-14",
   "description": "Documentos del corpus EUREKA que no pudieron procesarse por falta de fuente accesible, PDF scan sin OCR, o URL inaccesible. Cada sesión debe intentar resolverlos buscando en fuentes oficiales alternativas antes de marcarlos como skip definitivo. Los gaps con status='pendiente' son candidatos prioritarios para Fase 2C (cuando se aborde OCR sistemático con Claude vision).",
   "stats": {
-    "total_gaps": 6,
+    "total_gaps": 7,
     "by_reason": {
       "scan_no_ocr": 5,
-      "no_url": 1
+      "no_url": 1,
+      "ssl_obsoleto_servidor": 1
     },
     "by_status": {
       "pendiente": 5,
+      "pendiente_ssl_workaround": 1,
       "skip_definitivo": 1
     }
   },
+  "last_updated": "2026-04-14 (Fase 2D-outliers + funcionpublica)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -178,9 +181,32 @@
         "Diario Oficial 2024 (índice de decretos)",
         "Buscar manualmente en presidencia.gov.co/normativa o ministerios pertinentes"
       ],
-      "status": "pendiente",
+      "status": "skip_definitivo",
+      "prioridad": "baja",
+      "notas": "EUREKA tiene la ficha curada (resumen + concordancias) pero no expone URL al texto oficial. SUIN-Juriscol probablemente lo indexa con id distinto al que usa EUREKA. SKIP DEFINITIVO en este sprint: la ficha curada queda en eureka_sources_metadata + concordancias quedan en grafo, suficiente para queries de descubrimiento. Si en el futuro un usuario reporta que necesita el texto completo del Decreto 43/2024, una sesión puede buscar manualmente en SUIN/DiarioOficial, agregar source_url al doc en normative_sources, luego correr el scraper SUIN para esta sola norma."
+    },
+    {
+      "slug": "directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa",
+      "norm_title": "Directiva Presidencial 10 de 2013 – Guía para la Realización de Consulta Previa",
+      "norm_number": "10",
+      "norm_year": 2013,
+      "norm_type": "otra",
+      "issuing_body": "PRESIDENCIA DE LA REPÚBLICA",
+      "reason": "ssl_obsoleto_servidor",
+      "discovered_in": "Sprint A2 Fase 2D-outliers (commit pending)",
+      "urls_intentadas": [
+        "https://www.cancilleria.gov.co/normograma/compilacion/docs/directiva_presidencia_0010_2013.htm"
+      ],
+      "error_tecnico": "SSL: TLSV1_ALERT_PROTOCOL_VERSION — el servidor cancilleria.gov.co solo soporta TLS 1.0 que urllib3/Python 3.9 rechaza por default por seguridad. No es un problema del doc sino del servidor obsoleto.",
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Directiva Presidencial 10/2013",
+        "https://www.funcionpublica.gov.co/eva/gestornormativo/ — buscar Directiva Pres 10/2013",
+        "Diario Oficial 2013 (publicación original)",
+        "Workaround técnico: configurar SSLContext con `set_ciphers('DEFAULT@SECLEVEL=1')` y `OP_LEGACY_SERVER_CONNECT` en un script especial. NO es seguro como práctica general; usar SOLO para este doc específico y descartar el adapter después."
+      ],
+      "status": "pendiente_ssl_workaround",
       "prioridad": "media",
-      "notas": "EUREKA tiene la ficha curada (resumen + concordancias) pero no expone URL al texto oficial. SUIN-Juriscol probablemente lo indexa con id distinto al que usa EUREKA. Una sesión futura puede buscar manualmente en SUIN (o por Diario Oficial) y agregarle source_url al doc en normative_sources, luego correr el scraper SUIN para esta sola norma."
+      "notas": "Doc importante: guía oficial para Consulta Previa. Vinculado con Convenio 169 OIT (Ley 21/1991) que sí está en el corpus. Workaround SSL es viable pero requiere código aislado. Alternativa más segura: buscar el mismo doc en SUIN o Función Pública (probablemente más actualizado y con TLS moderno)."
     }
   ]
 }

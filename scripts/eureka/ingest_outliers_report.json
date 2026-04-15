@@ -1,0 +1,57 @@
+{
+  "started_at": "2026-04-14T21:36:18-0500",
+  "dry_run": false,
+  "total_candidates": 5,
+  "total_resolved": 5,
+  "fetch_failed": 1,
+  "articles_inserted": 4,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 4,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 16783,
+  "norms_patched": 4,
+  "norms_patch_failed": 0,
+  "errors": [
+    {
+      "stage": "fetch",
+      "slug": "directiva-presidencial-10-de-2013-guia-para-la-realizacion-de-consulta-previa-con-comunidades-etnicas-consulta-previa-comunidades-etnicas",
+      "url": "https://www.cancilleria.gov.co/normograma/compilacion/docs/directiva_presidencia_0010_2013.htm",
+      "error": "HTTPSConnectionPool(host='www.cancilleria.gov.co', port=443): Max retries exceeded with url: /normograma/compilacion/docs/directiva_presidencia_0010_2013.htm (Caused by SSLError(SSLError(1, '[SSL: TLSV1_ALERT_PROTOCOL_VERSION] tlsv1 alert protocol version (_ssl.c:1129)')))"
+    }
+  ],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "resolucion-1442-de-2008-procedimiento-para-la-expedicion-del-dictamen-tecnico-ambiental-dta-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+      "url": "https://www.ica.gov.co/getattachment/41221aae-24e4-4f54-9d64-1214d9e55b11/2008R1442.aspx",
+      "kind": "pdf",
+      "chars": 22265,
+      "tokens": 6284
+    },
+    {
+      "slug": "declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+      "url": "https://www.un.org/spanish/esa/sustdev/agenda21/riodeclaration.htm",
+      "kind": "html",
+      "chars": 13597,
+      "tokens": 3045
+    },
+    {
+      "slug": "declaracion-de-estocolmo-de-1972-sobre-el-medio-humano",
+      "url": "https://www.un.org/es/conferences/environment/stockholm1972#:~:text=La%20Declaraci%C3%B3n%20de%20Estocolmo%2C%20que%20conten%C3%ADa%2026%20principios%2C,bienestar%20de%20las%20personas%20de%20todo%20el%20mundo",
+      "kind": "html",
+      "chars": 2613,
+      "tokens": 794
+    },
+    {
+      "slug": "declaracion-de-las-naciones-unidas-sobre-los-derechos-de-los-pueblos-indigenas-aprobada-en-2007",
+      "url": "https://www.un.org/esa/socdev/unpfii/documents/DRIPS_es.pdf",
+      "kind": "pdf",
+      "chars": 30276,
+      "tokens": 6660
+    }
+  ],
+  "elapsed_seconds": 18.2,
+  "finished_at": "2026-04-14T21:36:37-0500",
+  "openai_cost_usd_estimated": 0.000336
+}

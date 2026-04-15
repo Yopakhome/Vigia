@@ -1,0 +1,38 @@
+{
+  "started_at": "2026-04-14T21:33:01-0500",
+  "dry_run": false,
+  "total_candidates": 2,
+  "total_resolved": 2,
+  "fetch_failed": 0,
+  "articles_parsed_raw": 7,
+  "articles_dedup": 7,
+  "articles_inserted": 7,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 7,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 2134,
+  "norms_patched": 2,
+  "norms_patch_failed": 0,
+  "errors": [],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "decreto-reglamentario-1468-de-2018",
+      "chars": 24297,
+      "raw": 5,
+      "final": 5,
+      "quality": "high"
+    },
+    {
+      "slug": "decreto-reglamentario-1540-del-2020",
+      "chars": 10692,
+      "raw": 2,
+      "final": 2,
+      "quality": "low"
+    }
+  ],
+  "elapsed_seconds": 11.5,
+  "finished_at": "2026-04-14T21:33:13-0500",
+  "openai_cost_usd_estimated": 4.3e-05
+}
