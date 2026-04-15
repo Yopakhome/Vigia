@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.24";
+const EXPORT_VIGIA_VERSION = "v3.9.25";
 
 function exportTimestamp() {
   const d = new Date();
@@ -588,88 +588,96 @@ const saveToSupabase = async (analysisResult, file) => {
   if(!clientOrg?.id) return null;
   // Ramificación por doc_nature:
   // - norma/jurisprudencia: van a normative_sources + regulatory_alerts vía
-  //   onNewNorm/onNewAlert desde processAndLink. No crear instrument aquí.
-  // - acto_administrativo: crea EDI (único caso legítimo de instrument nuevo
-  //   desde INTAKE: el acto administrativo es el otorgamiento del permiso).
-  // - evidencia_cumplimiento, documento_tecnico, comunicacion, otro: aún no
-  //   tienen flujo de persistencia automática (van a tablas evidences/
-  //   communications, requieren elegir EDI destino y UI específica).
-  //   Se omite el guardado y se avisa al usuario en processAndLink.
-  if(analysisResult.doc_nature !== "acto_administrativo") return null;
+  //   onNewNorm/onNewAlert desde processAndLink. No crear instrument ni document aquí.
+  // - acto_administrativo: crea EDI (instrument) + document + embed + obligations.
+  // - evidencia_cumplimiento, documento_tecnico, comunicacion, otro: NO crea EDI nuevo;
+  //   si hay candidate_edi que matchee un EDI existente, linkea; si no, doc huérfano.
+  //   Siempre persiste document y vectoriza para activar REGLA 18.
+  if(analysisResult.doc_nature === "norma" || analysisResult.doc_nature === "jurisprudencia") return null;
   const orgId = clientOrg.id;
   const now = new Date().toISOString().split("T")[0];
+  const isActoAdmin = analysisResult.doc_nature === "acto_administrativo";
 
-  // 1. Create or find instrument
+  // 1. Create instrument SOLO para acto_administrativo. Otros tipos: buscar EDI existente por candidate_edi.
   let instrId = null;
-  try {
-    const instrPayload = {
-      org_id: orgId,
-      instrument_type: analysisResult.doc_nature === "norma" ? "Norma" : (analysisResult.candidate_edi || "Acto Administrativo"),
-      number: analysisResult.radicado || "SIN-RADICADO-"+Date.now(),
-      issue_date: analysisResult.doc_date || now,
-      authority_name: analysisResult.sender || "Por determinar",
-      project_name: analysisResult.subject || analysisResult.candidate_edi || (clientOrg?.name ? `EDI ${clientOrg.name}` : "EDI sin título"),
-      location_dept: clientOrg?.location_dept || null,
-      location_mun: clientOrg?.location_mun || null,
-      domain: clientOrg?.sector || "ambiental",
-      edi_status: "activo",
-      completeness_pct: analysisResult.candidate_confidence || 60,
-      has_confidential_sections: false,
-      ingested_at: new Date().toISOString()
-    };
-    const instrRes = await sbPost("instruments", instrPayload);
-    if(Array.isArray(instrRes) && instrRes[0]?.id) {
-      instrId = instrRes[0].id;
-      if(onNewInstrument) onNewInstrument(instrRes[0]);
-    }
-  } catch(e) { console.log("instrument save error", e); }
-
-  // 2. Save document record
-  // doc_role CHECK permite: acto_principal|anexo_tecnico|modificacion|auto_seguimiento|informe_cumplimiento|evidencia|otro
-  const DOC_ROLE_MAP = { norma:"acto_principal", acto_administrativo:"acto_principal", jurisprudencia:"acto_principal", comunicacion:"auto_seguimiento", evidencia_cumplimiento:"evidencia", documento_tecnico:"anexo_tecnico", otro:"otro" };
-  if(instrId) {
-    const docPayload = {
-      org_id: orgId,
-      instrument_id: instrId,
-      original_name: file.name,
-      file_type: file.type || "application/octet-stream",
-      file_size_kb: Math.round(file.size/1024),
-      doc_role: DOC_ROLE_MAP[analysisResult.doc_nature] || "otro",
-      doc_label: analysisResult.subject || file.name,
-      accessibility: "pendiente_revisión",
-      ocr_status: "completo",
-      extracted_text: analysisResult.content_summary || "",
-      raw_text: (analysisResult.raw_text || "").slice(0, 50000),
-      format_type: file.type || null,
-      processed_method: analysisResult.extraction_method || (analysisResult.ocr_used ? "ocr_vision" : "direct_text"),
-      raw_text_length: (analysisResult.raw_text || "").length
-    };
-    let savedDoc = null;
+  if(isActoAdmin) {
     try {
-      const dres = await sbPost("documents", docPayload);
-      if (Array.isArray(dres) && dres[0]?.id) savedDoc = dres[0];
-    } catch(e) { console.log("document save error", e); }
-
-      // Paso 4: vectorizar el texto extraído para activar REGLA 18
-      if (savedDoc?.id && sessionToken && analysisResult.raw_text && analysisResult.raw_text.length > 100) {
-        fetch(`${SB_URL}/functions/v1/embed-text`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
-          body: JSON.stringify({ text: analysisResult.raw_text.slice(0, 8000) })
-        }).then(r => r.ok ? r.json() : null)
-          .then(ed => {
-            if (ed?.embedding) {
-              const vec = "[" + ed.embedding.map(f => f.toFixed(7)).join(",") + "]";
-              fetch(`${SB_URL}/rest/v1/documents?id=eq.${savedDoc.id}`, {
-                method: "PATCH",
-                headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ embedding: vec })
-              }).catch(e => console.warn("doc vector patch silenced:", e));
-            }
-          }).catch(e => console.warn("embed-text silenced:", e));
+      const instrPayload = {
+        org_id: orgId,
+        title: analysisResult.edi_title || null,
+        instrument_type: analysisResult.candidate_edi || "Acto Administrativo",
+        number: analysisResult.radicado || "SIN-RADICADO-"+Date.now(),
+        issue_date: analysisResult.doc_date || now,
+        authority_name: analysisResult.sender || "Por determinar",
+        project_name: analysisResult.subject || analysisResult.candidate_edi || (clientOrg?.name ? `EDI ${clientOrg.name}` : "EDI sin título"),
+        location_dept: clientOrg?.location_dept || null,
+        location_mun: clientOrg?.location_mun || null,
+        domain: clientOrg?.sector || "ambiental",
+        edi_status: "activo",
+        completeness_pct: analysisResult.candidate_confidence || 60,
+        has_confidential_sections: false,
+        ingested_at: new Date().toISOString()
+      };
+      const instrRes = await sbPost("instruments", instrPayload);
+      if(Array.isArray(instrRes) && instrRes[0]?.id) {
+        instrId = instrRes[0].id;
+        if(onNewInstrument) onNewInstrument(instrRes[0]);
       }
+    } catch(e) { console.log("instrument save error", e); }
+  } else if(analysisResult.candidate_edi) {
+    // Link a EDI existente si candidate_edi matchea project_name o title
+    const cand = analysisResult.candidate_edi;
+    const existing = instruments.find(e => e.title === cand || e.project_name === cand || e.number === cand);
+    if(existing?.id) instrId = existing.id;
+  }
 
-    // 3. Save extracted obligations
+  // 2. Save document record (para TODOS los tipos no-norma/jurisprudencia)
+  // doc_role CHECK permite: acto_principal|anexo_tecnico|modificacion|auto_seguimiento|informe_cumplimiento|evidencia|otro
+  const DOC_ROLE_MAP = { acto_administrativo:"acto_principal", comunicacion:"auto_seguimiento", evidencia_cumplimiento:"evidencia", documento_tecnico:"anexo_tecnico", otro:"otro" };
+  const docPayload = {
+    org_id: orgId,
+    instrument_id: instrId,
+    original_name: file.name,
+    file_type: file.type || "application/octet-stream",
+    file_size_kb: Math.round(file.size/1024),
+    doc_role: DOC_ROLE_MAP[analysisResult.doc_nature] || "otro",
+    doc_label: analysisResult.edi_title || analysisResult.subject || file.name,
+    accessibility: "pendiente_revisión",
+    ocr_status: "completo",
+    extracted_text: analysisResult.content_summary || "",
+    raw_text: (analysisResult.raw_text || "").slice(0, 50000),
+    format_type: file.type || null,
+    processed_method: analysisResult.extraction_method || (analysisResult.ocr_used ? "ocr_vision" : "direct_text"),
+    raw_text_length: (analysisResult.raw_text || "").length,
+    doc_type_detected: analysisResult.doc_nature || null
+  };
+  let savedDoc = null;
+  try {
+    const dres = await sbPost("documents", docPayload);
+    if (Array.isArray(dres) && dres[0]?.id) savedDoc = dres[0];
+  } catch(e) { console.log("document save error", e); }
+
+  // 3. Vectorizar el texto extraído para activar REGLA 18 (todos los tipos)
+  if (savedDoc?.id && sessionToken && analysisResult.raw_text && analysisResult.raw_text.length > 100) {
+    fetch(`${SB_URL}/functions/v1/embed-text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
+      body: JSON.stringify({ text: analysisResult.raw_text.slice(0, 8000) })
+    }).then(r => r.ok ? r.json() : null)
+      .then(ed => {
+        if (ed?.embedding) {
+          const vec = "[" + ed.embedding.map(f => f.toFixed(7)).join(",") + "]";
+          fetch(`${SB_URL}/rest/v1/documents?id=eq.${savedDoc.id}`, {
+            method: "PATCH",
+            headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ embedding: vec })
+          }).catch(e => console.warn("doc vector patch silenced:", e));
+        }
+      }).catch(e => console.warn("embed-text silenced:", e));
+  }
+
+  // 4. Obligations: solo si hay instrument (acto_administrativo o match con EDI existente)
+  if(instrId) {
     if(analysisResult.obligations_affected?.length > 0) {
       const newObs = [];
       for(let i=0; i<analysisResult.obligations_affected.length; i++){
@@ -783,6 +791,8 @@ EDIs activos (${instruments.length}): ${instruments.length===0?"ninguno registra
 Obligaciones activas (${obligations.length}): ${obligations.length===0?"ninguna registrada":obligations.map(o=>`${o.obligation_num||o.num||o.id}: ${o.name} (vence ${o.due_date||"—"}, estado ${o.status||"—"})`).join("; ")}.
 IMPORTANTE: Si el documento es una norma (ley, decreto, resolucion, circular, sentencia), identificalo como tal y extrae sus metadatos normativos completos. Las normas deben agregarse a la base normativa Y generar alertas regulatorias Y proponer cambios a las obligaciones afectadas.
 
+TÍTULO DESCRIPTIVO (edi_title): extrae un título en formato "[Tipo de instrumento] · [Nombre del proyecto o actividad] · [Municipio/Departamento]". Ejemplo: "Licencia Ambiental · Parque Solar Baranoa I · Barranquilla, Atlántico". Si falta información para algún componente, omítelo. Máximo 80 caracteres. Debe ser descriptivo y útil para que un humano confirme de un vistazo a qué se refiere el EDI.
+
 REGLAS ESTRICTAS PARA proposed_changes:
 - obligation_num DEBE ser exactamente uno de los siguientes valores literales: ${oblNums.length===0?"(no hay obligaciones registradas, devuelve proposed_changes: [])":oblNums.join(", ")}. Prohibido inventar, prohibido "TODAS", "GLOBAL", "N/A", null, o cualquier valor fuera de esa lista.
 - field DEBE ser exactamente uno de estos nombres de columna reales de la tabla obligations: due_date, frequency, description, obligation_type, source_article, status, days_alert_before, start_date, end_date. No inventes campos.
@@ -793,7 +803,7 @@ REGLAS ESTRICTAS PARA proposed_changes:
   · days_alert_before es un entero positivo.
 - Si no puedes proponer un cambio concreto y aplicable que cumpla TODAS las reglas anteriores, devuelve proposed_changes: []. No inventes para llenar.
 Responde SOLO en JSON:
-{"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
+{"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","edi_title":"título descriptivo máx 80 chars o null","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
 
   try {
     const payload = { fileData: base64Data, fileName: file.name, fileType: file.type || (isPDF?"application/pdf":"application/octet-stream"), systemPrompt: SYSTEM };
@@ -847,14 +857,8 @@ const applyChange = async (idx) => {
   }
 };
 
-const UNSUPPORTED_INTAKE_NATURES = ["evidencia_cumplimiento","documento_tecnico","comunicacion","otro"];
 const processAndLink = () => {
 if(!analysisResult) return;
-if(UNSUPPORTED_INTAKE_NATURES.includes(analysisResult.doc_nature)) {
-  const label = DOC_TYPES[analysisResult.doc_nature]?.label || analysisResult.doc_nature;
-  const ok = confirm(`Este documento fue clasificado como "${label}". El flujo de guardado para este tipo aún no está implementado — por ahora sólo quedará registrado en esta pantalla (no se guarda en Supabase). ¿Continuar?`);
-  if(!ok) return;
-}
 const edi=instruments.find(e=>(e.project_name||e.name)===analysisResult.candidate_edi);
 const newDoc={id:`int_${Date.now()}`,original_name:analysisResult.file_name,file_type:analysisResult.file_type,file_size:analysisResult.file_size,doc_nature:analysisResult.doc_nature,is_norma:analysisResult.is_norma||false,sender:analysisResult.sender,receiver:analysisResult.receiver,doc_date:analysisResult.doc_date||new Date().toISOString().split("T")[0],received_date:new Date().toISOString().split("T")[0],radicado:analysisResult.radicado,subject:analysisResult.subject,content_summary:analysisResult.content_summary,actions_detected:analysisResult.actions_detected,obligations_affected:analysisResult.obligations_affected,confidence_pct:analysisResult.candidate_confidence,edi_id:edi?.id||null,urgency:analysisResult.urgency,status:"procesado",processed_date:new Date().toISOString().split("T")[0],norma_data:analysisResult.norma_data||null,proposed_changes:analysisResult.proposed_changes||[]};
 saveToSupabase(analysisResult, {name:analysisResult.file_name||"documento",type:analysisResult.file_type||"",size:(analysisResult.file_size||0)*1024}).catch(e=>console.log("supabase save",e));
@@ -2853,7 +2857,7 @@ const renderEDIs = () => {
           const venc=obs.filter(o=>derivedStatus(o)==="vencido").length;
           const prox=obs.filter(o=>derivedStatus(o)==="proximo").length;
           const aldia=obs.filter(o=>derivedStatus(o)==="al_dia").length;
-          const label = inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`;
+          const label = inst.title || inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`;
           return <div key={inst.id} onClick={()=>{setSelectedEDI(inst);setView("edi-detail");}} style={{background:C.surface,border:`1px solid ${h==="critico"?C.red+"44":C.border}`,borderRadius:12,padding:"16px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
             <div style={{width:44,height:44,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={19} color={color}/></div>
             <div style={{flex:1,minWidth:0}}>
@@ -2946,9 +2950,15 @@ const renderConsultorENARA = () => {
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {consultorInstruments.slice(0,5).map(i=>(
               <div key={i.id} style={{padding:"6px 10px",background:C.surfaceEl,borderRadius:6,fontSize:11,color:C.text,display:"flex",gap:8,flexWrap:"wrap"}}>
-                <span style={{color:C.primary,fontWeight:600,textTransform:"uppercase"}}>{i.instrument_type||"EDI"}</span>
-                {i.number && <span>· {i.number}</span>}
-                {i.project_name && <span style={{color:C.textSec}}>· {i.project_name.slice(0,60)}</span>}
+                {i.title ? (
+                  <span style={{fontWeight:600,color:C.text}}>{i.title.slice(0,80)}</span>
+                ) : (
+                  <>
+                    <span style={{color:C.primary,fontWeight:600,textTransform:"uppercase"}}>{i.instrument_type||"EDI"}</span>
+                    {i.number && <span>· {i.number}</span>}
+                    {i.project_name && <span style={{color:C.textSec}}>· {i.project_name.slice(0,60)}</span>}
+                  </>
+                )}
                 {i.edi_status && <span style={{marginLeft:"auto",color:C.textMuted}}>{i.edi_status}</span>}
               </div>
             ))}
@@ -2994,7 +3004,7 @@ const renderConsultorENARA = () => {
   );
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);setLastSync(new Date());refreshDashboardData();}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);setLastSync(new Date());refreshDashboardData();}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));setLastSync(new Date());}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
+const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -3003,7 +3013,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.24</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.25</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
