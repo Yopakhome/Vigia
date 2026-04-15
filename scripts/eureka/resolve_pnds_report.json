@@ -1,0 +1,25 @@
+{
+  "started": "2026-04-14",
+  "stats": [
+    {
+      "ley": "Ley 2294 de 2023",
+      "fetched_chars": 730364,
+      "articles_parsed": 378,
+      "articles_after_filter": 220,
+      "inserted": 220,
+      "embedding_tokens": 125424,
+      "errors": [],
+      "dimension_hits": {
+        "D1_recursos_naturales": 39,
+        "D3_licenciamiento": 139,
+        "D4_sectores": 155,
+        "D6_ordenamiento": 48,
+        "D7_institucional": 12,
+        "D5_cambio_climatico": 23,
+        "D2_contaminacion": 8
+      }
+    }
+  ],
+  "total_inserted": 220,
+  "total_tokens": 125424
+}

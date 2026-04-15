@@ -15,7 +15,7 @@
       "pendiente_ssl_workaround": 1
     }
   },
-  "last_updated": "2026-04-14 (Fase 3 — Fase 1C gaps)",
+  "last_updated": "2026-04-14 (Fase 5 — PNDs con filtro 8D)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -270,14 +270,30 @@
         "Texto completo Ley 2294/2023 en SUIN",
         "Bases del PND — PDF en dnp.gov.co"
       ],
-      "status": "pendiente",
+      "status": "resuelto",
       "prioridad": "alta",
       "fuentes": [
         "suin-juriscol.gov.co",
         "dnp.gov.co",
         "funcionpublica.gov.co"
       ],
-      "notas": "PND vigente. Contiene obligaciones ambientales directas para minería, energía y manufactura. Aplicar filtro temático de 8 dimensiones para extraer solo artículos relevantes."
+      "notas": "PND vigente. Contiene obligaciones ambientales directas para minería, energía y manufactura. Aplicar filtro temático de 8 dimensiones para extraer solo artículos relevantes.",
+      "resuelto_en": "2026-04-14",
+      "resultado": {
+        "articulos_total": 378,
+        "articulos_tras_filtro_8d": 220,
+        "articulos_insertados": 220,
+        "dimension_hits": {
+          "D1_recursos_naturales": 39,
+          "D3_licenciamiento": 139,
+          "D4_sectores": 155,
+          "D6_ordenamiento": 48,
+          "D7_institucional": 12,
+          "D5_cambio_climatico": 23,
+          "D2_contaminacion": 8
+        },
+        "embedding_tokens": 125424
+      }
     },
     {
       "id": "pnd-2018-2022",
@@ -286,12 +302,28 @@
       "componentes": [
         "Texto completo Ley 1955/2019 en SUIN"
       ],
-      "status": "pendiente",
+      "status": "resuelto",
       "prioridad": "media",
       "fuentes": [
         "suin-juriscol.gov.co"
       ],
-      "notas": "Cruzar contra Ley 2294/2023 para confirmar vigencia antes de ingestar. Solo artículos no derogados."
+      "notas": "Cruzar contra Ley 2294/2023 para confirmar vigencia antes de ingestar. Solo artículos no derogados.",
+      "resuelto_en": "2026-04-14",
+      "resultado": {
+        "articulos_total": 349,
+        "articulos_tras_filtro_8d": 210,
+        "articulos_insertados": 210,
+        "dimension_hits": {
+          "D3_licenciamiento": 154,
+          "D1_recursos_naturales": 32,
+          "D2_contaminacion": 15,
+          "D4_sectores": 132,
+          "D6_ordenamiento": 28,
+          "D5_cambio_climatico": 6,
+          "D7_institucional": 8
+        },
+        "embedding_tokens": 122377
+      }
     },
     {
       "id": "pnd-2014-2018",
@@ -300,12 +332,28 @@
       "componentes": [
         "Texto completo Ley 1753/2015 en SUIN"
       ],
-      "status": "pendiente",
+      "status": "resuelto",
       "prioridad": "media",
       "fuentes": [
         "suin-juriscol.gov.co"
       ],
-      "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores."
+      "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores.",
+      "resuelto_en": "2026-04-14",
+      "resultado": {
+        "articulos_total": 267,
+        "articulos_tras_filtro_8d": 188,
+        "articulos_insertados": 188,
+        "dimension_hits": {
+          "D3_licenciamiento": 129,
+          "D4_sectores": 107,
+          "D5_cambio_climatico": 13,
+          "D6_ordenamiento": 38,
+          "D1_recursos_naturales": 34,
+          "D7_institucional": 19,
+          "D2_contaminacion": 8
+        },
+        "embedding_tokens": 97166
+      }
     }
   ],
   "fase1c_ingesta_gaps": {
@@ -509,7 +557,31 @@
         "notas": "PDF inline ANLA. Río Cauca como sujeto de derechos — proyecto Hidroituango. Procesable con patrón inline ANLA."
       }
     ],
-    "accion_recomendada": "Próximo sprint: script ingest_jurisprudence_pdfs_to_articles.py con pypdf + split opcional por secciones + INSERT en jurisprudence_articles. Estimado ~$0.005 + 5 min."
+    "accion_recomendada": "Próximo sprint: script ingest_jurisprudence_pdfs_to_articles.py con pypdf + split opcional por secciones + INSERT en jurisprudence_articles. Estimado ~$0.005 + 5 min.",
+    "stc_3872_status": {
+      "status": "pendiente",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://cortesuprema.gov.co/corte/wp-content/uploads/relatorias/2020/STC3872-2020.pdf",
+          "result": "404"
+        },
+        {
+          "url": "https://cortesuprema.gov.co/corte/wp-content/uploads/relatorias/civil/2020/STC3872-2020.pdf",
+          "result": "404"
+        },
+        {
+          "url": "https://cortesuprema.gov.co/corte/wp-content/uploads/subsitedocs/STC3872-2020.pdf",
+          "result": "404"
+        },
+        {
+          "url": "https://consultajurisprudencial.ramajudicial.gov.co:8080/WebRelatoria/FileReferenceServlet",
+          "result": "ConnectTimeout"
+        }
+      ],
+      "bloqueo": "patrones URL candidatos de cortesuprema.gov.co y ramajudicial.gov.co fallan 404 o timeout. Sin WebSearch para descubrir URL real.",
+      "proxima_accion": "Buscar manualmente en cortesuprema.gov.co/corte/relatoria o en Diario de Jurisprudencia o pedir PDF al equipo ANLA."
+    }
   },
   "fase1c_recon": {
     "description": "Recon (NO ingesta) de 4 categorías EUREKA pendientes. Output detallado en recon_fase1c.json.",
