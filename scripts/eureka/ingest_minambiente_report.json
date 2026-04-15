@@ -1,0 +1,64 @@
+{
+  "started_at": "2026-04-14T21:10:29-0500",
+  "dry_run": false,
+  "total_candidates": 5,
+  "total_resolved": 5,
+  "articles_parsed_raw": 48,
+  "articles_dedup": 47,
+  "articles_inserted": 47,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 47,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 25858,
+  "norms_patched": 5,
+  "norms_patch_failed": 0,
+  "download_failed": 0,
+  "errors": [],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "resolucion-2064-de-2010-medidas-posteriores-a-la-aprehension-preventiva-restitucion-o-decomiso-de-especimenes-de-especies-silvestres-de-fauna-y-flora-terrestre-y-acuatica",
+      "pages": 83,
+      "chars": 260556,
+      "raw": 38,
+      "final": 37,
+      "quality": "low"
+    },
+    {
+      "slug": "resolucion-415-de-2010-registro-unico-de-infractores-ambientales-ruia-en-el-marco-del-procedimiento-sancionatorio-ambiental",
+      "pages": 6,
+      "chars": 17029,
+      "raw": 1,
+      "final": 1,
+      "quality": "low"
+    },
+    {
+      "slug": "resolucion-1433-de-2004-planes-de-saneamiento-y-manejo-de-vertimientos-psmv",
+      "pages": 3,
+      "chars": 12517,
+      "raw": 9,
+      "final": 9,
+      "quality": "high"
+    },
+    {
+      "slug": "resolucion-2086-de-2010-adopta-la-metodologia-para-la-tasacion-de-multas-en-el-marco-del-procedimiento-sancionatorio-ambiental",
+      "pages": 11,
+      "chars": 10,
+      "raw": 0,
+      "final": 0,
+      "quality": "manual_review_needed"
+    },
+    {
+      "slug": "resolucion-0108-de-2015-formato-unico-nacional-de-solicitud-de-licencia-ambiental",
+      "pages": 14,
+      "chars": 13,
+      "raw": 0,
+      "final": 0,
+      "quality": "manual_review_needed"
+    }
+  ],
+  "elapsed_seconds": 25.4,
+  "finished_at": "2026-04-14T21:10:54-0500",
+  "openai_cost_usd_estimated": 0.000517
+}
