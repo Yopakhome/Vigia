@@ -1,0 +1,179 @@
+{
+  "started_at": "2026-04-14",
+  "processed": [
+    {
+      "doc": "ley 1259/2008",
+      "nid": "cf981798-e7e7-43a8-9e58-8dce7e57c2fc",
+      "arts": 26,
+      "tokens": 5558,
+      "chars": 19320
+    },
+    {
+      "doc": "ley 1152/2007",
+      "nid": "f9004c0f-5437-4816-a29c-fef17527495c",
+      "arts": 179,
+      "tokens": 64073,
+      "chars": 241452
+    },
+    {
+      "doc": "decreto 1323/2007",
+      "nid": "43196092-5597-4b3c-9099-cb4d64c0ff9c",
+      "arts": 12,
+      "tokens": 2176,
+      "chars": 8101
+    },
+    {
+      "doc": "decreto 3600/2007",
+      "nid": "09bab76a-7ec6-4471-8528-5286208b7c0d",
+      "arts": 30,
+      "tokens": 14223,
+      "chars": 67264
+    },
+    {
+      "doc": "ley 1021/2006",
+      "nid": "dcbcd54d-4c84-46cf-bb7a-a939b9c8279b",
+      "arts": 54,
+      "tokens": 16390,
+      "chars": 59560
+    },
+    {
+      "doc": "decreto 1900/2006",
+      "nid": "bc6579b5-6ddb-46d9-ae3f-6025a09c0644",
+      "arts": 1,
+      "tokens": 4074,
+      "chars": 8863
+    },
+    {
+      "doc": "decreto 4742/2005",
+      "nid": "6e1eb4a9-1a71-45e4-8e81-29e5e22df28c",
+      "arts": 3,
+      "tokens": 1443,
+      "chars": 5201
+    },
+    {
+      "doc": "decreto 4688/2005",
+      "nid": "b8c74135-7c3b-4b5b-832b-41eeec570333",
+      "arts": 19,
+      "tokens": 3675,
+      "chars": 14105
+    },
+    {
+      "doc": "decreto 1200/2004",
+      "nid": "dbc3bb3a-2cab-430f-a677-fe223b3991c9",
+      "arts": 14,
+      "tokens": 5478,
+      "chars": 24665
+    },
+    {
+      "doc": "decreto 155/2004",
+      "nid": "fa7b5220-3e3d-4b7d-853e-71c236063c1d",
+      "arts": 25,
+      "tokens": 4535,
+      "chars": 15779
+    },
+    {
+      "doc": "decreto 3100/2003",
+      "nid": "e1ab6f6f-d913-4b59-9986-fd53505582cb",
+      "arts": 40,
+      "tokens": 12396,
+      "chars": 46572
+    },
+    {
+      "doc": "decreto 1604/2002",
+      "nid": "cd226f7f-8910-42b2-9f1d-e3e5b21bd6ff",
+      "arts": 7,
+      "tokens": 819,
+      "chars": 3091
+    },
+    {
+      "doc": "decreto 1669/2002",
+      "nid": "5a9531ca-90cd-4ac5-83ee-d4da7daace42",
+      "arts": 9,
+      "tokens": 2902,
+      "chars": 10392
+    },
+    {
+      "doc": "decreto 1505/2003",
+      "nid": "cbf3b059-f4ea-4877-b71d-4e7fcdaafe38",
+      "arts": 12,
+      "tokens": 2042,
+      "chars": 7846
+    },
+    {
+      "doc": "ley 793/2002",
+      "nid": "a4b4ec22-2adb-497e-b4f0-078ccdcba094",
+      "arts": 33,
+      "tokens": 9094,
+      "chars": 34324
+    },
+    {
+      "doc": "decreto 1713/2002",
+      "nid": "ec246f7e-5535-4009-a1f7-39e45b0ba772",
+      "arts": 132,
+      "tokens": 26280,
+      "chars": 108095
+    },
+    {
+      "doc": "decreto 1729/2002",
+      "nid": "72379c11-ec5e-4fab-b5df-21a80f24ba36",
+      "arts": 26,
+      "tokens": 5126,
+      "chars": 18369
+    },
+    {
+      "doc": "ley 715/2001",
+      "nid": "72ce9985-632c-4484-82f3-98b130ce244e",
+      "arts": 79,
+      "tokens": 29486,
+      "chars": 114456
+    },
+    {
+      "doc": "decreto 901/1997",
+      "nid": "8ebbc4f3-c937-46b2-aff9-8add81dfb3a2",
+      "arts": 26,
+      "tokens": 5813,
+      "chars": 21921
+    },
+    {
+      "doc": "decreto 1791/1996",
+      "nid": "8ce4ffbe-8670-4e76-a70c-2ef93598faf1",
+      "arts": 92,
+      "tokens": 15919,
+      "chars": 61425
+    },
+    {
+      "doc": "decreto 948/1995",
+      "nid": "a9cdf3b7-f124-48a9-b6f7-51dd3b54a5fd",
+      "arts": 140,
+      "tokens": 42754,
+      "chars": 160906
+    },
+    {
+      "doc": "ley 9/1989",
+      "nid": "04e26f68-5072-4996-8173-5c74daa8cae7",
+      "arts": 126,
+      "tokens": 33485,
+      "chars": 129563
+    },
+    {
+      "doc": "decreto 2655/1988",
+      "nid": "ef1bd90c-bd91-44ca-a874-fb2aaf1f867b",
+      "arts": 326,
+      "tokens": 60052,
+      "chars": 232581
+    }
+  ],
+  "errors": [
+    {
+      "doc": "resolucion 376/2016",
+      "stage": "empty",
+      "chars": 5
+    },
+    {
+      "doc": "resolucion 2090/2014",
+      "stage": "fetch",
+      "error": "HTTPConnectionPool(host='www.salvemoselaguaylavida.com', port=80): Max retries exceeded with url: /sites/default/files/archivos/res_2090_dic_2014.pdf "
+    }
+  ],
+  "no_pdf_url": []
+}
