@@ -261,7 +261,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.9";
+const EXPORT_VIGIA_VERSION = "v3.9.10";
 
 function exportTimestamp() {
   const d = new Date();
@@ -636,21 +636,46 @@ const saveToSupabase = async (analysisResult, file) => {
   // doc_role CHECK permite: acto_principal|anexo_tecnico|modificacion|auto_seguimiento|informe_cumplimiento|evidencia|otro
   const DOC_ROLE_MAP = { norma:"acto_principal", acto_administrativo:"acto_principal", jurisprudencia:"acto_principal", comunicacion:"auto_seguimiento", evidencia_cumplimiento:"evidencia", documento_tecnico:"anexo_tecnico", otro:"otro" };
   if(instrId) {
+    const docPayload = {
+      org_id: orgId,
+      instrument_id: instrId,
+      original_name: file.name,
+      file_type: file.type || "application/octet-stream",
+      file_size_kb: Math.round(file.size/1024),
+      doc_role: DOC_ROLE_MAP[analysisResult.doc_nature] || "otro",
+      doc_label: analysisResult.subject || file.name,
+      accessibility: "pendiente_revisión",
+      ocr_status: "completo",
+      extracted_text: analysisResult.content_summary || "",
+      raw_text: (analysisResult.raw_text || "").slice(0, 50000),
+      format_type: file.type || null,
+      processed_method: analysisResult.extraction_method || (analysisResult.ocr_used ? "ocr_vision" : "direct_text"),
+      raw_text_length: (analysisResult.raw_text || "").length
+    };
+    let savedDoc = null;
     try {
-      const docPayload = {
-        org_id: orgId,
-        instrument_id: instrId,
-        original_name: file.name,
-        file_type: file.type || "application/octet-stream",
-        file_size_kb: Math.round(file.size/1024),
-        doc_role: DOC_ROLE_MAP[analysisResult.doc_nature] || "otro",
-        doc_label: analysisResult.subject || file.name,
-        accessibility: "pendiente_revisión",
-        ocr_status: "completo",
-        extracted_text: analysisResult.content_summary || ""
-      };
-      await sbPost("documents", docPayload);
+      const dres = await sbPost("documents", docPayload);
+      if (Array.isArray(dres) && dres[0]?.id) savedDoc = dres[0];
     } catch(e) { console.log("document save error", e); }
+
+      // Paso 4: vectorizar el texto extraído para activar REGLA 18
+      if (savedDoc?.id && sessionToken && analysisResult.raw_text && analysisResult.raw_text.length > 100) {
+        fetch(`${SB_URL}/functions/v1/embed-text`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
+          body: JSON.stringify({ text: analysisResult.raw_text.slice(0, 8000) })
+        }).then(r => r.ok ? r.json() : null)
+          .then(ed => {
+            if (ed?.embedding) {
+              const vec = "[" + ed.embedding.map(f => f.toFixed(7)).join(",") + "]";
+              fetch(`${SB_URL}/rest/v1/documents?id=eq.${savedDoc.id}`, {
+                method: "PATCH",
+                headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ embedding: vec })
+              }).catch(e => console.warn("doc vector patch silenced:", e));
+            }
+          }).catch(e => console.warn("embed-text silenced:", e));
+      }
 
     // 3. Save extracted obligations
     if(analysisResult.obligations_affected?.length > 0) {
@@ -2744,7 +2769,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.9</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.10</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
