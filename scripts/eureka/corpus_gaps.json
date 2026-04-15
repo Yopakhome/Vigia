@@ -9,12 +9,13 @@
       "ssl_obsoleto_servidor": 1
     },
     "by_status": {
-      "pendiente": 5,
-      "pendiente_ssl_workaround": 1,
-      "skip_definitivo": 1
+      "pendiente": 4,
+      "resuelto": 1,
+      "skip_definitivo": 1,
+      "pendiente_ssl_workaround": 1
     }
   },
-  "last_updated": "2026-04-14 (Fase 1C ingesta + jurisprudence PDFs no-CC)",
+  "last_updated": "2026-04-14 (Fase 1 — OCR gaps resolución)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -42,7 +43,15 @@
       ],
       "status": "pendiente",
       "prioridad": "alta",
-      "notas": "CRÍTICA — es la norma de referencia para vertimientos en Colombia. Sin ella, queries del bot sobre límites de vertimiento no encuentran texto. Patrón Sprint A: usar Claude OCR via edge function norm-extract-text (probado con Res 4 normas, costo $0.04-$0.15 c/u). Estimado ~$0.10 + 30 min para esta sola."
+      "notas": "CRÍTICA — es la norma de referencia para vertimientos en Colombia. Sin ella, queries del bot sobre límites de vertimiento no encuentran texto. Patrón Sprint A: usar Claude OCR via edge function norm-extract-text (probado con Res 4 normas, costo $0.04-$0.15 c/u). Estimado ~$0.10 + 30 min para esta sola.",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf",
+          "via": "norm-extract-text",
+          "error": "{'error': ''}"
+        }
+      ]
     },
     {
       "slug": "resolucion-2086-de-2010-adopta-la-metodologia-para-la-tasacion-de-multas-por-infracciones-al-medio-ambiente",
@@ -68,7 +77,15 @@
       ],
       "status": "pendiente",
       "prioridad": "alta",
-      "notas": "CRÍTICA para el módulo de Inteligencia (alertas de tasación de multas). Vinculada con Ley 1333/2009 (Procedimiento Sancionatorio) que sí está en el corpus. Sin esta resolución el bot no puede explicar cómo se calculan multas concretas."
+      "notas": "CRÍTICA para el módulo de Inteligencia (alertas de tasación de multas). Vinculada con Ley 1333/2009 (Procedimiento Sancionatorio) que sí está en el corpus. Sin esta resolución el bot no puede explicar cómo se calculan multas concretas.",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://www.minambiente.gov.co/wp-content/uploads/2022/02/Resolucion-2086-de-2010.pdf",
+          "via": "norm-extract-text",
+          "error": "{'error': ''}"
+        }
+      ]
     },
     {
       "slug": "resolucion-0108-de-2015-formato-unico-nacional-de-solicitud-de-licencia-ambiental",
@@ -95,7 +112,15 @@
       ],
       "status": "pendiente",
       "prioridad": "media",
-      "notas": "Mayormente formato/plantilla (no articulado denso). Útil para queries sobre 'qué información se necesita para solicitar licencia ambiental'. Si OCR es costoso, considerar embeber solo descripción del contenido."
+      "notas": "Mayormente formato/plantilla (no articulado denso). Útil para queries sobre 'qué información se necesita para solicitar licencia ambiental'. Si OCR es costoso, considerar embeber solo descripción del contenido.",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/11/resolucion-108-de-2015.pdf",
+          "via": "norm-extract-text",
+          "error": "{'error': ''}"
+        }
+      ]
     },
     {
       "slug": "resolucion-0827-de-2018-sistema-tecnico-de-clasificacion-para-procesos-administrativos-sancionatorios-ambientales",
@@ -120,9 +145,19 @@
         "Diario Oficial 2018",
         "OCR via Claude vision (PDF chico, ~$0.02-0.05)"
       ],
-      "status": "pendiente",
+      "status": "resuelto",
       "prioridad": "media",
-      "notas": "Vinculada con Ley 1333/2009 sancionatorio. Permite al bot explicar el sistema de clasificación de infracciones. PDF es chico (6pp), OCR debería ser barato."
+      "notas": "Vinculada con Ley 1333/2009 sancionatorio. Permite al bot explicar el sistema de clasificación de infracciones. PDF es chico (6pp), OCR debería ser barato.",
+      "resuelto_en": "2026-04-14",
+      "resultado": {
+        "via": "norm-extract-text (Claude OCR)",
+        "text_method": "claude_ocr",
+        "chars": 12454,
+        "articles": 12,
+        "chunking": "12_articulos",
+        "ocr_tokens_in": 9623,
+        "ocr_tokens_out": 3914
+      }
     },
     {
       "slug": "resolucion-762-de-2022-reglamenta-los-limites-maximos-permisibles-de-emisiones-contaminantes-fuentes-moviles",
@@ -155,7 +190,15 @@
       ],
       "status": "pendiente",
       "prioridad": "alta",
-      "notas": "Norma reciente y muy relevante para sector transporte. La fila inserted con 1 chunk basura debería borrarse cuando se ingesta versión OCR'd. Ver normative_articles WHERE norm_id=(slug→nid) AND content_tokens<300 para detectar."
+      "notas": "Norma reciente y muy relevante para sector transporte. La fila inserted con 1 chunk basura debería borrarse cuando se ingesta versión OCR'd. Ver normative_articles WHERE norm_id=(slug→nid) AND content_tokens<300 para detectar.",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://www.minambiente.gov.co/wp-content/uploads/2022/07/Resolucion-0762-de-2022-Fuentes-moviles.pdf",
+          "via": "norm-extract-text",
+          "error": "{'error': ''}"
+        }
+      ]
     },
     {
       "slug": "decreto-43-de-2024-delimitacion-y-proteccion-de-reservas-naturales",
@@ -220,27 +263,39 @@
       ],
       "status": "pendiente",
       "prioridad": "alta",
-      "fuentes": ["suin-juriscol.gov.co", "dnp.gov.co", "funcionpublica.gov.co"],
+      "fuentes": [
+        "suin-juriscol.gov.co",
+        "dnp.gov.co",
+        "funcionpublica.gov.co"
+      ],
       "notas": "PND vigente. Contiene obligaciones ambientales directas para minería, energía y manufactura. Aplicar filtro temático de 8 dimensiones para extraer solo artículos relevantes."
     },
     {
       "id": "pnd-2018-2022",
       "title": "Plan Nacional de Desarrollo 2018-2022 — Pacto por Colombia",
       "ley": "Ley 1955 de 2019",
-      "componentes": ["Texto completo Ley 1955/2019 en SUIN"],
+      "componentes": [
+        "Texto completo Ley 1955/2019 en SUIN"
+      ],
       "status": "pendiente",
       "prioridad": "media",
-      "fuentes": ["suin-juriscol.gov.co"],
+      "fuentes": [
+        "suin-juriscol.gov.co"
+      ],
       "notas": "Cruzar contra Ley 2294/2023 para confirmar vigencia antes de ingestar. Solo artículos no derogados."
     },
     {
       "id": "pnd-2014-2018",
       "title": "Plan Nacional de Desarrollo 2014-2018 — Todos por un nuevo país",
       "ley": "Ley 1753 de 2015",
-      "componentes": ["Texto completo Ley 1753/2015 en SUIN"],
+      "componentes": [
+        "Texto completo Ley 1753/2015 en SUIN"
+      ],
       "status": "pendiente",
       "prioridad": "media",
-      "fuentes": ["suin-juriscol.gov.co"],
+      "fuentes": [
+        "suin-juriscol.gov.co"
+      ],
       "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores."
     }
   ],
@@ -250,18 +305,62 @@
     "ingestados": 23,
     "pendientes": 10,
     "sin_inline_pdf": [
-      {"slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental", "subcat": "manuales", "sugerencia": "probable link externo minambiente.gov.co"},
-      {"slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco", "subcat": "planes", "sugerencia": "buscar en CODECHOCO/minambiente"},
-      {"slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales", "subcat": "formatos", "sugerencia": "formato plantilla, probable anexo de resolución minambiente"},
-      {"slug": "politica-nacional-de-cambio-climatico-pncc", "subcat": "politicas", "sugerencia": "link externo minambiente.gov.co"},
-      {"slug": "lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co/DNPN/archivos-virtuales/CONPES"},
-      {"slug": "estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co"},
-      {"slug": "lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co"},
-      {"slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004", "subcat": "politicas", "sugerencia": "link externo minambiente.gov.co"}
+      {
+        "slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+        "subcat": "manuales",
+        "sugerencia": "probable link externo minambiente.gov.co"
+      },
+      {
+        "slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+        "subcat": "planes",
+        "sugerencia": "buscar en CODECHOCO/minambiente"
+      },
+      {
+        "slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+        "subcat": "formatos",
+        "sugerencia": "formato plantilla, probable anexo de resolución minambiente"
+      },
+      {
+        "slug": "politica-nacional-de-cambio-climatico-pncc",
+        "subcat": "politicas",
+        "sugerencia": "link externo minambiente.gov.co"
+      },
+      {
+        "slug": "lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008",
+        "subcat": "politicas",
+        "sugerencia": "CONPES — dnp.gov.co/DNPN/archivos-virtuales/CONPES"
+      },
+      {
+        "slug": "estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006",
+        "subcat": "politicas",
+        "sugerencia": "CONPES — dnp.gov.co"
+      },
+      {
+        "slug": "lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005",
+        "subcat": "politicas",
+        "sugerencia": "CONPES — dnp.gov.co"
+      },
+      {
+        "slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+        "subcat": "politicas",
+        "sugerencia": "link externo minambiente.gov.co"
+      }
     ],
     "scan_no_ocr": [
-      {"slug": "concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental", "subcat": "conceptos-juridicos", "pages": 6, "chars": 5, "sugerencia": "OCR via Claude vision (~$0.02)"},
-      {"slug": "concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas", "subcat": "conceptos-juridicos", "pages": 4, "chars": 3, "sugerencia": "OCR via Claude vision (~$0.02)"}
+      {
+        "slug": "concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental",
+        "subcat": "conceptos-juridicos",
+        "pages": 6,
+        "chars": 5,
+        "sugerencia": "OCR via Claude vision (~$0.02)"
+      },
+      {
+        "slug": "concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas",
+        "subcat": "conceptos-juridicos",
+        "pages": 4,
+        "chars": 3,
+        "sugerencia": "OCR via Claude vision (~$0.02)"
+      }
     ],
     "accion_recomendada": "Sprint futuro: (1) para los 8 sin inline PDF, resolver el link externo a minambiente/DNP y adaptar fetch_detail_pdf. (2) para los 2 conceptos jurídicos scan, usar el pattern OCR de Sprint A (scripts/ocr_scans_via_edge.py). Costo total estimado: ~$0.05."
   },
@@ -269,7 +368,12 @@
     "description": "5 sentencias NO Corte Constitucional. 4/5 INGESTADAS en Fase 2D-jur-pdfs (10 chunks). 1 queda pendiente: STC-3872/2020 (URL es nota de prensa, no la sentencia).",
     "status": "4_de_5_ingestadas",
     "executed_at": "2026-04-14",
-    "ingestadas": ["CE-2007-00383", "CE-2019-00262", "STC-4360/2018", "T-038/2019"],
+    "ingestadas": [
+      "CE-2007-00383",
+      "CE-2019-00262",
+      "STC-4360/2018",
+      "T-038/2019"
+    ],
     "pendiente": "STC-3872/2020",
     "docs": [
       {
@@ -327,29 +431,55 @@
     "categorias": {
       "procedimientos-y-procesos": {
         "items": 3,
-        "subcategorias": ["procedimientos-entidades"],
+        "subcategorias": [
+          "procedimientos-entidades"
+        ],
         "tipo_fuente_predominante": "inline_pdf",
         "viable_para_ingesta": true
       },
       "manuales-guias-y-programas": {
         "items": 5,
-        "subcategorias_declaradas": ["guias", "instructivos", "lineamientos", "manuales", "metodologias", "planes", "listados"],
-        "subcategorias_con_items": ["guias", "manuales", "planes"],
+        "subcategorias_declaradas": [
+          "guias",
+          "instructivos",
+          "lineamientos",
+          "manuales",
+          "metodologias",
+          "planes",
+          "listados"
+        ],
+        "subcategorias_con_items": [
+          "guias",
+          "manuales",
+          "planes"
+        ],
         "tipo_fuente_predominante": "inline_pdf",
         "viable_para_ingesta": true,
         "notas": "1 item en 'planes' apunta a external_other (no oficial). Resto inline PDF ANLA."
       },
       "conceptos-y-problemas-juridicos": {
         "items": 7,
-        "subcategorias": ["conceptos-juridicos"],
+        "subcategorias": [
+          "conceptos-juridicos"
+        ],
         "tipo_fuente_predominante": "inline_pdf",
         "viable_para_ingesta": true,
         "notas": "Conceptos jurídicos de ANLA — útiles para queries sobre interpretación oficial de normas."
       },
       "documentos-estrategicos": {
         "items": 18,
-        "subcategorias_declaradas": ["politicas", "formatos", "plan-nacional-de-desarrollo-forestal", "estrategia-la-guajira", "politica-deforestacion", "pngibse"],
-        "subcategorias_con_items": ["politicas", "formatos"],
+        "subcategorias_declaradas": [
+          "politicas",
+          "formatos",
+          "plan-nacional-de-desarrollo-forestal",
+          "estrategia-la-guajira",
+          "politica-deforestacion",
+          "pngibse"
+        ],
+        "subcategorias_con_items": [
+          "politicas",
+          "formatos"
+        ],
         "tipo_fuente_predominante": "inline_pdf + external_official (minambiente)",
         "viable_para_ingesta": true,
         "notas": "Incluye Política Nacional Ambiental, PNGIBSE, política de deforestación — docs largos. 17/18 items en 'politicas', 1 en 'formatos'."
@@ -364,14 +494,152 @@
   "filtro_tematico_pnd": {
     "logica": "OR entre dimensiones — si el artículo toca cualquiera, entra al corpus",
     "dimensiones": {
-      "D1_recursos_naturales": ["agua", "recurso hídrico", "cuenca", "acuífero", "humedal", "páramo", "manglar", "bosque", "deforestación", "reforestación", "biodiversidad", "fauna", "flora", "especies", "ecosistema", "área protegida", "SINAP", "reserva natural", "corredor biológico", "servicios ecosistémicos", "suelo", "erosión"],
-      "D2_contaminacion": ["vertimiento", "emisión", "residuo", "residuo peligroso", "RESPEL", "ruido", "olores", "contaminación", "calidad del aire", "calidad del agua", "calidad del suelo", "material particulado"],
-      "D3_licenciamiento": ["licencia ambiental", "permiso ambiental", "concesión de aguas", "permiso de vertimientos", "plan de manejo ambiental", "PMA", "EIA", "estudio de impacto ambiental", "DAA", "diagnóstico ambiental", "ANLA", "autoridad ambiental", "CAR", "CARDER", "CORNARE"],
-      "D4_sectores": ["minería", "hidrocarburos", "petróleo", "gas", "energía", "energía renovable", "solar", "eólica", "hidroeléctrica", "geotérmica", "biomasa", "transmisión", "infraestructura", "vías", "puertos", "aeropuertos", "construcción", "agroindustria", "agricultura", "ganadería", "pesca", "acuicultura", "industria", "manufactura", "químicos", "plaguicidas"],
-      "D5_cambio_climatico": ["cambio climático", "carbono", "GEI", "gases de efecto invernadero", "NDC", "REDD+", "NAMA", "adaptación", "mitigación", "resiliencia", "transición energética", "economía circular", "huella de carbono", "mercados de carbono", "bonos de carbono"],
-      "D6_ordenamiento": ["ordenamiento territorial", "POT", "POMCA", "zonificación ambiental", "uso del suelo", "áreas de exclusión", "zonas de reserva", "consulta previa", "comunidades indígenas", "afrocolombianas", "territorios colectivos", "conflicto uso del suelo"],
-      "D7_institucional": ["MADS", "Ministerio de Ambiente", "IDEAM", "IAVH", "INVEMAR", "IIAP", "SINCHI", "fondo ambiental", "inversión ambiental", "tasa retributiva", "tasa por uso del agua", "compensación ambiental", "sanción ambiental", "infracción ambiental", "multa ambiental", "medida preventiva", "decomiso"],
-      "D8_salud_ambiente": ["salud ambiental", "riesgo ambiental", "sustancia química", "mercurio", "plomo", "amianto", "asbesto", "plaguicida", "biocida", "residuo hospitalario", "residuo especial"]
+      "D1_recursos_naturales": [
+        "agua",
+        "recurso hídrico",
+        "cuenca",
+        "acuífero",
+        "humedal",
+        "páramo",
+        "manglar",
+        "bosque",
+        "deforestación",
+        "reforestación",
+        "biodiversidad",
+        "fauna",
+        "flora",
+        "especies",
+        "ecosistema",
+        "área protegida",
+        "SINAP",
+        "reserva natural",
+        "corredor biológico",
+        "servicios ecosistémicos",
+        "suelo",
+        "erosión"
+      ],
+      "D2_contaminacion": [
+        "vertimiento",
+        "emisión",
+        "residuo",
+        "residuo peligroso",
+        "RESPEL",
+        "ruido",
+        "olores",
+        "contaminación",
+        "calidad del aire",
+        "calidad del agua",
+        "calidad del suelo",
+        "material particulado"
+      ],
+      "D3_licenciamiento": [
+        "licencia ambiental",
+        "permiso ambiental",
+        "concesión de aguas",
+        "permiso de vertimientos",
+        "plan de manejo ambiental",
+        "PMA",
+        "EIA",
+        "estudio de impacto ambiental",
+        "DAA",
+        "diagnóstico ambiental",
+        "ANLA",
+        "autoridad ambiental",
+        "CAR",
+        "CARDER",
+        "CORNARE"
+      ],
+      "D4_sectores": [
+        "minería",
+        "hidrocarburos",
+        "petróleo",
+        "gas",
+        "energía",
+        "energía renovable",
+        "solar",
+        "eólica",
+        "hidroeléctrica",
+        "geotérmica",
+        "biomasa",
+        "transmisión",
+        "infraestructura",
+        "vías",
+        "puertos",
+        "aeropuertos",
+        "construcción",
+        "agroindustria",
+        "agricultura",
+        "ganadería",
+        "pesca",
+        "acuicultura",
+        "industria",
+        "manufactura",
+        "químicos",
+        "plaguicidas"
+      ],
+      "D5_cambio_climatico": [
+        "cambio climático",
+        "carbono",
+        "GEI",
+        "gases de efecto invernadero",
+        "NDC",
+        "REDD+",
+        "NAMA",
+        "adaptación",
+        "mitigación",
+        "resiliencia",
+        "transición energética",
+        "economía circular",
+        "huella de carbono",
+        "mercados de carbono",
+        "bonos de carbono"
+      ],
+      "D6_ordenamiento": [
+        "ordenamiento territorial",
+        "POT",
+        "POMCA",
+        "zonificación ambiental",
+        "uso del suelo",
+        "áreas de exclusión",
+        "zonas de reserva",
+        "consulta previa",
+        "comunidades indígenas",
+        "afrocolombianas",
+        "territorios colectivos",
+        "conflicto uso del suelo"
+      ],
+      "D7_institucional": [
+        "MADS",
+        "Ministerio de Ambiente",
+        "IDEAM",
+        "IAVH",
+        "INVEMAR",
+        "IIAP",
+        "SINCHI",
+        "fondo ambiental",
+        "inversión ambiental",
+        "tasa retributiva",
+        "tasa por uso del agua",
+        "compensación ambiental",
+        "sanción ambiental",
+        "infracción ambiental",
+        "multa ambiental",
+        "medida preventiva",
+        "decomiso"
+      ],
+      "D8_salud_ambiente": [
+        "salud ambiental",
+        "riesgo ambiental",
+        "sustancia química",
+        "mercurio",
+        "plomo",
+        "amianto",
+        "asbesto",
+        "plaguicida",
+        "biocida",
+        "residuo hospitalario",
+        "residuo especial"
+      ]
     }
   }
 }

@@ -1,0 +1,40 @@
+{
+  "started_at": "2026-04-14T22:49:03-0500",
+  "results": [
+    {
+      "slug": "resolucion-0827-de-2018-sistema-tecnico-de-clasificacion-para-procesos-administrativos-sancionatorios-ambientales",
+      "status": "resuelto",
+      "chars": 12454,
+      "arts": 12,
+      "ocr_tokens_in": 9623,
+      "ocr_tokens_out": 3914
+    }
+  ],
+  "errors": [
+    {
+      "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+      "stage": "extract",
+      "status": 504,
+      "error": "{'error': ''}"
+    },
+    {
+      "slug": "resolucion-2086-de-2010-adopta-la-metodologia-para-la-tasacion-de-multas-por-infracciones-al-medio-ambiente",
+      "stage": "extract",
+      "status": 504,
+      "error": "{'error': ''}"
+    },
+    {
+      "slug": "resolucion-0108-de-2015-formato-unico-nacional-de-solicitud-de-licencia-ambiental",
+      "stage": "extract",
+      "status": 504,
+      "error": "{'error': ''}"
+    },
+    {
+      "slug": "resolucion-762-de-2022-reglamenta-los-limites-maximos-permisibles-de-emisiones-contaminantes-fuentes-moviles",
+      "stage": "extract",
+      "status": 504,
+      "error": "{'error': ''}"
+    }
+  ],
+  "finished_at": "2026-04-14T23:00:35-0500"
+}
