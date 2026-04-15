@@ -1,0 +1,88 @@
+{
+  "started_at": "2026-04-14T21:02:46-0500",
+  "dry_run": false,
+  "limit": null,
+  "total_candidates": 10,
+  "total_resolved": 10,
+  "excluded_scans": [
+    "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico"
+  ],
+  "already_have_articles": 0,
+  "articles_parsed_total": 106,
+  "articles_dedup_total": 111,
+  "articles_inserted": 111,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 111,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 66118,
+  "norms_patched": 10,
+  "norms_patch_failed": 0,
+  "errors": [],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "circular-000006-7-de-2024-terceros-intervinientes-reconocimiento-de-terceros-intervinientes-durante-la-etapa-de-control-y-seguimiento-ambiental",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "circular-externa-12-de-2023-actualizacion-de-los-lineamientos-y-recomendaciones-para-la-prevencion-del-dano-antijuridico-en-materia-de-la-responsabilidad-penal-por-danos-al-medio-ambiente",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "circular-003-de-2024-estrategia-nacional-para-el-control-de-la-mineria-ilegal-y-contaminacion-por-mercurio-expedida-por-la-procuraduria-general-de-la-nacion-pgn",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "circular-externa-12-de-2024-lineamientos-para-la-prevencion-del-dano-antijuridico-del-litigio-en-materia-de-consulta-previa-con-enfasis-en-proyectos-mineros-y-energeticos",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "decision-andina-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola-pqua",
+      "parse_quality": "high",
+      "articles_raw": 75,
+      "articles_final": 74
+    },
+    {
+      "slug": "decision-andina-804-de-2015-de-la-comunidad-andina-modificacion-de-la-decision-436-de-1998-norma-andina-para-el-registro-y-control-de-plaguicidas-quimicos-de-uso-agricola",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "decreto-reglamentario-1682-de-2017-modifica-la-estructura-del-ministerio-de-ambiente-y-desarrollo-sostenible-y-se-determinan-las-funciones-de-sus-dependencias",
+      "parse_quality": "high",
+      "articles_raw": 6,
+      "articles_final": 6
+    },
+    {
+      "slug": "directiva-presidencial-08-de-2020-guia-para-la-realizacion-de-la-consulta-previa-consulta-previa-comunidades-etnicas",
+      "parse_quality": "low",
+      "articles_raw": 0,
+      "articles_final": 1
+    },
+    {
+      "slug": "resolucion-1552-de-2005-se-adoptan-los-manuales-para-la-evaluacion-de-estudios-ambientales-y-de-seguimiento-ambiental-de-proyecto-licencias-ambientales",
+      "parse_quality": "high",
+      "articles_raw": 6,
+      "articles_final": 6
+    },
+    {
+      "slug": "resolucion-1367-del-29-de-diciembre-de-2000-procedimiento-para-autorizaciones-de-importacion-y-exportacion-de-especimenes-biologicos-no-incluidos-en-cites",
+      "parse_quality": "high",
+      "articles_raw": 19,
+      "articles_final": 19
+    }
+  ],
+  "elapsed_seconds": 45.3,
+  "finished_at": "2026-04-14T21:03:31-0500",
+  "openai_cost_usd_estimated": 0.001322
+}
