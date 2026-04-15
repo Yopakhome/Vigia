@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.25";
+const EXPORT_VIGIA_VERSION = "v3.9.26";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1281,7 +1281,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState(null);
   const [newUser, setNewUser] = React.useState({email:"",password:"",org_id:"",role:"viewer"});
-  const [newOrg, setNewOrg] = React.useState({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+  const [newOrg, setNewOrg] = React.useState({client_type:"vigia_subscriber",tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
   const [newOrgMsg, setNewOrgMsg] = React.useState(null);
   const [newOrgSaving, setNewOrgSaving] = React.useState(false);
   const [newOrgCreated, setNewOrgCreated] = React.useState(null);
@@ -1381,7 +1381,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   };
   const resetNewOrg = function() {
     setNewOrgCreated(null); setNewOrgMsg(null);
-    setNewOrg({tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+    setNewOrg({client_type:"vigia_subscriber",tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
     setOrgUsers([{email:"",password:"Vigia2026!",role:"editor"}]);
     setUsersLog([]);
   };
@@ -1703,6 +1703,25 @@ function SuperAdminModule({reviewerId, sessionToken}) {
 
             {newOrgMsg&&<div style={{background:newOrgMsg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(newOrgMsg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:newOrgMsg.t==="success"?A.green:A.red,marginBottom:16}}>{newOrgMsg.m}</div>}
 
+            {/* Tipo de cliente — PRIMERO */}
+            <div style={{marginBottom:22}}>
+              <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Tipo de cliente</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[
+                  {value:"vigia_subscriber",label:"Suscriptor VIGÍA",desc:"Accede a la plataforma · tiene usuarios propios · factura mensual",color:A.primary},
+                  {value:"enara_consulting",label:"Cliente consultoría",desc:"ENARA gestiona sus EDIs · sin acceso al producto · potencial upsell",color:A.blue}
+                ].map(function(opt){ var active = (newOrg.client_type||"vigia_subscriber")===opt.value; return (
+                  <div key={opt.value} onClick={function(){setNewOrg(function(p){return Object.assign({},p,{client_type:opt.value});});}} style={{border:"1px solid "+(active?opt.color+"66":A.border),background:active?opt.color+"12":A.surfaceEl,borderRadius:8,padding:"12px 14px",cursor:"pointer"}}>
+                    <div style={{fontSize:13,fontWeight:600,color:active?A.text:A.textSec,marginBottom:4}}>{opt.label}</div>
+                    <div style={{fontSize:11,color:A.textMuted,lineHeight:1.4}}>{opt.desc}</div>
+                  </div>
+                ); })}
+              </div>
+              {newOrg.client_type==="enara_consulting" && (
+                <div style={{marginTop:8,fontSize:11,color:A.blue,fontStyle:"italic"}}>Este cliente no tendrá acceso a la plataforma. Los campos de plan y límites son opcionales.</div>
+              )}
+            </div>
+
             {/* SECCIÓN 1: Datos básicos */}
             <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Datos básicos</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
@@ -1729,15 +1748,17 @@ function SuperAdminModule({reviewerId, sessionToken}) {
                   {["energia","mineria","manufactura","construccion","agro","logistica","servicios","otro"].map(function(s){return <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>;})}
                 </select>
               </div>
-              <div>
-                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Plan *</div>
-                <select value={newOrg.plan||"prueba"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{plan:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
-                  <option value="prueba">Prueba (30 días)</option>
-                  <option value="basico">Básico</option>
-                  <option value="profesional">Profesional</option>
-                  <option value="enterprise">Enterprise</option>
-                </select>
-              </div>
+              {newOrg.client_type!=="enara_consulting" && (
+                <div>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Plan *</div>
+                  <select value={newOrg.plan||"prueba"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{plan:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                    <option value="prueba">Prueba (30 días)</option>
+                    <option value="basico">Básico</option>
+                    <option value="profesional">Profesional</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* SECCIÓN 2: Ubicación */}
@@ -1769,16 +1790,18 @@ function SuperAdminModule({reviewerId, sessionToken}) {
               ); })}
             </div>
 
-            {/* SECCIÓN 4: Configuración */}
-            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Configuración de cuenta</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
-              {[["Límite EDIs","limite_edis",5],["Límite usuarios","limite_usuarios",4],["Intake/mes","limite_intake_mes",100]].map(function(f){ return (
-                <div key={f[1]}>
-                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
-                  <input type="number" value={newOrg[f[1]]!==undefined?newOrg[f[1]]:f[2]} onChange={function(e){var v=parseInt(e.target.value);setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
-                </div>
-              ); })}
-            </div>
+            {/* SECCIÓN 4: Configuración (solo suscriptores) */}
+            {newOrg.client_type!=="enara_consulting" && (<>
+              <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Configuración de cuenta</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+                {[["Límite EDIs","limite_edis",5],["Límite usuarios","limite_usuarios",4],["Intake/mes","limite_intake_mes",100]].map(function(f){ return (
+                  <div key={f[1]}>
+                    <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                    <input type="number" value={newOrg[f[1]]!==undefined?newOrg[f[1]]:f[2]} onChange={function(e){var v=parseInt(e.target.value);setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                  </div>
+                ); })}
+              </div>
+            </>)}
             <div style={{marginBottom:20}}>
               <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Nivel de confidencialidad</div>
               <div style={{display:"flex",gap:8}}>
@@ -2217,6 +2240,7 @@ const [consultorLoading, setConsultorLoading] = useState(false);
 const [consultorBotInput, setConsultorBotInput] = useState("");
 const [consultorBotMessages, setConsultorBotMessages] = useState([{role:"system",text:"Modo Consultor ENARA. Selecciona un cliente para empezar."}]);
 const [consultorBotLoading, setConsultorBotLoading] = useState(false);
+const [consultorFilter, setConsultorFilter] = useState("all"); // all | vigia_subscriber | enara_consulting
 const [exportMenu, setExportMenu] = useState(null); // null | "conv" | messageIndex
 useEffect(() => {
   if (exportMenu === null) return;
@@ -2898,41 +2922,79 @@ const renderConsultorENARA = () => {
       </div>
 
       {/* Zona A — Selector de cliente */}
-      {!consultorOrg ? (
-        <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px"}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.08em"}}>Selecciona un cliente</div>
-          {consultorOrgList.length===0 ? (
-            <div style={{color:C.textMuted,fontSize:12,padding:"12px 0"}}>{consultorLoading?"Cargando…":"Sin clientes cargados aún."}</div>
-          ) : (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:8}}>
-              {consultorOrgList.map(o=>(
-                <button key={o.id} onClick={()=>selectConsultorOrg(o.id)} disabled={consultorLoading} style={{textAlign:"left",background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",cursor:consultorLoading?"wait":"pointer",color:C.text,fontFamily:FONT}}>
-                  <div style={{fontSize:12,fontWeight:600,color:C.text,marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{o.name||"(sin nombre)"}</div>
-                  <div style={{fontSize:10,color:C.textMuted,display:"flex",gap:6,flexWrap:"wrap"}}>
-                    {o.nit && <span>NIT {o.nit}</span>}
-                    {o.sector && <span>· {o.sector}</span>}
-                    {(o.tier||o.plan) && <span style={{color:C.primary,fontWeight:600}}>· {o.tier||o.plan}</span>}
-                  </div>
-                </button>
-              ))}
+      {(() => {
+        const clientTypeBadge = (t) => {
+          if(t==="enara_consulting") return <span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,background:C.blue+"22",color:C.blue,textTransform:"uppercase",letterSpacing:"0.05em"}}>Consultoría</span>;
+          if(t==="both") return <span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,background:C.green+"22",color:C.green,textTransform:"uppercase",letterSpacing:"0.05em"}}>Suscriptor + Consultoría</span>;
+          return <span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,background:C.primary+"22",color:C.primary,textTransform:"uppercase",letterSpacing:"0.05em"}}>VIGÍA</span>;
+        };
+        const filteredList = consultorOrgList.filter(o => {
+          if(consultorFilter==="all") return true;
+          if(consultorFilter==="vigia_subscriber") return o.client_type==="vigia_subscriber" || o.client_type==="both" || !o.client_type;
+          if(consultorFilter==="enara_consulting") return o.client_type==="enara_consulting" || o.client_type==="both";
+          return true;
+        });
+        const counts = {
+          all: consultorOrgList.length,
+          vigia_subscriber: consultorOrgList.filter(o=>o.client_type==="vigia_subscriber"||o.client_type==="both"||!o.client_type).length,
+          enara_consulting: consultorOrgList.filter(o=>o.client_type==="enara_consulting"||o.client_type==="both").length,
+        };
+        if(!consultorOrg) return (
+          <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,flexWrap:"wrap",gap:8}}>
+              <div style={{fontSize:11,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em"}}>Selecciona un cliente</div>
+              <div style={{display:"flex",gap:6}}>
+                {[
+                  {k:"all",l:"Todos",c:C.textSec},
+                  {k:"vigia_subscriber",l:"Suscriptores VIGÍA",c:C.primary},
+                  {k:"enara_consulting",l:"Solo consultoría",c:C.blue},
+                ].map(f => { const active = consultorFilter===f.k; return (
+                  <button key={f.k} onClick={()=>setConsultorFilter(f.k)} style={{background:active?`${f.c}22`:C.surfaceEl,border:`1px solid ${active?f.c+"66":C.border}`,borderRadius:6,padding:"4px 10px",color:active?f.c:C.textSec,fontSize:10,fontWeight:active?700:500,cursor:"pointer",fontFamily:FONT}}>{f.l} ({counts[f.k]})</button>
+                ); })}
+              </div>
             </div>
-          )}
-        </div>
-      ) : (
-        <div style={{background:C.surface,border:`1px solid ${C.green}55`,borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{width:34,height:34,borderRadius:8,background:C.greenDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Scale size={16} color={C.green}/></div>
-          <div style={{flex:1,minWidth:200}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.green,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}}>Cliente activo</div>
-            <div style={{fontSize:14,fontWeight:700,color:C.text}}>{consultorOrg.name}</div>
-            <div style={{fontSize:11,color:C.textSec,marginTop:2,display:"flex",gap:8,flexWrap:"wrap"}}>
-              {consultorOrg.nit && <span>NIT {consultorOrg.nit}</span>}
-              {consultorOrg.sector && <span>· {consultorOrg.sector}</span>}
-              {(consultorOrg.tier||consultorOrg.plan) && <span>· {consultorOrg.tier||consultorOrg.plan}</span>}
-            </div>
+            {consultorOrgList.length===0 ? (
+              <div style={{color:C.textMuted,fontSize:12,padding:"12px 0"}}>{consultorLoading?"Cargando…":"Sin clientes cargados aún."}</div>
+            ) : filteredList.length===0 ? (
+              <div style={{color:C.textMuted,fontSize:12,padding:"12px 0"}}>Sin clientes en este filtro.</div>
+            ) : (
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:8}}>
+                {filteredList.map(o=>(
+                  <button key={o.id} onClick={()=>selectConsultorOrg(o.id)} disabled={consultorLoading} style={{textAlign:"left",background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",cursor:consultorLoading?"wait":"pointer",color:C.text,fontFamily:FONT}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                      <div style={{fontSize:12,fontWeight:600,color:C.text,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{o.name||"(sin nombre)"}</div>
+                      {clientTypeBadge(o.client_type)}
+                    </div>
+                    <div style={{fontSize:10,color:C.textMuted,display:"flex",gap:6,flexWrap:"wrap"}}>
+                      {o.nit && <span>NIT {o.nit}</span>}
+                      {o.sector && <span>· {o.sector}</span>}
+                      {(o.tier||o.plan) && o.client_type!=="enara_consulting" && <span style={{color:C.primary,fontWeight:600}}>· {o.tier||o.plan}</span>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <button onClick={()=>selectConsultorOrg(null)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 12px",color:C.textSec,fontSize:11,cursor:"pointer"}}>Cambiar cliente</button>
-        </div>
-      )}
+        );
+        return (
+          <div style={{background:C.surface,border:`1px solid ${C.green}55`,borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+            <div style={{width:34,height:34,borderRadius:8,background:C.greenDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Scale size={16} color={C.green}/></div>
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{fontSize:11,fontWeight:700,color:C.green,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}}>Cliente activo</div>
+              <div style={{fontSize:14,fontWeight:700,color:C.text,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                <span>{consultorOrg.name}</span>
+                {clientTypeBadge(consultorOrg.client_type)}
+              </div>
+              <div style={{fontSize:11,color:C.textSec,marginTop:2,display:"flex",gap:8,flexWrap:"wrap"}}>
+                {consultorOrg.nit && <span>NIT {consultorOrg.nit}</span>}
+                {consultorOrg.sector && <span>· {consultorOrg.sector}</span>}
+                {(consultorOrg.tier||consultorOrg.plan) && consultorOrg.client_type!=="enara_consulting" && <span>· {consultorOrg.tier||consultorOrg.plan}</span>}
+              </div>
+            </div>
+            <button onClick={()=>selectConsultorOrg(null)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 12px",color:C.textSec,fontSize:11,cursor:"pointer"}}>Cambiar cliente</button>
+          </div>
+        );
+      })()}
 
       {/* Zona B — Contexto del cliente */}
       {consultorOrg && (
@@ -3013,7 +3075,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.25</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.26</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
