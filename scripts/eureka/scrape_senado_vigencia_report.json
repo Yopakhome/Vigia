@@ -1,0 +1,1797 @@
+{
+  "total": 196,
+  "fetched": 181,
+  "not_found": 15,
+  "parse_errors": 3,
+  "articles_updated": 2802,
+  "sources_updated": 178,
+  "by_vigencia_global": {
+    "derogada_parcial": 28,
+    "vigente": 148,
+    "derogada_total": 2
+  },
+  "errors": [],
+  "per_norm": [
+    {
+      "norm_id": "78f42bdf-a2b9-48c5-902d-a83c7492bbe1",
+      "ley": "99/1993",
+      "articulos_basedoc": 43,
+      "derogados": 3,
+      "modificados": 4,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 43,
+      "db_arts_total": 119
+    },
+    {
+      "norm_id": "d71c745b-c314-40f0-a17f-e937f88f491f",
+      "ley": "1333/2009",
+      "articulos_basedoc": 46,
+      "derogados": 0,
+      "modificados": 13,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 46,
+      "db_arts_total": 70
+    },
+    {
+      "norm_id": "b6ca4b24-e699-4a2d-a7f3-e7b6ab298396",
+      "ley": "1931/2018",
+      "articulos_basedoc": 36,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 35,
+      "db_arts_total": 36
+    },
+    {
+      "norm_id": "322332f7-8d3d-45f9-ba45-825676bc1636",
+      "ley": "1252/2008",
+      "articulos_basedoc": 18,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 18,
+      "db_arts_total": 18
+    },
+    {
+      "norm_id": "d60b03b8-0a05-4d52-a1f8-6bf23d3654cb",
+      "ley": "1930/2018",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 33,
+      "db_arts_total": 34
+    },
+    {
+      "norm_id": "76e83825-7c83-4275-bcd6-4e7fa57e17d3",
+      "ley": "1503/2011",
+      "articulos_basedoc": 25,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 25,
+      "db_arts_total": 30
+    },
+    {
+      "norm_id": "dbe75d7c-63fb-417e-8bd4-06b11a79d82e",
+      "ley": "1558/2012",
+      "articulos_basedoc": 32,
+      "derogados": 2,
+      "modificados": 4,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 27,
+      "db_arts_total": 33
+    },
+    {
+      "norm_id": "826dec30-60ef-4b10-a594-9bae9f43734d",
+      "ley": "1185/2008",
+      "articulos_basedoc": 26,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 26,
+      "db_arts_total": 48
+    },
+    {
+      "norm_id": "b27ab1c5-5c46-4df7-903a-290e06735769",
+      "ley": "243/1995",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 42,
+      "db_arts_total": 42
+    },
+    {
+      "norm_id": "9a249ad4-dbf4-40a4-9a8f-3295199bf9d9",
+      "ley": "1955/2019",
+      "articulos_basedoc": 43,
+      "derogados": 2,
+      "modificados": 3,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 30,
+      "db_arts_total": 210
+    },
+    {
+      "norm_id": "6735f423-0de3-4fc7-8b7f-cd2be0732e10",
+      "ley": "208/1995",
+      "articulos_basedoc": 22,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 21,
+      "db_arts_total": 22
+    },
+    {
+      "norm_id": "e36b2a10-4b6b-4871-92d1-1bd456473c7f",
+      "ley": "1708/2014",
+      "articulos_basedoc": 39,
+      "derogados": 0,
+      "modificados": 8,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "9a174e5e-33e3-4fde-b824-2ca161ce9ed4",
+      "ley": "1469/2011",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "7a10279b-6d25-4142-afe3-36abab46091f",
+      "ley": "1228/2008",
+      "articulos_basedoc": 12,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 12,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "b2063688-5cce-4d30-86fd-59022deb4634",
+      "ley": "1682/2013",
+      "articulos_basedoc": 45,
+      "derogados": 0,
+      "modificados": 8,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 14,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "ebb6faa0-6a32-4bc2-89ac-2ab4ede9d5da",
+      "ley": "80/1993",
+      "articulos_basedoc": 47,
+      "derogados": 17,
+      "modificados": 5,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 1,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "05ade080-70ec-4d81-a322-03054dce9f67",
+      "ley": "2476/2025",
+      "articulos_basedoc": 27,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 27,
+      "db_arts_total": 27
+    },
+    {
+      "norm_id": "10f2721c-543e-4a0b-bcd2-3122234324ae",
+      "ley": "1778/2016",
+      "articulos_basedoc": 37,
+      "derogados": 0,
+      "modificados": 6,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 22,
+      "db_arts_total": 22
+    },
+    {
+      "norm_id": "b324140e-21be-47a6-a635-fab2e5ce0140",
+      "ley": "2199/2022",
+      "articulos_basedoc": 44,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 14,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "fb40dc3e-da6b-488f-aec2-c2b839487903",
+      "ley": "2206/2022",
+      "articulos_basedoc": 23,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 23,
+      "db_arts_total": 23
+    },
+    {
+      "norm_id": "8a268f08-d027-4821-862d-56bfb8fd48dc",
+      "ley": "1263/2008",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 0,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "f5eb8396-ddc7-450e-91d8-1ac3d30d2e8d",
+      "ley": "675/2001",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "86847664-ed16-44aa-b3d0-8df4e8fa44ee",
+      "ley": "136/1994",
+      "articulos_basedoc": 46,
+      "derogados": 1,
+      "modificados": 11,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "2b7712fd-43bd-49dd-8875-bf2df20ae6df",
+      "ley": "1508/2012",
+      "articulos_basedoc": 39,
+      "derogados": 0,
+      "modificados": 7,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 6,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "abb9a467-81da-4950-9719-5e99b49a940d",
+      "ley": "1811/2016",
+      "articulos_basedoc": 19,
+      "derogados": 2,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 8,
+      "db_arts_total": 9
+    },
+    {
+      "norm_id": "a5fc884c-9ba4-4517-9997-4d04ef407281",
+      "ley": "2469/2025",
+      "articulos_basedoc": 14,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 14,
+      "db_arts_total": 15
+    },
+    {
+      "norm_id": "830e1b33-739d-4dae-9510-1eec93b867b9",
+      "ley": "1242/2008",
+      "articulos_basedoc": 37,
+      "derogados": 0,
+      "modificados": 4,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 37,
+      "db_arts_total": 94
+    },
+    {
+      "norm_id": "f1050001-a6b5-43e0-bb02-96cff575e147",
+      "ley": "2195/2022",
+      "articulos_basedoc": 43,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 9,
+      "db_arts_total": 9
+    },
+    {
+      "norm_id": "91e4e8e2-849a-49c4-a768-7e988adc5647",
+      "ley": "489/1998",
+      "articulos_basedoc": 40,
+      "derogados": 9,
+      "modificados": 2,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 7,
+      "db_arts_total": 7
+    },
+    {
+      "norm_id": "81979dcc-299f-4ad9-a8a0-233749ac31f4",
+      "ley": "2056/2020",
+      "articulos_basedoc": 43,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 43,
+      "db_arts_total": 212
+    },
+    {
+      "norm_id": "bb4d11df-9be6-4684-a8d9-160ed07a8941",
+      "ley": "361/1997",
+      "articulos_basedoc": 42,
+      "derogados": 1,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "031b9442-88fb-416a-9b87-774aa10b52b8",
+      "ley": "397/1997",
+      "articulos_basedoc": 41,
+      "derogados": 4,
+      "modificados": 11,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "e35db943-4f0f-4eb9-aa01-a74a3cb25a3e",
+      "ley": "1617/2013",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 8,
+      "db_arts_total": 9
+    },
+    {
+      "norm_id": "9cc8a34d-1af3-4d2b-911d-e7447a73cea4",
+      "ley": "2068/2020",
+      "articulos_basedoc": 63,
+      "derogados": 0,
+      "modificados": 8,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "fb3bd850-d0e1-41d9-9a6d-c27c2672d3e0",
+      "ley": "134/1994",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 17,
+      "db_arts_total": 17
+    },
+    {
+      "norm_id": "7a039434-96fb-43fd-9b37-635769955404",
+      "ley": "1205/2008",
+      "articulos_basedoc": 5,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 5,
+      "db_arts_total": 5
+    },
+    {
+      "norm_id": "6743d7a4-113e-46e6-ad84-4d92a00cd7ee",
+      "ley": "2407/2024",
+      "articulos_basedoc": 13,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 13,
+      "db_arts_total": 13
+    },
+    {
+      "norm_id": "7e5daddb-b69b-4033-bf59-936557ee5f2f",
+      "ley": "115/1994",
+      "articulos_basedoc": 45,
+      "derogados": 0,
+      "modificados": 4,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "fe5bfdf9-7229-4dcf-93cf-de8b92d4baf0",
+      "ley": "1474/2011",
+      "articulos_basedoc": 46,
+      "derogados": 7,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "e2d61c86-e94c-4769-af74-f6aeb029f72f",
+      "ley": "1458/2011",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 40,
+      "db_arts_total": 46
+    },
+    {
+      "norm_id": "27bc059f-b9a7-41bf-9397-43e56208a357",
+      "ley": "2294/2023",
+      "articulos_basedoc": 31,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 22,
+      "db_arts_total": 220
+    },
+    {
+      "norm_id": "39b796d5-f1c2-4d29-9f4c-7e3628aabdf0",
+      "ley": "1876/2017",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "51afabe7-81f5-4b37-9d91-a3c97660efb9",
+      "ley": "590/2000",
+      "articulos_basedoc": 48,
+      "derogados": 10,
+      "modificados": 15,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 45,
+      "db_arts_total": 55
+    },
+    {
+      "norm_id": "e5156259-190f-47f6-9938-13609a935a45",
+      "ley": "9/1979",
+      "articulos_basedoc": 49,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 49,
+      "db_arts_total": 146
+    },
+    {
+      "norm_id": "02dbf437-a6e0-46cc-b141-abd5eaa6af02",
+      "ley": "300/1996",
+      "articulos_basedoc": 41,
+      "derogados": 10,
+      "modificados": 13,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 8,
+      "db_arts_total": 8
+    },
+    {
+      "norm_id": "f90bbcf0-9b93-4c65-b1e0-1ee2e7ceccb9",
+      "ley": "1757/2015",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 41,
+      "db_arts_total": 112
+    },
+    {
+      "norm_id": "9d959b7b-3b08-4153-beb7-1384bc192bbd",
+      "ley": "2486/2025",
+      "articulos_basedoc": 19,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 18,
+      "db_arts_total": 21
+    },
+    {
+      "norm_id": "e5d69e06-b4be-41e3-94fa-0bc7f9c9eb62",
+      "ley": "1335/2009",
+      "articulos_basedoc": 36,
+      "derogados": 3,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "63267641-a7a0-4cb7-8899-baa6d0f3b470",
+      "ley": "143/1994",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 32,
+      "db_arts_total": 35
+    },
+    {
+      "norm_id": "47fb1251-aaa9-44b6-9c87-8733aa88c87b",
+      "ley": "1776/2016",
+      "articulos_basedoc": 32,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "96a68fa6-8145-4c57-b90d-9a1294d334ee",
+      "ley": "2082/2021",
+      "articulos_basedoc": 17,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 14,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "0b62158e-eb4b-4da7-ab0a-14e5fd17bc80",
+      "ley": "1551/2012",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 6,
+      "db_arts_total": 7
+    },
+    {
+      "norm_id": "44e924ea-78dd-41e5-9832-c54831a0c772",
+      "ley": "2069/2020",
+      "articulos_basedoc": 85,
+      "derogados": 2,
+      "modificados": 5,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 13,
+      "db_arts_total": 23
+    },
+    {
+      "norm_id": "fde52c55-3b78-465d-a63c-fcd659044946",
+      "ley": "30/1992",
+      "articulos_basedoc": 39,
+      "derogados": 2,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 14,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "d63e167b-06fc-480d-a0b3-94f30a2da261",
+      "ley": "1625/2013",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "5c8c09c1-db49-4afc-a4c6-505bcbe4f442",
+      "ley": "2478/2025",
+      "articulos_basedoc": 16,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 16,
+      "db_arts_total": 17
+    },
+    {
+      "norm_id": "353e6989-ff36-4810-8011-cea0ab738532",
+      "ley": "356/1997",
+      "articulos_basedoc": 28,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 28,
+      "db_arts_total": 28
+    },
+    {
+      "norm_id": "b9da69f4-54f5-4e5d-a4bd-132879777160",
+      "ley": "142/1994",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "deb075ab-71d3-48d2-9db7-610a2e2f25c0",
+      "ley": "769/2002",
+      "articulos_basedoc": 41,
+      "derogados": 1,
+      "modificados": 17,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "78541eff-378a-45ed-a8d7-86efa6d6f69c",
+      "ley": "152/1994",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 9,
+      "db_arts_total": 9
+    },
+    {
+      "norm_id": "4ef67e60-bbe3-413a-917a-57ab275ff433",
+      "ley": "2450/2025",
+      "articulos_basedoc": 24,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 24,
+      "db_arts_total": 28
+    },
+    {
+      "norm_id": "8170a9f3-9979-4ff7-96f2-9056659b3840",
+      "ley": "685/2001",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "e99ce498-9131-482d-a239-c300e2cbba37",
+      "ley": "2454/2025",
+      "articulos_basedoc": 23,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 23,
+      "db_arts_total": 26
+    },
+    {
+      "norm_id": "532bf89d-8c97-4548-a259-347df283fa11",
+      "ley": "981/2005",
+      "articulos_basedoc": 12,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 12,
+      "db_arts_total": 13
+    },
+    {
+      "norm_id": "1b3c9f76-fa7f-41ab-b54c-b596e73173e8",
+      "ley": "1159/2007",
+      "articulos_basedoc": 30,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 30,
+      "db_arts_total": 30
+    },
+    {
+      "norm_id": "398ba776-30c5-49a8-96b9-826452c914ff",
+      "ley": "2193/2022",
+      "articulos_basedoc": 20,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 20,
+      "db_arts_total": 20
+    },
+    {
+      "norm_id": "7b1522c5-2ced-4ebc-9b9f-86642eba63f5",
+      "ley": "1972/2019",
+      "articulos_basedoc": 13,
+      "derogados": 1,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 13,
+      "db_arts_total": 14
+    },
+    {
+      "norm_id": "31f71007-bbc6-4ff5-9658-07bfdbafb60a",
+      "ley": "2047/2020",
+      "articulos_basedoc": 8,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 8,
+      "db_arts_total": 8
+    },
+    {
+      "norm_id": "60ce3abe-cdb6-4f5f-baa7-71f6cba29ae9",
+      "ley": "2250/2022",
+      "articulos_basedoc": 30,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 30,
+      "db_arts_total": 30
+    },
+    {
+      "norm_id": "57bc49d0-97c6-4aa7-a071-33833edf950a",
+      "ley": "1968/2019",
+      "articulos_basedoc": 13,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 13,
+      "db_arts_total": 13
+    },
+    {
+      "norm_id": "42371c4d-a3f0-4580-b163-46ee599a673a",
+      "ley": "807/2003",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "c13bd48a-6d1f-46a6-92f6-2a3214e50bb4",
+      "ley": "697/2001",
+      "articulos_basedoc": 11,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 11,
+      "db_arts_total": 11
+    },
+    {
+      "norm_id": "5891d866-3206-47e0-bddd-3926ae21e6ce",
+      "ley": "491/1999",
+      "articulos_basedoc": 43,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 43,
+      "db_arts_total": 47
+    },
+    {
+      "norm_id": "59be8a44-0abe-483e-9e23-8c1ef58bd8a2",
+      "ley": "299/1996",
+      "articulos_basedoc": 17,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 17,
+      "db_arts_total": 17
+    },
+    {
+      "norm_id": "982f27ed-879a-4208-91fc-b450d8507734",
+      "ley": "2173/2021",
+      "articulos_basedoc": 19,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 19,
+      "db_arts_total": 19
+    },
+    {
+      "norm_id": "5ba05bd1-10fe-4154-a6ae-147e11bd37c3",
+      "ley": "1011/2006",
+      "articulos_basedoc": 8,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "a499f7f1-f5de-4948-97d6-7ff1481697f7",
+      "ley": "740/2002",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 26,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 40,
+      "db_arts_total": 40
+    },
+    {
+      "norm_id": "4ee608ab-9a26-4d73-a375-b34b98f7ce3e",
+      "ley": "1954/2019",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "00a2e054-ec1e-4e0c-b2f5-24c630e651d9",
+      "ley": "161/1994",
+      "articulos_basedoc": 21,
+      "derogados": 1,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "69cc284c-aa1f-4ac1-8852-9b2af6b84dd0",
+      "ley": "1252/2008",
+      "articulos_basedoc": 18,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 18,
+      "db_arts_total": 18
+    },
+    {
+      "norm_id": "2f1939f1-875e-4ee1-96d4-46ec853390b9",
+      "ley": "2099/2021",
+      "articulos_basedoc": 44,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 10,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "83cda384-6b04-473a-895c-a70731cda42d",
+      "ley": "557/2000",
+      "articulos_basedoc": 3,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "5baf011d-8c33-4f91-a5b3-2f3a282aef67",
+      "ley": "87/1993",
+      "articulos_basedoc": 16,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 11,
+      "db_arts_total": 11
+    },
+    {
+      "norm_id": "2229113c-dfa4-4c92-86aa-b79f5cd2ccc6",
+      "ley": "1196/2008",
+      "articulos_basedoc": 30,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 30,
+      "db_arts_total": 30
+    },
+    {
+      "norm_id": "b0711f6b-4889-479a-8beb-5fab4bd0e484",
+      "ley": "1274/2009",
+      "articulos_basedoc": 10,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "432260c1-0b11-4215-977b-129541785787",
+      "ley": "1901/2018",
+      "articulos_basedoc": 10,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 10,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "b24203b6-10f7-4a07-9505-e386bdf5dbe6",
+      "ley": "2071/2020",
+      "articulos_basedoc": 15,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 15,
+      "db_arts_total": 15
+    },
+    {
+      "norm_id": "b34f2239-b48a-4b23-a2ba-69c29786cbf2",
+      "ley": "768/2002",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "4358f340-c099-4419-bac0-5c39371d7f70",
+      "ley": "1444/2011",
+      "articulos_basedoc": 22,
+      "derogados": 1,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 19,
+      "db_arts_total": 19
+    },
+    {
+      "norm_id": "5c607ec1-a1c2-495e-9773-102968c0da02",
+      "ley": "1083/2006",
+      "articulos_basedoc": 9,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 9,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "40b933d7-d7b2-445a-a45f-9cacf92436e4",
+      "ley": "1973/2019",
+      "articulos_basedoc": 9,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 9,
+      "db_arts_total": 9
+    },
+    {
+      "norm_id": "7d2ae5d0-7209-40f4-9106-e36c1f73433d",
+      "ley": "2232/2022",
+      "articulos_basedoc": 35,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 6,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "191445ef-980b-4bd7-ab70-3a42713f71d1",
+      "ley": "2054/2020",
+      "articulos_basedoc": 11,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 11,
+      "db_arts_total": 22
+    },
+    {
+      "norm_id": "9bfa6a62-8b31-4376-9ff0-4d9cd4a2db10",
+      "ley": "618/2000",
+      "articulos_basedoc": 3,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "5d82a705-6404-4054-9920-7a6f61f027ab",
+      "ley": "139/1994",
+      "articulos_basedoc": 17,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 7,
+      "db_arts_total": 11
+    },
+    {
+      "norm_id": "3848c479-0449-497b-aabc-1e74f77ae978",
+      "ley": "2243/2022",
+      "articulos_basedoc": 19,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 19,
+      "db_arts_total": 19
+    },
+    {
+      "norm_id": "aefaed25-5596-4cf0-a8f7-0d8b4ebc361d",
+      "ley": "2175/2021",
+      "articulos_basedoc": 7,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 7,
+      "db_arts_total": 7
+    },
+    {
+      "norm_id": "836d8ed3-14e7-4401-afd3-161a2aa94da7",
+      "ley": "1851/2017",
+      "articulos_basedoc": 14,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 14,
+      "db_arts_total": 16
+    },
+    {
+      "norm_id": "af2e94a8-354d-4e79-a46a-b98791beae16",
+      "ley": "1950/2019",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "6f502e6d-350d-4af1-b80a-1f0d44b10704",
+      "ley": "1284/2009",
+      "articulos_basedoc": 18,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 18,
+      "db_arts_total": 18
+    },
+    {
+      "norm_id": "2dd2e283-023c-4fcc-9451-bca7f96800f4",
+      "ley": "1124/2007",
+      "articulos_basedoc": 9,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 8,
+      "db_arts_total": 8
+    },
+    {
+      "norm_id": "4693daf2-7281-42b7-aa2d-00df0ccaec04",
+      "ley": "1962/2019",
+      "articulos_basedoc": 18,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 18,
+      "db_arts_total": 23
+    },
+    {
+      "norm_id": "75456ab1-ccce-46c1-b4f3-f585cef2b2e5",
+      "ley": "579/2000",
+      "articulos_basedoc": 3,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "91e8f9f3-46c0-4875-830b-b1c8613b522b",
+      "ley": "2220/2022",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 42,
+      "db_arts_total": 73
+    },
+    {
+      "norm_id": "72514610-1c48-4d5f-a1f8-a44e509be709",
+      "ley": "945/2005",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 33,
+      "db_arts_total": 33
+    },
+    {
+      "norm_id": "bd6c6f62-8594-4ef6-9a04-110ec4bbf97d",
+      "ley": "2041/2020",
+      "articulos_basedoc": 20,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 20,
+      "db_arts_total": 20
+    },
+    {
+      "norm_id": "6ef1e77a-eea9-447e-8d68-dab800a20643",
+      "ley": "1672/2013",
+      "articulos_basedoc": 24,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 24,
+      "db_arts_total": 24
+    },
+    {
+      "norm_id": "17919906-8722-4e7c-bbdb-b46ca111584b",
+      "ley": "1638/2013",
+      "articulos_basedoc": 7,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "c3f01ba0-125f-4ef9-a616-112d5a7c7ca8",
+      "ley": "464/1998",
+      "articulos_basedoc": 31,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 31,
+      "db_arts_total": 48
+    },
+    {
+      "norm_id": "40407a92-985f-4818-88cc-562591fc842a",
+      "ley": "461/1998",
+      "articulos_basedoc": 40,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 40,
+      "db_arts_total": 40
+    },
+    {
+      "norm_id": "03221e59-63c4-4ad4-8c86-6a50a3393ca4",
+      "ley": "822/2003",
+      "articulos_basedoc": 7,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "f8c21c20-1a29-444e-af90-e659662af6b9",
+      "ley": "1715/2014",
+      "articulos_basedoc": 39,
+      "derogados": 0,
+      "modificados": 10,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 39,
+      "db_arts_total": 52
+    },
+    {
+      "norm_id": "24913699-63c9-40f5-87b6-555a19699ea1",
+      "ley": "611/2000",
+      "articulos_basedoc": 28,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 28,
+      "db_arts_total": 29
+    },
+    {
+      "norm_id": "973cb6dc-d799-4fc3-ada0-186a28191ee2",
+      "ley": "1454/2011",
+      "articulos_basedoc": 39,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 29,
+      "db_arts_total": 29
+    },
+    {
+      "norm_id": "3bd31a39-f942-44bd-98d3-168a8d7ee18c",
+      "ley": "511/1999",
+      "articulos_basedoc": 8,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 8,
+      "db_arts_total": 8
+    },
+    {
+      "norm_id": "4e1b83fa-83e4-450a-88cf-a41b2d622166",
+      "ley": "850/2003",
+      "articulos_basedoc": 24,
+      "derogados": 1,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 24,
+      "db_arts_total": 27
+    },
+    {
+      "norm_id": "21fddd79-fca4-4a13-883e-370fa6e0f5bb",
+      "ley": "1892/2018",
+      "articulos_basedoc": 35,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "e3e0bf9b-ec9c-4d8b-b648-1c892602e8e9",
+      "ley": "2327/2023",
+      "articulos_basedoc": 13,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 13,
+      "db_arts_total": 13
+    },
+    {
+      "norm_id": "bfd73260-79f2-4282-a789-a14c61701e0e",
+      "ley": "1712/2014",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 33,
+      "db_arts_total": 38
+    },
+    {
+      "norm_id": "a5b93b1f-09b4-4697-b9ad-938bf1106b41",
+      "ley": "507/1999",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 5
+    },
+    {
+      "norm_id": "4bd2b240-70fd-4fa2-ab7f-9a857392914f",
+      "ley": "2427/2024",
+      "articulos_basedoc": 15,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 15,
+      "db_arts_total": 16
+    },
+    {
+      "norm_id": "cae3d7ea-7f6f-453d-beb3-b807aef8c2b2",
+      "ley": "2320/2023",
+      "articulos_basedoc": 5,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 5,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "860fb88a-4de8-4707-a434-fa66ce0ee747",
+      "ley": "29/1992",
+      "articulos_basedoc": 20,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 17,
+      "db_arts_total": 17
+    },
+    {
+      "norm_id": "a0b5ab25-d419-49fa-b15d-d5fc24669ef5",
+      "ley": "690/2001",
+      "articulos_basedoc": 5,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 5,
+      "db_arts_total": 5
+    },
+    {
+      "norm_id": "1ed72ae7-8e8e-46a2-b3e9-2bb85375fe1d",
+      "ley": "599/2000",
+      "articulos_basedoc": 29,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 7,
+      "db_arts_total": 7
+    },
+    {
+      "norm_id": "f290930d-79e1-48e3-bfe5-1b8ff2315ed0",
+      "ley": "373/1997",
+      "articulos_basedoc": 18,
+      "derogados": 2,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 18,
+      "db_arts_total": 21
+    },
+    {
+      "norm_id": "2bf6f7cc-54f2-49bb-9e70-4a5167e019d9",
+      "ley": "629/2000",
+      "articulos_basedoc": 28,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 28,
+      "db_arts_total": 28
+    },
+    {
+      "norm_id": "26e9efc5-55fc-473f-820e-96e51c1d3ec9",
+      "ley": "2169/2021",
+      "articulos_basedoc": 38,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 38,
+      "db_arts_total": 41
+    },
+    {
+      "norm_id": "f36fa376-cdc7-4951-be77-400ef480da6d",
+      "ley": "1523/2012",
+      "articulos_basedoc": 46,
+      "derogados": 0,
+      "modificados": 5,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 46,
+      "db_arts_total": 86
+    },
+    {
+      "norm_id": "624de16c-7c42-4124-b511-87a3d1fd59f0",
+      "ley": "357/1997",
+      "articulos_basedoc": 12,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 12,
+      "db_arts_total": 12
+    },
+    {
+      "norm_id": "06d59f78-b487-4377-b300-6e5e2fbe637e",
+      "ley": "472/1998",
+      "articulos_basedoc": 35,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "4a9628cd-f025-4a59-bfd2-665e1afb2037",
+      "ley": "2111/2021",
+      "articulos_basedoc": 12,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 20
+    },
+    {
+      "norm_id": "f8c47c72-0449-4cb4-9b48-65c7a32401ee",
+      "ley": "165/1994",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 42,
+      "db_arts_total": 42
+    },
+    {
+      "norm_id": "18f58041-c220-4dbf-a455-f924a03699fe",
+      "ley": "1333/2009",
+      "articulos_basedoc": 46,
+      "derogados": 0,
+      "modificados": 13,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "3e0950cc-7f5e-4a6b-8408-eb75dbd90062",
+      "ley": "1931/2018",
+      "articulos_basedoc": 36,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 36,
+      "db_arts_total": 37
+    },
+    {
+      "norm_id": "0ef21d6a-8cc5-4c41-8506-7a43bdce93af",
+      "ley": "2385/2024",
+      "articulos_basedoc": 7,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "a9a39b2b-ead9-4908-a9b3-e4673031d4db",
+      "ley": "1801/2016",
+      "articulos_basedoc": 39,
+      "derogados": 0,
+      "modificados": 4,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 28,
+      "db_arts_total": 28
+    },
+    {
+      "norm_id": "0ef47462-92ce-48a5-87ca-6d00c96c67cc",
+      "ley": "1549/2012",
+      "articulos_basedoc": 10,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 10,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "1a239cf4-10c4-479a-967f-00c152d4f54b",
+      "ley": "12/1992",
+      "articulos_basedoc": 3,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "6f07b1eb-3b8f-4584-806f-aacfcdc5dbd1",
+      "ley": "70/1993",
+      "articulos_basedoc": 44,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 6,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "95c40170-05f2-43ac-bf05-130defbce17b",
+      "ley": "99/1993",
+      "articulos_basedoc": 43,
+      "derogados": 3,
+      "modificados": 4,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 0,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "cba071ed-ed13-4d1b-88db-596c1548165d",
+      "ley": "1964/2019",
+      "articulos_basedoc": 12,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 12,
+      "db_arts_total": 13
+    },
+    {
+      "norm_id": "c3530163-3b9f-4d88-b8bf-66173f070f2c",
+      "ley": "1844/2017",
+      "articulos_basedoc": 29,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 29,
+      "db_arts_total": 29
+    },
+    {
+      "norm_id": "2994abfb-6c6e-4387-ba75-1a0b4dce0429",
+      "ley": "2273/2022",
+      "articulos_basedoc": 26,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "be32b60a-d667-4d00-9a8a-2bb2bdc4588b",
+      "ley": "140/1994",
+      "articulos_basedoc": 17,
+      "derogados": 2,
+      "modificados": 1,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "e67b605b-5710-47ee-adca-6f79e6a809ed",
+      "ley": "160/1994",
+      "articulos_basedoc": 41,
+      "derogados": 18,
+      "modificados": 5,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 13,
+      "db_arts_total": 16
+    },
+    {
+      "norm_id": "fdf97416-2146-42cd-86be-1189bfe59587",
+      "ley": "388/1997",
+      "articulos_basedoc": 45,
+      "derogados": 0,
+      "modificados": 9,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 7,
+      "db_arts_total": 7
+    },
+    {
+      "norm_id": "9c992040-b675-4b14-9ae4-53d03fce9ef5",
+      "ley": "1437/2011",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 23,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 10,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "532359fa-b39a-4c13-a64d-4b00c5b81989",
+      "ley": "2387/2024",
+      "articulos_basedoc": 27,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 27,
+      "db_arts_total": 36
+    },
+    {
+      "norm_id": "9a9ea083-cf67-484e-a3ec-e00227d67159",
+      "ley": "1930/2018",
+      "articulos_basedoc": 33,
+      "derogados": 0,
+      "modificados": 2,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 10,
+      "db_arts_total": 10
+    },
+    {
+      "norm_id": "04df80d2-8179-4d18-93bc-373d9c909729",
+      "ley": "164/1994",
+      "articulos_basedoc": 26,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 26,
+      "db_arts_total": 26
+    },
+    {
+      "norm_id": "bc5c86b6-d115-48af-82a1-0bda385e3a26",
+      "ley": "253/1996",
+      "articulos_basedoc": 29,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 29,
+      "db_arts_total": 29
+    },
+    {
+      "norm_id": "8d03856e-3982-4dd7-9a24-1d1574b6c17f",
+      "ley": "2415/2024",
+      "articulos_basedoc": 8,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 8,
+      "db_arts_total": 8
+    },
+    {
+      "norm_id": "6b5726b2-017c-49ac-b0e5-7e61c8915b6c",
+      "ley": "393/1997",
+      "articulos_basedoc": 32,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 1,
+      "db_arts_total": 1
+    },
+    {
+      "norm_id": "f3bf70b8-46c0-48c2-84ba-284fc2ddd2fc",
+      "ley": "1774/2016",
+      "articulos_basedoc": 11,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "0e5e91eb-f68a-4e91-aaba-5b57f33bba2b",
+      "ley": "1755/2015",
+      "articulos_basedoc": 2,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 23
+    },
+    {
+      "norm_id": "f674b8a8-3721-4750-befa-609eea43e46a",
+      "ley": "1098/2006",
+      "articulos_basedoc": 44,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 3
+    },
+    {
+      "norm_id": "f2955f6e-5e51-4741-9847-9ab5a86bac93",
+      "ley": "2052/2020",
+      "articulos_basedoc": 31,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 12,
+      "db_arts_total": 12
+    },
+    {
+      "norm_id": "7f44a76c-1e67-486f-ac28-a6d3611fb44f",
+      "ley": "731/2002",
+      "articulos_basedoc": 35,
+      "derogados": 0,
+      "modificados": 15,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 35,
+      "db_arts_total": 44
+    },
+    {
+      "norm_id": "9c40fed6-0fb3-46b2-b9a6-2f4752bca157",
+      "ley": "842/2003",
+      "articulos_basedoc": 38,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 4,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "a069ffa7-346f-4089-b2b5-fb542a23cf7c",
+      "ley": "2455/2025",
+      "articulos_basedoc": 30,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 30,
+      "db_arts_total": 63
+    },
+    {
+      "norm_id": "2cc36b43-c378-4247-9ccf-36925691fe74",
+      "ley": "400/1997",
+      "articulos_basedoc": 37,
+      "derogados": 0,
+      "modificados": 6,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 5,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "86e588a0-20ad-4997-b6cf-946386d09cb9",
+      "ley": "1952/2019",
+      "articulos_basedoc": 38,
+      "derogados": 0,
+      "modificados": 7,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "1d7cb658-77a3-43e3-a729-94b3a06f0e59",
+      "ley": "2218/2022",
+      "articulos_basedoc": 15,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 0,
+      "db_arts_total": 0
+    },
+    {
+      "norm_id": "67b37989-c1be-45f0-9a0b-2ba31b43fc88",
+      "ley": "1665/2013",
+      "articulos_basedoc": 3,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 3,
+      "db_arts_total": 4
+    },
+    {
+      "norm_id": "e3253062-602e-4fa3-b882-613a615641b6",
+      "ley": "430/1998",
+      "articulos_basedoc": 14,
+      "derogados": 14,
+      "modificados": 0,
+      "vigencia_global": "derogada_total",
+      "db_arts_matched": 2,
+      "db_arts_total": 2
+    },
+    {
+      "norm_id": "61aff898-aa45-488e-8172-5547222f055e",
+      "ley": "1658/2013",
+      "articulos_basedoc": 15,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 11,
+      "db_arts_total": 11
+    },
+    {
+      "norm_id": "c894e2a2-ae01-4726-9e27-ee5c25d7286c",
+      "ley": "1753/2015",
+      "articulos_basedoc": 47,
+      "derogados": 9,
+      "modificados": 3,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 35,
+      "db_arts_total": 188
+    },
+    {
+      "norm_id": "cc8f44f4-9c5a-4ec2-9f94-215b243b8d51",
+      "ley": "1518/2012",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 1,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 29,
+      "db_arts_total": 29
+    },
+    {
+      "norm_id": "f007b817-de25-473a-9b01-2227b777a321",
+      "ley": "1515/2012",
+      "articulos_basedoc": 20,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 6,
+      "db_arts_total": 6
+    },
+    {
+      "norm_id": "d519210a-dfa3-4df8-9690-5ce3a77166b2",
+      "ley": "1473/2011",
+      "articulos_basedoc": 17,
+      "derogados": 3,
+      "modificados": 2,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 8,
+      "db_arts_total": 17
+    },
+    {
+      "norm_id": "86f34249-e5de-470c-b660-57f30c04527d",
+      "ley": "1466/2011",
+      "articulos_basedoc": 4,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 0,
+      "db_arts_total": 5
+    },
+    {
+      "norm_id": "d7d22325-e0d5-4454-967a-364e08f2f880",
+      "ley": "1450/2011",
+      "articulos_basedoc": 46,
+      "derogados": 8,
+      "modificados": 5,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 37,
+      "db_arts_total": 278
+    },
+    {
+      "norm_id": "cf981798-e7e7-43a8-9e58-8dce7e57c2fc",
+      "ley": "1259/2008",
+      "articulos_basedoc": 26,
+      "derogados": 4,
+      "modificados": 0,
+      "vigencia_global": "derogada_parcial",
+      "db_arts_matched": 17,
+      "db_arts_total": 26
+    },
+    {
+      "norm_id": "f9004c0f-5437-4816-a29c-fef17527495c",
+      "ley": "1152/2007",
+      "articulos_basedoc": 42,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 34,
+      "db_arts_total": 179
+    },
+    {
+      "norm_id": "dcbcd54d-4c84-46cf-bb7a-a939b9c8279b",
+      "ley": "1021/2006",
+      "articulos_basedoc": 38,
+      "derogados": 0,
+      "modificados": 0,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 29,
+      "db_arts_total": 54
+    },
+    {
+      "norm_id": "a4b4ec22-2adb-497e-b4f0-078ccdcba094",
+      "ley": "793/2002",
+      "articulos_basedoc": 24,
+      "derogados": 23,
+      "modificados": 0,
+      "vigencia_global": "derogada_total",
+      "db_arts_matched": 16,
+      "db_arts_total": 33
+    },
+    {
+      "norm_id": "72ce9985-632c-4484-82f3-98b130ce244e",
+      "ley": "715/2001",
+      "articulos_basedoc": 41,
+      "derogados": 0,
+      "modificados": 3,
+      "vigencia_global": "vigente",
+      "db_arts_matched": 27,
+      "db_arts_total": 79
+    }
+  ],
+  "finished": "2026-04-15T00:28:17-0500"
+}

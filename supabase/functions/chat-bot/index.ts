@@ -51,8 +51,19 @@ function buildContextFromResults(results: any[]): string {
     const header = `[FUENTE ${i + 1}] ${r.norm_type?.toUpperCase() || "NORMA"} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}`;
     const label = deriveArticleLabel(r);
     const artLine = `${label}${r.article_title ? " — " + r.article_title : ""}`;
+    // Vigencia marker explícito para que el LLM lo vea
+    let vigencia = "";
+    if (r.vigencia_status === "derogado") {
+      vigencia = `\n[VIGENCIA: DEROGADO${r.derogado_por ? " por " + r.derogado_por : ""}]`;
+    } else if (r.vigencia_status === "modificado") {
+      vigencia = `\n[VIGENCIA: MODIFICADO${r.modificado_por ? " por " + r.modificado_por : ""}]`;
+    } else if (r.vigencia_global === "derogada_total") {
+      vigencia = `\n[VIGENCIA: NORMA GLOBALMENTE DEROGADA]`;
+    } else if (r.vigencia_global === "derogada_parcial" && r.vigencia_status !== "derogado") {
+      vigencia = `\n[VIGENCIA: vigente (la norma padre tiene artículos derogados pero este no)]`;
+    }
     const body = (r.content || "").trim();
-    return `${header}\n${artLine}\n${body}`;
+    return `${header}\n${artLine}${vigencia}\n${body}`;
   }).join("\n\n---\n\n");
 }
 
@@ -135,6 +146,26 @@ Reglas absolutas de esta invitación:
 - SIEMPRE usar primera persona plural: "nuestro equipo", "contáctenos", "estamos para servirle".
 - El bloque de contacto siempre completo con los 3 canales (correo, web, teléfonos).
 - Esta invitación reemplaza cualquier "consulta con un abogado" genérico que antes habrías puesto (incluyendo la advertencia de REGLA 11 cuando aplique).
+
+REGLA 14 — VIGENCIA EXPLÍCITA DE NORMAS
+Cada fragmento recuperado puede incluir un marcador [VIGENCIA: ...]. Son obligatorias estas respuestas según el marcador:
+
+- Si el fragmento dice [VIGENCIA: DEROGADO ...]:
+  * NO citar ese artículo como si fuera vigente.
+  * Si el usuario pregunta específicamente por ese artículo, responder: "El [cita] fue DEROGADO[por <norma>, si está disponible]. El texto que sigue es el texto histórico, ya no aplica." y luego dar el contexto si agrega valor.
+  * Si el artículo derogado se vuelve irrelevante para la pregunta del usuario, descartarlo en silencio y usar sólo las fuentes vigentes. No mezclar texto derogado con análisis de obligaciones actuales.
+
+- Si el fragmento dice [VIGENCIA: MODIFICADO ...]:
+  * Advertir al usuario: "El [cita] fue modificado por <norma>. El texto recuperado puede no reflejar la versión vigente."
+  * Recomendar revisar el texto actualizado (y remitir a la invitación ENARA de REGLA 13 si es un tema complejo).
+
+- Si [VIGENCIA: NORMA GLOBALMENTE DEROGADA]:
+  * Tratar toda la norma como histórica. Sólo citarla si el usuario pide antecedentes o evolución normativa.
+
+- Si no hay marcador [VIGENCIA: ...] o dice "vigente":
+  * Operar normalmente según las demás reglas.
+
+Esta regla es ABSOLUTA. Citar una norma derogada como vigente es un error grave de compliance que expone al cliente a decisiones erróneas.
 
 FRAGMENTOS RELEVANTES RECUPERADOS PARA ESTA CONSULTA:`;
 

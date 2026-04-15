@@ -86,7 +86,11 @@ Deno.serve(async (req: Request) => {
       chapter: r.chapter,
       content: String(r.content || "").length > CONTENT_TRUNC ? String(r.content).slice(0, CONTENT_TRUNC) + "…" : r.content,
       distance: r.distance,
-      similarity: Number((1 - (r.distance || 0)).toFixed(4))
+      similarity: Number((1 - (r.distance || 0)).toFixed(4)),
+      vigencia_status: r.vigencia_status || null,
+      derogado_por: r.derogado_por || null,
+      modificado_por: r.modificado_por || null,
+      vigencia_global: r.vigencia_global || null
     }));
     return json({ ok: true, results, total_returned: results.length, query, top_k, filters, content_truncation: CONTENT_TRUNC, elapsed_ms: t_total, embed_ms: t_embed });
   } catch (e) {
