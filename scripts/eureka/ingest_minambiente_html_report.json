@@ -1,0 +1,61 @@
+{
+  "started_at": "2026-04-14T21:22:12-0500",
+  "dry_run": false,
+  "total_candidates": 4,
+  "total_resolved": 4,
+  "pdf_url_resolved": 4,
+  "pdf_url_failed": 0,
+  "articles_parsed_raw": 71,
+  "articles_dedup": 69,
+  "articles_inserted": 69,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 69,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 25585,
+  "norms_patched": 4,
+  "norms_patch_failed": 0,
+  "errors": [],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "resolucion-0827-de-2018-sistema-tecnico-de-clasificacion-para-procesos-de-licenciamiento-ambiental-consejo-tecnico-consultivo-ctc",
+      "pdf_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/08/resolucion-0827-de-2018.pdf",
+      "pages": 6,
+      "chars": 5,
+      "raw": 0,
+      "final": 0,
+      "quality": "manual_review_needed"
+    },
+    {
+      "slug": "resolucion-627-de-2006-norma-de-emision-de-ruido-y-ruido-ambiental",
+      "pdf_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/Resolucion-0627-de-2006.pdf",
+      "pages": 29,
+      "chars": 79772,
+      "raw": 35,
+      "final": 33,
+      "quality": "high"
+    },
+    {
+      "slug": "resolucion-762-de-2022-reglamenta-los-limites-maximos-permisibles-de-emision-de-contaminantes-que-deberan-cumplir-las-fuentes-moviles-terrestres-en-colombia",
+      "pdf_url": "https://www.minambiente.gov.co/wp-content/uploads/2022/07/Resolucion-0762-de-2022-Fuentes-moviles.pdf",
+      "pages": 62,
+      "chars": 1065,
+      "raw": 0,
+      "final": 1,
+      "quality": "medium"
+    },
+    {
+      "slug": "resolucion-1555-de-2005-uso-del-sello-ambiental-colombiano-ministerio-de-ambiente-vivienda-y-desarrollo-territorial-ahora-ministerio-de-ambiente-y-desarrollo-sostenible",
+      "pdf_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/Resolucion-1555-de-2005.pdf",
+      "pages": 14,
+      "chars": 45472,
+      "raw": 36,
+      "final": 35,
+      "quality": "high"
+    }
+  ],
+  "elapsed_seconds": 41.9,
+  "finished_at": "2026-04-14T21:22:54-0500",
+  "openai_cost_usd_estimated": 0.000512
+}

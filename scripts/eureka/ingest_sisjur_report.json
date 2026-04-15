@@ -1,0 +1,51 @@
+{
+  "started_at": "2026-04-14T21:22:57-0500",
+  "dry_run": false,
+  "total_candidates": 3,
+  "total_resolved": 3,
+  "fetch_failed": 0,
+  "articles_parsed_raw": 59,
+  "articles_dedup": 58,
+  "articles_inserted": 58,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 58,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 33121,
+  "norms_patched": 2,
+  "norms_patch_failed": 1,
+  "errors": [
+    {
+      "stage": "patch",
+      "norm_id": "75121abb-c8f9-4dc1-94c4-87a055ba6e36",
+      "error": "HTTPSConnectionPool(host='itkbujkqjesuntgdkubt.supabase.co', port=443): Read timed out. (read timeout=30)"
+    }
+  ],
+  "would_insert_articles": 0,
+  "would_patch_norms": 0,
+  "per_doc": [
+    {
+      "slug": "decreto-reglamentario-670-de-2025-programa-basura-cero-servicio-publico-de-aseo-y-tema-ambiental-residuos-solidos-gestion-integral-de-residuos-solidos",
+      "chars": 83622,
+      "raw": 32,
+      "final": 32,
+      "quality": "high"
+    },
+    {
+      "slug": "decreto-reglamentario-1130-de-2022-sistema-nacional-de-gestion-de-conflictos-sociales-y-dialogo-social-singesco-conflictos-sociales-y-dialogo-social",
+      "chars": 23328,
+      "raw": 15,
+      "final": 15,
+      "quality": "high"
+    },
+    {
+      "slug": "resolucion-421-del-15-de-abril-de-2024-complejo-de-humedales-urbanos-del-distrito-capital-de-bogota-estructura-ecologica-principal-conservacion-preservacion-restauracion-desarrollo-sostenible-aprovechamiento-sostenible-diversidad-biologica",
+      "chars": 210293,
+      "raw": 12,
+      "final": 11,
+      "quality": "low"
+    }
+  ],
+  "elapsed_seconds": 52.3,
+  "finished_at": "2026-04-14T21:23:49-0500",
+  "openai_cost_usd_estimated": 0.000662
+}
