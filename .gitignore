@@ -19,3 +19,5 @@ scripts/eureka/html_cache_jurisprudencia/
 # Sprint A2 — PDFs descargados de ANLA (binarios reproducibles con download_anla_pdfs.py ~40s)
 scripts/eureka/samples/
 scripts/eureka/samples_jurisprudencia/
+# Logs de ejecución de scripts (output efímero)
+scripts/eureka/*.log

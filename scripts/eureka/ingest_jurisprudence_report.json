@@ -1,0 +1,480 @@
+{
+  "started_at": "2026-04-14T22:15:35-0500",
+  "dry_run": false,
+  "total_candidates": 115,
+  "total_resolved": 41,
+  "fetch_failed": 0,
+  "chunks_created": 132,
+  "articles_inserted": 132,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 132,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 645122,
+  "errors": [],
+  "would_insert_articles": 0,
+  "per_doc": [
+    {
+      "slug": "sentencia-c-367-de-2022-de-la-corte-constitucional-delitos-ambientales-delitos-contra-los-recursos-naturales-y-el-medio-ambiente",
+      "radicado": "C-367/2022",
+      "chars": 222504,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-486-de-2009-de-la-corte-constitucional-departamento-de-gestion-ambiental-dga",
+      "radicado": "C-486/2009",
+      "chars": 84346,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-025-de-2004-de-la-corte-constitucional-desplazamiento-forzado-estado-de-cosas-inconstitucional-eci",
+      "radicado": "T-025/2004",
+      "chars": 458443,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-361-de-2017-de-la-corte-constitucional-paramo-de-santurban-delimitacion-del-paramo-de-santurban",
+      "radicado": "T-361/2017",
+      "chars": 895480,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-528-de-1994-de-la-corte-constitucional-declaracion-de-rio-sobre-el-medio-ambiente-y-el-desarrollo-de-1992",
+      "radicado": "C-528/1994",
+      "chars": 23796,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos"
+      ]
+    },
+    {
+      "slug": "sentencia-t-574-de-1996-de-la-corte-constitucional-dano-ecologico-maritimo-vertimiento-de-hidrocarburos-en-el-mar",
+      "radicado": "T-574/1996",
+      "chars": 82885,
+      "chunks": 1,
+      "sections": [
+        "documento_completo"
+      ]
+    },
+    {
+      "slug": "sentencia-c-073-de-1995-de-la-corte-constitucional-convencion-marco-de-las-naciones-unidas-sobre-el-cambio-climatico-cmnucc",
+      "radicado": "C-073/1995",
+      "chars": 103690,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-742-de-2010-de-la-corte-constitucional-presunto-infractor-en-el-procedimiento-sancionatorio-ambiental",
+      "radicado": "C-742/2010",
+      "chars": 90990,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-048-de-2018-de-la-corte-constitucional-exequible-el-acuerdo-de-paris-para-combatir-el-cambio-climatico",
+      "radicado": "C-048/2018",
+      "chars": 220836,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-145-de-2021-de-la-corte-constitucional-licencia-ambiental-autonomia-de-las-corporaciones-autonomas-regionales-car-no-se-vulnera-al-prohibir-establecer-requisitos-adicionales-en-solicitud-de-licencia-ambiental",
+      "radicado": "C-145/2021",
+      "chars": 173621,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-166-de-2012-de-la-corte-constitucional-derecho-fundamental-al-debido-proceso-en-el-procedimiento-sancionatorio-ambiental",
+      "radicado": "T-166/2012",
+      "chars": 61954,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-614-de-2019-de-la-corte-constitucional-derechos-fundamentales-a-la-salud-y-al-ambiente-sano-de-comunidad-indigena-proyecto-minero-el-cerrejon",
+      "radicado": "T-614/2019",
+      "chars": 338310,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-806-de-2014-de-la-corte-constitucional-derecho-fundamental-a-la-educacion-servicio-educativo-licencia-ambiental-parque-nacional-natural-tinigua",
+      "radicado": "T-806/2014",
+      "chars": 139964,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-348-de-2012-de-la-corte-constitucional-proteccion-de-los-derechos-fundamentales-a-la-participacion-a-la-alimentacion-al-trabajo-la-libre-escogencia-de-profesion-u-oficio-y-a-la-dignidad-humana",
+      "radicado": "T-348/2012",
+      "chars": 157404,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-092-de-1993-de-la-corte-constitucional-derecho-al-ambiente-sano-derechos-colectivos-contaminacion-ambiental-dano-irreparable-para-la-comunidad",
+      "radicado": "T-092/1993",
+      "chars": 41161,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "considerandos"
+      ]
+    },
+    {
+      "slug": "sentencia-c-710-de-2001-principio-de-legalidad-en-el-marco-del-derecho-sancionador-ambiental",
+      "radicado": "C-710/2001",
+      "chars": 58123,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-519-de-1994-de-la-corte-constitucional-convenio-sobre-la-diversidad-biologica-cdb",
+      "radicado": "C-519/1994",
+      "chars": 97596,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-703-de-2010-de-la-corte-constitucional-medidas-preventivas-en-materia-sancionatoria-ambiental",
+      "radicado": "C-703/2010",
+      "chars": 207300,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-582-de-1997-de-la-corte-constitucional-exequible-la-convencion-relativa-a-los-humedales-de-importancia-internacional-especialmente-como-habitat-de-aves-acuaticas-o-convencion-ramsar",
+      "radicado": "C-582/1997",
+      "chars": 12893,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-375-de-2023-de-la-corte-constitucional-consulta-previa-posconsulta-de-los-proyectos-mineros-de-carbon-a-cielo-abierto-ubicados-en-el-departamento-del-cesar",
+      "radicado": "T-375/2023",
+      "chars": 261287,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-606-de-2015-de-la-corte-constitucional-proteccion-de-los-derechos-fundamentales-de-los-pescadores-artesanales-del-parque-nacional-natural-tayrona",
+      "radicado": "T-606/2015",
+      "chars": 270502,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-649-de-1997-de-la-corte-constitucional-parques-nacionales-parques-nacionales-naturales-pnn-imposibilidad-legislativa-y-administrativa-de-sustraer-areas",
+      "radicado": "C-649/1997",
+      "chars": 59010,
+      "chunks": 1,
+      "sections": [
+        "documento_completo"
+      ]
+    },
+    {
+      "slug": "sentencia-t-123-de-2024-de-la-corte-constitucional-desplazados-desplazamiento-forzado-por-factores-ambientales-consecuencias-del-cambio-climatico-y-la-degradacion-ambiental",
+      "radicado": "T-123/2024",
+      "chars": 249438,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-280-de-2024-de-la-corte-constitucional-cambio-climatico-los-estudios-de-impacto-ambiental-eia-deben-incluir-la-evaluacion-de-los-impactos-en-materia-de-cambio-climatico",
+      "radicado": "C-280/2024",
+      "chars": 414152,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-154-de-2013-de-la-corte-constitucional-proteccion-de-los-derechos-fundamentales-a-la-vida-la-salud-la-intimidad-y-al-ambiente-sano-proyecto-de-mineria-de-carbon",
+      "radicado": "T-154/2013",
+      "chars": 141347,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-894-de-2003-de-la-corte-constitucional-autonomia-de-las-corporaciones-autonomas-regionales-car-y-licencias-ambientales",
+      "radicado": "C-894/2003",
+      "chars": 78405,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-219-de-2017-de-la-corte-constitucional-infraccion-ambiental-actos-administrativos",
+      "radicado": "C-219/2017",
+      "chars": 183462,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "antecedentes"
+      ]
+    },
+    {
+      "slug": "sentencia-c-595-de-2010-de-la-corte-constitucional-presuncion-de-culpa-o-dolo-en-el-procedimiento-sancionatorio-ambiental",
+      "radicado": "C-595/2010",
+      "chars": 296136,
+      "chunks": 1,
+      "sections": [
+        "documento_completo"
+      ]
+    },
+    {
+      "slug": "sentencia-c-379-de-1993-de-la-corte-constitucional-protocolo-de-montreal-relativo-a-las-sustancias-agotadoras-de-la-capa-de-ozono-exequible",
+      "radicado": "C-379/1993",
+      "chars": 53895,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-080-de-2017-de-la-corte-constitucional-consulta-previa-programa-de-erradicacion-de-cultivos-ilicitos-mediante-aspersion-aerea-con-el-herbicida-glifosato-pecig",
+      "radicado": "T-080/2017",
+      "chars": 337943,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-470-de-2024-de-la-corte-constitucional-no-consulta-previa-proyecto-estacion-de-guardacostas-en-el-parque-nacional-natural-gorgona",
+      "radicado": "T-470/2024",
+      "chars": 140242,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-366-de-2011-de-la-corte-constitucional-consulta-previa-reforma-al-codigo-de-minas-inexequible",
+      "radicado": "C-366/2011",
+      "chars": 352129,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-194-de-2023-de-la-corte-constitucional-plastico-plasticos-plasticos-de-un-solo-uso-productos-plasticos-de-un-solo-uso-prohibicion-busca-proteger-el-medio-ambiente",
+      "radicado": "C-194/2023",
+      "chars": 183303,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-453-de-1998-de-la-corte-constitucional-residuos-solidos-residuos-toxicos-lixiviados-olores-nauseabundos-basura-cierre-de-basurero-municipal",
+      "radicado": "T-453/1998",
+      "chars": 58717,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-294-de-2014-de-la-corte-constitucional-derechos-fundamentales-al-medio-ambiente-y-a-la-vida-digna-relleno-sanitario-justicia-ambiental",
+      "radicado": "T-294/2014",
+      "chars": 402127,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-t-704-de-2016-de-la-corte-constitucional-consulta-previa-proyecto-minero-el-cerrejon",
+      "radicado": "T-704/2016",
+      "chars": 218250,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-293-de-2002-de-la-corte-constitucional-principio-de-precaucion-en-materia-ambiental",
+      "radicado": "C-293/2002",
+      "chars": 52405,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "considerandos"
+      ]
+    },
+    {
+      "slug": "sentencia-c-364-de-2012-de-la-corte-constitucional-sancion-ambiental-de-decomiso-definitivo",
+      "radicado": "C-364/2012",
+      "chars": 65681,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-535-de-1996-de-la-corte-constitucional-publicidad-exterior-visual-pev-contaminacion-visual",
+      "radicado": "C-535/1996",
+      "chars": 90235,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-064-de-1998-de-la-corte-constitucional",
+      "radicado": "C-064/1998",
+      "chars": 34308,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "slug": "sentencia-c-746-de-2012-de-la-corte-constitucional-licencias-ambientales-para-proyectos-que-afectan-el-sistema-de-parques-nacionales-naturales-spnn",
+      "radicado": "C-746/2012",
+      "chars": 121734,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    }
+  ],
+  "elapsed_seconds": 164.0,
+  "finished_at": "2026-04-14T22:18:19-0500",
+  "openai_cost_usd_estimated": 0.012902
+}

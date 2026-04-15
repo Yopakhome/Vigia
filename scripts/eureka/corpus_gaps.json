@@ -14,7 +14,7 @@
       "skip_definitivo": 1
     }
   },
-  "last_updated": "2026-04-14 (Fase 2D-outliers + funcionpublica)",
+  "last_updated": "2026-04-14 (Fase 2D-jur + Fase 1C recon)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -244,6 +244,99 @@
       "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores."
     }
   ],
+  "jurisprudence_non_corte": {
+    "description": "5 sentencias de jurisprudence_sources que NO son Corte Constitucional y quedaron fuera del scraper de Fase 2D-jur (que procesó 115/115 docs de corteconstitucional.gov.co + suin). Estos 5 tienen PDFs accesibles (3 inline ANLA, 1 en sinchi, 1 URL de noticia) y son procesables en futuro con un scraper PDF adaptado.",
+    "status": "procesables_futuro",
+    "docs": [
+      {
+        "radicado": "CE-2007-00383",
+        "slug_short": "consejo-estado-medidas-preventivas-2022",
+        "corte": "Consejo de Estado",
+        "url": "https://www.anla.gov.co/eureka/images/2022_ce_sent_2007_00383_medidas_preventivas.pdf",
+        "tipo_fuente": "inline_pdf_anla",
+        "viable": true,
+        "notas": "PDF inline ANLA. Procesable con patrón ingest_inline_anla_pdfs_to_articles.py adaptado a jurisprudence_articles."
+      },
+      {
+        "radicado": "CE-2019-00262",
+        "slug_short": "consejo-estado-nulidad-decreto1500-2018-snsm",
+        "corte": "Consejo de Estado",
+        "url": "https://www.anla.gov.co/eureka/images/2026_ce_sent_decreto1500_2018.pdf",
+        "tipo_fuente": "inline_pdf_anla",
+        "viable": true,
+        "notas": "PDF inline ANLA. Línea Negra SNSM — tema sensible. Procesable en siguiente sprint."
+      },
+      {
+        "radicado": "STC-3872/2020",
+        "slug_short": "corte-suprema-via-parque-isla-salamanca",
+        "corte": "Corte Suprema de Justicia",
+        "url": "https://cortesuprema.gov.co/corte/index.php/2020/06/19/corte-suprema-declara-sujeto-de-derechos-al-parque-isla-salamanca/",
+        "tipo_fuente": "noticia_html",
+        "viable": false,
+        "notas": "URL es NOTA DE PRENSA, no la sentencia. Buscar PDF original en ramajudicial.gov.co o cortesuprema.gov.co/relatoria. STC-3872/2020 — Vía Parque Isla de Salamanca como sujeto de derechos."
+      },
+      {
+        "radicado": "STC-4360/2018",
+        "slug_short": "corte-suprema-amazonia-sujeto-de-derechos",
+        "corte": "Corte Suprema de Justicia",
+        "url": "https://sinchi.org.co/files/sentecia/stc4360-2018.pdf",
+        "tipo_fuente": "pdf_externo",
+        "viable": true,
+        "notas": "PDF alojado en sinchi.org.co (no oficial pero confiable). Sentencia emblemática: Amazonía como sujeto de derechos. Procesable con fetch + pypdf."
+      },
+      {
+        "radicado": "T-038/2019",
+        "slug_short": "tribunal-medellin-rio-cauca-hidroituango",
+        "corte": "Tribunal Superior de Medellín",
+        "url": "https://www.anla.gov.co/eureka/images/2019_Sentencia_TSM_Rio_Cauca.pdf",
+        "tipo_fuente": "inline_pdf_anla",
+        "viable": true,
+        "notas": "PDF inline ANLA. Río Cauca como sujeto de derechos — proyecto Hidroituango. Procesable con patrón inline ANLA."
+      }
+    ],
+    "accion_recomendada": "Próximo sprint: script ingest_jurisprudence_pdfs_to_articles.py con pypdf + split opcional por secciones + INSERT en jurisprudence_articles. Estimado ~$0.005 + 5 min."
+  },
+  "fase1c_recon": {
+    "description": "Recon (NO ingesta) de 4 categorías EUREKA pendientes. Output detallado en recon_fase1c.json.",
+    "executed_at": "2026-04-14",
+    "total_items": 33,
+    "categorias": {
+      "procedimientos-y-procesos": {
+        "items": 3,
+        "subcategorias": ["procedimientos-entidades"],
+        "tipo_fuente_predominante": "inline_pdf",
+        "viable_para_ingesta": true
+      },
+      "manuales-guias-y-programas": {
+        "items": 5,
+        "subcategorias_declaradas": ["guias", "instructivos", "lineamientos", "manuales", "metodologias", "planes", "listados"],
+        "subcategorias_con_items": ["guias", "manuales", "planes"],
+        "tipo_fuente_predominante": "inline_pdf",
+        "viable_para_ingesta": true,
+        "notas": "1 item en 'planes' apunta a external_other (no oficial). Resto inline PDF ANLA."
+      },
+      "conceptos-y-problemas-juridicos": {
+        "items": 7,
+        "subcategorias": ["conceptos-juridicos"],
+        "tipo_fuente_predominante": "inline_pdf",
+        "viable_para_ingesta": true,
+        "notas": "Conceptos jurídicos de ANLA — útiles para queries sobre interpretación oficial de normas."
+      },
+      "documentos-estrategicos": {
+        "items": 18,
+        "subcategorias_declaradas": ["politicas", "formatos", "plan-nacional-de-desarrollo-forestal", "estrategia-la-guajira", "politica-deforestacion", "pngibse"],
+        "subcategorias_con_items": ["politicas", "formatos"],
+        "tipo_fuente_predominante": "inline_pdf + external_official (minambiente)",
+        "viable_para_ingesta": true,
+        "notas": "Incluye Política Nacional Ambiental, PNGIBSE, política de deforestación — docs largos. 17/18 items en 'politicas', 1 en 'formatos'."
+      }
+    },
+    "excluidas": {
+      "especies-en-riesgo": "exclusión explícita del usuario — no relevante para SaaS regulatorio",
+      "gestion-del-conocimiento": "no es corpus normativo (probablemente docs internos ANLA)"
+    },
+    "accion_recomendada": "Sprint futuro: 4 scripts ingest_fase1c_{categoria}_to_articles.py usando patrón inline PDF (ya probado en 11 ANLA PDFs). Tabla destino: eval si usar normative_articles (con source_type adicional) o nueva tabla corpus_supplementary_articles. Estimado ~33 docs × $0.002 = $0.07."
+  },
   "filtro_tematico_pnd": {
     "logica": "OR entre dimensiones — si el artículo toca cualquiera, entra al corpus",
     "dimensiones": {

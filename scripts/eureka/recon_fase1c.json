@@ -1,0 +1,611 @@
+{
+  "started_at": "2026-04-14T22:06:24-0500",
+  "base_url": "https://www.anla.gov.co",
+  "user_agent": "Mozilla/5.0 (compatible; VIGIA-Ingest/1.0)",
+  "delay_s": 3.0,
+  "categories": [
+    {
+      "category_path": "/eureka/procedimientos-y-procesos",
+      "category_name": "Procedimientos y Procesos",
+      "total_pages": 1,
+      "declared_subcategories": [
+        {
+          "name": "Procedimientos Entidades",
+          "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades"
+        }
+      ],
+      "items_count": 3,
+      "items": [
+        {
+          "url": "https://www.anla.gov.co/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+          "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+          "subcategory_slug": "procedimientos-entidades",
+          "slug": "procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+          "title": "Procedimiento Sancionatorio Ambiental – Responsabilidad Ambiental – Sanciones Ambientales"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-imposicion-seguimiento-y-levantamiento-de-medidas-preventivas-en-el-marco-del-procedimiento-sancionatorio-ambiental",
+          "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-imposicion-seguimiento-y-levantamiento-de-medidas-preventivas-en-el-marco-del-procedimiento-sancionatorio-ambiental",
+          "subcategory_slug": "procedimientos-entidades",
+          "slug": "procedimiento-para-la-imposicion-seguimiento-y-levantamiento-de-medidas-preventivas-en-el-marco-del-procedimiento-sancionatorio-ambiental",
+          "title": "Procedimiento para la Imposición, Seguimiento y Levantamiento de Medidas Preventivas en el Marco del Procedimiento Sancionatorio Ambiental"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+          "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+          "subcategory_slug": "procedimientos-entidades",
+          "slug": "procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+          "title": "Procedimiento para la Evaluación de Solicitudes de Licencias Ambientales, Modificación de Licencias y Planes de Manejo Ambiental"
+        }
+      ],
+      "subcategory_counts": {
+        "procedimientos-entidades": 3
+      },
+      "sample_probes": [
+        {
+          "doc_title": "Procedimiento Sancionatorio Ambiental – Responsabilidad Ambiental – Sanciones Ambientales",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/2025_procedimiento_sancionatorio_sa-pr-01.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/2025_procedimiento_sancionatorio_sa-pr-01.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+            "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+            "subcategory_slug": "procedimientos-entidades",
+            "slug": "procedimiento-sancionatorio-ambiental-responsabilidad-ambiental-sanciones-ambientales",
+            "title": "Procedimiento Sancionatorio Ambiental – Responsabilidad Ambiental – Sanciones Ambientales"
+          }
+        },
+        {
+          "doc_title": "Procedimiento para la Evaluación de Solicitudes de Licencias Ambientales, Modificación de Licencias y Planes de Manejo Ambiental",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/documentos/PROCEDIMIENTO_EVALUACION_DE_LA_redacted.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/documentos/PROCEDIMIENTO_EVALUACION_DE_LA_redacted.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+            "path": "/eureka/procedimientos-y-procesos/procedimientos-entidades/procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+            "subcategory_slug": "procedimientos-entidades",
+            "slug": "procedimiento-para-la-evaluacion-de-solicitudes-de-licencias-ambientales-modificacion-de-licencias-y-planes-de-manejo-ambiental",
+            "title": "Procedimiento para la Evaluación de Solicitudes de Licencias Ambientales, Modificación de Licencias y Planes de Manejo Ambiental"
+          }
+        }
+      ]
+    },
+    {
+      "category_path": "/eureka/manuales-guias-y-programas",
+      "category_name": "Manuales, Guías y Programas",
+      "total_pages": 1,
+      "declared_subcategories": [
+        {
+          "name": "Guías",
+          "path": "/eureka/manuales-guias-y-programas/guias"
+        },
+        {
+          "name": "Instructivos",
+          "path": "/eureka/manuales-guias-y-programas/instructivos"
+        },
+        {
+          "name": "Lineamientos",
+          "path": "/eureka/manuales-guias-y-programas/lineamientos"
+        },
+        {
+          "name": "Manuales",
+          "path": "/eureka/manuales-guias-y-programas/manuales"
+        },
+        {
+          "name": "Metodologías",
+          "path": "/eureka/manuales-guias-y-programas/metodologias"
+        },
+        {
+          "name": "Planes",
+          "path": "/eureka/manuales-guias-y-programas/planes"
+        },
+        {
+          "name": "Listados",
+          "path": "/eureka/manuales-guias-y-programas/listados"
+        }
+      ],
+      "items_count": 5,
+      "items": [
+        {
+          "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/guias/guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+          "path": "/eureka/manuales-guias-y-programas/guias/guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+          "subcategory_slug": "guias",
+          "slug": "guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+          "title": "Guía de Implementación del Acuerdo Regional sobre el Acceso a la Información, la Participación Pública y el Acceso a la Justicia en Asuntos Ambientales en América Latina y el Caribe (Acuerdo de Escazú)"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/guias/guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+          "path": "/eureka/manuales-guias-y-programas/guias/guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+          "subcategory_slug": "guias",
+          "slug": "guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+          "title": "Guía Procedimiento Administrativo Ambiental Sancionatorio. Ley 1333 de 2009 modificada por la Ley 2387 de 2024"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/manuales/manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+          "path": "/eureka/manuales-guias-y-programas/manuales/manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+          "subcategory_slug": "manuales",
+          "slug": "manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+          "title": "Manual de Seguimiento Ambiental de Proyectos: Criterios y Procedimientos"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/manuales/manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+          "path": "/eureka/manuales-guias-y-programas/manuales/manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+          "subcategory_slug": "manuales",
+          "slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+          "title": "Manual Conceptual y Procedimental de la Metodología para el Cálculo de Multas por Infracción a la Normativa Ambiental"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/planes/plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+          "path": "/eureka/manuales-guias-y-programas/planes/plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+          "subcategory_slug": "planes",
+          "slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+          "title": "Plan de Manejo del Distrito Regional de Manejo Integrado (DRMI) La Playona – Loma La Caleta ubicado en el norte del Departamento de Chocó"
+        }
+      ],
+      "subcategory_counts": {
+        "guias": 2,
+        "manuales": 2,
+        "planes": 1
+      },
+      "sample_probes": [
+        {
+          "doc_title": "Guía de Implementación del Acuerdo Regional sobre el Acceso a la Información, la Participación Pública y el Acceso a la Justicia en Asuntos Ambientales en América Latina y el Caribe (Acuerdo de Escazú)",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/2022_escazu_cepal.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/2022_escazu_cepal.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/guias/guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+            "path": "/eureka/manuales-guias-y-programas/guias/guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+            "subcategory_slug": "guias",
+            "slug": "guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+            "title": "Guía de Implementación del Acuerdo Regional sobre el Acceso a la Información, la Participación Pública y el Acceso a la Justicia en Asuntos Ambientales en América Latina y el Caribe (Acuerdo de Escazú)"
+          }
+        },
+        {
+          "doc_title": "Guía Procedimiento Administrativo Ambiental Sancionatorio. Ley 1333 de 2009 modificada por la Ley 2387 de 2024",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/documentos/2024_guia_paas_pgn.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/documentos/2024_guia_paas_pgn.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/guias/guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+            "path": "/eureka/manuales-guias-y-programas/guias/guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+            "subcategory_slug": "guias",
+            "slug": "guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+            "title": "Guía Procedimiento Administrativo Ambiental Sancionatorio. Ley 1333 de 2009 modificada por la Ley 2387 de 2024"
+          }
+        },
+        {
+          "doc_title": "Manual de Seguimiento Ambiental de Proyectos: Criterios y Procedimientos",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/manual_seguimiento_ambiental_2002.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/manual_seguimiento_ambiental_2002.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/manuales/manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+            "path": "/eureka/manuales-guias-y-programas/manuales/manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+            "subcategory_slug": "manuales",
+            "slug": "manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+            "title": "Manual de Seguimiento Ambiental de Proyectos: Criterios y Procedimientos"
+          }
+        },
+        {
+          "doc_title": "Manual Conceptual y Procedimental de la Metodología para el Cálculo de Multas por Infracción a la Normativa Ambiental",
+          "inline_pdf_count": 0,
+          "inline_pdfs": [],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": null,
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/manuales/manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+            "path": "/eureka/manuales-guias-y-programas/manuales/manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+            "subcategory_slug": "manuales",
+            "slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+            "title": "Manual Conceptual y Procedimental de la Metodología para el Cálculo de Multas por Infracción a la Normativa Ambiental"
+          }
+        },
+        {
+          "doc_title": "Plan de Manejo del Distrito Regional de Manejo Integrado (DRMI) La Playona – Loma La Caleta ubicado en el norte del Departamento de Chocó",
+          "inline_pdf_count": 0,
+          "inline_pdfs": [],
+          "external_link_count": 1,
+          "external_sample": [
+            {
+              "host": "www.wwf.org.co",
+              "href": "https://www.wwf.org.co/en/?232071/la-playona",
+              "text": "Plan de Manejo del Distrito Regional de Manejo Integrado (DRMI) La Playona – Loma La Caleta",
+              "is_pdf": false,
+              "is_doc": false,
+              "is_official": false
+            }
+          ],
+          "primary_source": {
+            "kind": "external_other",
+            "url": "https://www.wwf.org.co/en/?232071/la-playona",
+            "host": "www.wwf.org.co"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/planes/plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+            "path": "/eureka/manuales-guias-y-programas/planes/plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+            "subcategory_slug": "planes",
+            "slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+            "title": "Plan de Manejo del Distrito Regional de Manejo Integrado (DRMI) La Playona – Loma La Caleta ubicado en el norte del Departamento de Chocó"
+          }
+        }
+      ]
+    },
+    {
+      "category_path": "/eureka/conceptos-y-problemas-juridicos",
+      "category_name": "Conceptos y Problemas Jurídicos",
+      "total_pages": 1,
+      "declared_subcategories": [
+        {
+          "name": "Conceptos Jurídicos",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos"
+        }
+      ],
+      "items_count": 7,
+      "items": [
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+          "title": "Concepto jurídico sobre los Terceros Intervinientes en la Etapa de Seguimiento Ambiental de las Licencias y los Permisos Ambientales / Participación de Terceros en Actuaciones Administrativas No Sancionatorias"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales",
+          "title": "Concepto jurídico sobre los Terceros Intervinientes en la Etapa de Seguimiento Ambiental de las Licencias y los Permisos Ambientales"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-la-publicidad-de-los-expedientes-procesos-sancionatorios-ambientales-y-reserva-legal-en-el-marco-del-acuerdo-de-escazu-y-los-derechos-de-acceso-a-la-informacion-participacion-y-justicia-ambiental",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-la-publicidad-de-los-expedientes-procesos-sancionatorios-ambientales-y-reserva-legal-en-el-marco-del-acuerdo-de-escazu-y-los-derechos-de-acceso-a-la-informacion-participacion-y-justicia-ambiental",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-la-publicidad-de-los-expedientes-procesos-sancionatorios-ambientales-y-reserva-legal-en-el-marco-del-acuerdo-de-escazu-y-los-derechos-de-acceso-a-la-informacion-participacion-y-justicia-ambiental",
+          "title": "Concepto jurídico sobre la Publicidad de los Expedientes (Procesos) Sancionatorios Ambientales y Reserva Legal en el Marco del Acuerdo de Escazú y los Derechos de Acceso a la Información, Participación y Justicia Ambiental"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/no-cesion-de-los-procesos-sancionatorios-ambientales-en-el-marco-de-la-cesion-de-una-licencia-ambiental",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/no-cesion-de-los-procesos-sancionatorios-ambientales-en-el-marco-de-la-cesion-de-una-licencia-ambiental",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "no-cesion-de-los-procesos-sancionatorios-ambientales-en-el-marco-de-la-cesion-de-una-licencia-ambiental",
+          "title": "Concepto jurídico sobre la no cesión de los procesos sancionatorios ambientales en el marco de la cesión de una licencia ambiental"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental",
+          "title": "Concepto jurídico sobre las Medidas Preventivas en el Procedimiento Sancionatorio Ambiental"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas",
+          "title": "Concepto jurídico sobre la proporcionalidad de las medidas preventivas"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-proyectos-mineros-en-paramos",
+          "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-proyectos-mineros-en-paramos",
+          "subcategory_slug": "conceptos-juridicos",
+          "slug": "concepto-juridico-sobre-proyectos-mineros-en-paramos",
+          "title": "Concepto jurídico sobre proyectos mineros en páramos"
+        }
+      ],
+      "subcategory_counts": {
+        "conceptos-juridicos": 7
+      },
+      "sample_probes": [
+        {
+          "doc_title": "Concepto jurídico sobre los Terceros Intervinientes en la Etapa de Seguimiento Ambiental de las Licencias y los Permisos Ambientales / Participación de Terceros en Actuaciones Administrativas No Sancionatorias",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/20262300130061_concepto_terceros.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/20262300130061_concepto_terceros.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+            "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+            "subcategory_slug": "conceptos-juridicos",
+            "slug": "concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+            "title": "Concepto jurídico sobre los Terceros Intervinientes en la Etapa de Seguimiento Ambiental de las Licencias y los Permisos Ambientales / Participación de Terceros en Actuaciones Administrativas No Sancionatorias"
+          }
+        },
+        {
+          "doc_title": "Concepto jurídico sobre proyectos mineros en páramos",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/documentos/130924-concepto-5595-2024-02-27.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/documentos/130924-concepto-5595-2024-02-27.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-proyectos-mineros-en-paramos",
+            "path": "/eureka/conceptos-y-problemas-juridicos/conceptos-juridicos/concepto-juridico-sobre-proyectos-mineros-en-paramos",
+            "subcategory_slug": "conceptos-juridicos",
+            "slug": "concepto-juridico-sobre-proyectos-mineros-en-paramos",
+            "title": "Concepto jurídico sobre proyectos mineros en páramos"
+          }
+        }
+      ]
+    },
+    {
+      "category_path": "/eureka/documentos-estrategicos",
+      "category_name": "Documentos Estratégicos",
+      "total_pages": 3,
+      "declared_subcategories": [
+        {
+          "name": "Políticas",
+          "path": "/eureka/documentos-estrategicos/politicas"
+        },
+        {
+          "name": "Formatos",
+          "path": "/eureka/documentos-estrategicos/formatos"
+        },
+        {
+          "name": "Plan Nacional de Desarrollo Forestal",
+          "path": "/eureka/documentos-estrategicos/plan-nacional-de-desarrollo-forestal"
+        },
+        {
+          "name": "Estrategia para el Desarrollo Integral del Departamento de La Guajira y sus Pueb",
+          "path": "/eureka/documentos-estrategicos/estrategia-para-el-desarrollo-integral-del-departamento-de-la-guajira-y-sus-pueblos-indigenas"
+        },
+        {
+          "name": "Política Nacional para el Control de la Deforestación y la Gestión Sostenible de",
+          "path": "/eureka/documentos-estrategicos/politica-nacional-para-el-control-de-la-deforestacion-y-la-gestion-sostenible-de-los-bosques"
+        },
+        {
+          "name": "Política Nacional para la Gestión Integral de la Biodiversidad y sus Servicios E",
+          "path": "/eureka/documentos-estrategicos/politica-nacional-para-la-gestion-integral-de-la-biodiversidad-y-sus-servicios-ecosistemicos-pngibse"
+        }
+      ],
+      "items_count": 18,
+      "items": [
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/formatos/formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+          "path": "/eureka/documentos-estrategicos/formatos/formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+          "subcategory_slug": "formatos",
+          "slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+          "title": "Formato Único Nacional de Solicitud de Permiso de Estudio para la Recolección de Especímenes de Especies Silvestres de la Diversidad Biológica con Fines de Elaboración de Estudios Ambientales"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+          "subcategory_slug": "politicas",
+          "slug": "politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+          "title": "Política para la Consolidación del Sistema Nacional de Áreas Protegidas (SINAP): Documento CONPES 4050 de 2021"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-de-gestion-del-riesgo-asociado-al-uso-de-sustancias-quimicas-documento-conpes-3868-de-2016",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-de-gestion-del-riesgo-asociado-al-uso-de-sustancias-quimicas-documento-conpes-3868-de-2016",
+          "subcategory_slug": "politicas",
+          "slug": "politica-de-gestion-del-riesgo-asociado-al-uso-de-sustancias-quimicas-documento-conpes-3868-de-2016",
+          "title": "Política de Gestión del Riesgo Asociado al uso de Sustancias Químicas: Documento CONPES 3868 de 2016"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/estrategia-nacional-de-economia-circular-enec-de-2018-economia-circular-residuos-solidos-crecimiento-verde",
+          "path": "/eureka/documentos-estrategicos/politicas/estrategia-nacional-de-economia-circular-enec-de-2018-economia-circular-residuos-solidos-crecimiento-verde",
+          "subcategory_slug": "politicas",
+          "slug": "estrategia-nacional-de-economia-circular-enec-de-2018-economia-circular-residuos-solidos-crecimiento-verde",
+          "title": "Estrategia Nacional de Economía Circular (ENEC) de 2018 – Economía Circular – Residuos Sólidos – Crecimiento Verde"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/lineamientos-de-politica-y-programa-nacional-de-pago-por-servicios-ambientales-para-la-construccion-de-paz-documento-conpes-3886-de-2017",
+          "path": "/eureka/documentos-estrategicos/politicas/lineamientos-de-politica-y-programa-nacional-de-pago-por-servicios-ambientales-para-la-construccion-de-paz-documento-conpes-3886-de-2017",
+          "subcategory_slug": "politicas",
+          "slug": "lineamientos-de-politica-y-programa-nacional-de-pago-por-servicios-ambientales-para-la-construccion-de-paz-documento-conpes-3886-de-2017",
+          "title": "Lineamientos de Política y Programa Nacional de Pago Por Servicios Ambientales para la Construcción de Paz: Documento CONPES 3886 de 2017"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-para-el-mejoramiento-de-la-calidad-del-aire-calidad-del-aire-aire-documento-conpes-3943-de-2018",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-para-el-mejoramiento-de-la-calidad-del-aire-calidad-del-aire-aire-documento-conpes-3943-de-2018",
+          "subcategory_slug": "politicas",
+          "slug": "politica-para-el-mejoramiento-de-la-calidad-del-aire-calidad-del-aire-aire-documento-conpes-3943-de-2018",
+          "title": "Política para el Mejoramiento de la Calidad del Aire – Calidad del Aire – Aire: Documento CONPES 3943 de 2018"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-de-crecimiento-verde-crecimiento-verde-documento-conpes-3934-de-2018",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-de-crecimiento-verde-crecimiento-verde-documento-conpes-3934-de-2018",
+          "subcategory_slug": "politicas",
+          "slug": "politica-de-crecimiento-verde-crecimiento-verde-documento-conpes-3934-de-2018",
+          "title": "Política de Crecimiento Verde – Crecimiento Verde: Documento CONPES 3934 de 2018"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/declaracion-de-importancia-estrategica-del-proyecto-de-inversion-recuperacion-de-la-selva-amazonica-y-territorios-estrategicos-alrededor-del-agua-a-nivel-nacional-bpin-202500000022983-documento-conpes-4174-de-2025",
+          "path": "/eureka/documentos-estrategicos/politicas/declaracion-de-importancia-estrategica-del-proyecto-de-inversion-recuperacion-de-la-selva-amazonica-y-territorios-estrategicos-alrededor-del-agua-a-nivel-nacional-bpin-202500000022983-documento-conpes-4174-de-2025",
+          "subcategory_slug": "politicas",
+          "slug": "declaracion-de-importancia-estrategica-del-proyecto-de-inversion-recuperacion-de-la-selva-amazonica-y-territorios-estrategicos-alrededor-del-agua-a-nivel-nacional-bpin-202500000022983-documento-conpes-4174-de-2025",
+          "title": "Declaración de Importancia Estratégica del Proyecto de Inversión Recuperación de la Selva Amazónica y Territorios Estratégicos Alrededor del Agua a Nivel Nacional (BPIN 202500000022983): Documento CONPES 4174 de 2025"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-colombia-potencia-bioceanica-sostenible-2030-politica-nacional-ambiental-documento-conpes-3990-de-2020",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-colombia-potencia-bioceanica-sostenible-2030-politica-nacional-ambiental-documento-conpes-3990-de-2020",
+          "subcategory_slug": "politicas",
+          "slug": "politica-colombia-potencia-bioceanica-sostenible-2030-politica-nacional-ambiental-documento-conpes-3990-de-2020",
+          "title": "Política Colombia Potencia Bioceánica Sostenible 2030 [Política Nacional Ambiental]: Documento CONPES 3990 de 2020"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-para-la-gestion-integral-de-residuos-solidos-pngrs-residuos-solidos-gestion-integral-de-residuos-solidos-documento-conpes-3874-de-2016",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-nacional-para-la-gestion-integral-de-residuos-solidos-pngrs-residuos-solidos-gestion-integral-de-residuos-solidos-documento-conpes-3874-de-2016",
+          "subcategory_slug": "politicas",
+          "slug": "politica-nacional-para-la-gestion-integral-de-residuos-solidos-pngrs-residuos-solidos-gestion-integral-de-residuos-solidos-documento-conpes-3874-de-2016",
+          "title": "Política Nacional para la Gestión Integral de Residuos Sólidos (PNGRS) – Residuos Sólidos – Gestión Integral de Residuos Sólidos: Documento CONPES 3874 de 2016"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/economia-circular-en-la-gestion-de-los-servicios-de-agua-potable-y-manejo-de-aguas-residuales-en-colombia-documento-conpes-4004-de-2020",
+          "path": "/eureka/documentos-estrategicos/politicas/economia-circular-en-la-gestion-de-los-servicios-de-agua-potable-y-manejo-de-aguas-residuales-en-colombia-documento-conpes-4004-de-2020",
+          "subcategory_slug": "politicas",
+          "slug": "economia-circular-en-la-gestion-de-los-servicios-de-agua-potable-y-manejo-de-aguas-residuales-en-colombia-documento-conpes-4004-de-2020",
+          "title": "Economía Circular en la Gestión de los Servicios de Agua Potable y Manejo de Aguas Residuales en Colombia: Documento CONPES 4004 de 2020"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/estrategia-institucional-para-la-articulacion-de-politicas-y-acciones-en-materia-de-cambio-climatico-en-colombia-documento-conpes-3700-de-2011",
+          "path": "/eureka/documentos-estrategicos/politicas/estrategia-institucional-para-la-articulacion-de-politicas-y-acciones-en-materia-de-cambio-climatico-en-colombia-documento-conpes-3700-de-2011",
+          "subcategory_slug": "politicas",
+          "slug": "estrategia-institucional-para-la-articulacion-de-politicas-y-acciones-en-materia-de-cambio-climatico-en-colombia-documento-conpes-3700-de-2011",
+          "title": "Estrategia Institucional para la Articulación de Políticas y Acciones en Materia de Cambio Climático en Colombia: Documento CONPES 3700 de 2011"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/estrategia-para-la-implementacion-de-los-objetivos-de-desarrollo-sostenible-ods-en-colombia-documento-conpes-3918-de-2018",
+          "path": "/eureka/documentos-estrategicos/politicas/estrategia-para-la-implementacion-de-los-objetivos-de-desarrollo-sostenible-ods-en-colombia-documento-conpes-3918-de-2018",
+          "subcategory_slug": "politicas",
+          "slug": "estrategia-para-la-implementacion-de-los-objetivos-de-desarrollo-sostenible-ods-en-colombia-documento-conpes-3918-de-2018",
+          "title": "Estrategia Para la Implementación de los Objetivos de Desarrollo Sostenible (ODS) en Colombia: Documento CONPES 3918 de 2018"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-de-cambio-climatico-pncc",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-nacional-de-cambio-climatico-pncc",
+          "subcategory_slug": "politicas",
+          "slug": "politica-nacional-de-cambio-climatico-pncc",
+          "title": "Política Nacional de Cambio Climático (PNCC)"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008",
+          "path": "/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008",
+          "subcategory_slug": "politicas",
+          "slug": "lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008",
+          "title": "Lineamientos para la Formulación de la Política Integral de Salud Ambiental: Documento CONPES 3550 de 2008"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006",
+          "path": "/eureka/documentos-estrategicos/politicas/estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006",
+          "subcategory_slug": "politicas",
+          "slug": "estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006",
+          "title": "Estrategia para el Manejo Ambiental de la Cuenca Ubaté – Suárez: Documento CONPES 3451 de 2006"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005",
+          "path": "/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005",
+          "subcategory_slug": "politicas",
+          "slug": "lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005",
+          "title": "Lineamientos para la Formulación de la Política de Prevención y Control de la Contaminación del Aire: Documento CONPES 3344 de 2005"
+        },
+        {
+          "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+          "path": "/eureka/documentos-estrategicos/politicas/politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+          "subcategory_slug": "politicas",
+          "slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+          "title": "Política Nacional Ambiental para el Desarrollo Sostenible de los Espacios Oceánicos y las Zonas Costeras e Insulares de Colombia Plan de Acción 2002 - 2004"
+        }
+      ],
+      "subcategory_counts": {
+        "formatos": 1,
+        "politicas": 17
+      },
+      "sample_probes": [
+        {
+          "doc_title": "Formato Único Nacional de Solicitud de Permiso de Estudio para la Recolección de Especímenes de Especies Silvestres de la Diversidad Biológica con Fines de Elaboración de Estudios Ambientales",
+          "inline_pdf_count": 0,
+          "inline_pdfs": [],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": null,
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/formatos/formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+            "path": "/eureka/documentos-estrategicos/formatos/formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+            "subcategory_slug": "formatos",
+            "slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+            "title": "Formato Único Nacional de Solicitud de Permiso de Estudio para la Recolección de Especímenes de Especies Silvestres de la Diversidad Biológica con Fines de Elaboración de Estudios Ambientales"
+          }
+        },
+        {
+          "doc_title": "Política para la Consolidación del Sistema Nacional de Áreas Protegidas (SINAP): Documento CONPES 4050 de 2021",
+          "inline_pdf_count": 1,
+          "inline_pdfs": [
+            "https://www.anla.gov.co/eureka/images/CONPES_4050_2021_politica_sinap.pdf"
+          ],
+          "external_link_count": 0,
+          "external_sample": [],
+          "primary_source": {
+            "kind": "inline_pdf",
+            "url": "https://www.anla.gov.co/eureka/images/CONPES_4050_2021_politica_sinap.pdf"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+            "path": "/eureka/documentos-estrategicos/politicas/politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+            "subcategory_slug": "politicas",
+            "slug": "politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+            "title": "Política para la Consolidación del Sistema Nacional de Áreas Protegidas (SINAP): Documento CONPES 4050 de 2021"
+          }
+        },
+        {
+          "doc_title": "Política Nacional Ambiental para el Desarrollo Sostenible de los Espacios Oceánicos y las Zonas Costeras e Insulares de Colombia Plan de Acción 2002 - 2004",
+          "inline_pdf_count": 0,
+          "inline_pdfs": [],
+          "external_link_count": 1,
+          "external_sample": [
+            {
+              "host": "www.minambiente.gov.co",
+              "href": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/Conpes-3164-de-2002.pdf",
+              "text": "Política Nacional Ambiental para el Desarrollo Sostenible de los Espacios Oceánicos y las Zonas Costeras e Insulares de ",
+              "is_pdf": true,
+              "is_doc": false,
+              "is_official": true
+            }
+          ],
+          "primary_source": {
+            "kind": "external_official",
+            "url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/Conpes-3164-de-2002.pdf",
+            "host": "www.minambiente.gov.co"
+          },
+          "source_item": {
+            "url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+            "path": "/eureka/documentos-estrategicos/politicas/politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+            "subcategory_slug": "politicas",
+            "slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+            "title": "Política Nacional Ambiental para el Desarrollo Sostenible de los Espacios Oceánicos y las Zonas Costeras e Insulares de Colombia Plan de Acción 2002 - 2004"
+          }
+        }
+      ]
+    }
+  ],
+  "finished_at": "2026-04-14T22:07:24-0500",
+  "elapsed_s": 59.7,
+  "total_items": 33
+}
