@@ -1,0 +1,186 @@
+{
+  "generated": "2026-04-14",
+  "description": "Documentos del corpus EUREKA que no pudieron procesarse por falta de fuente accesible, PDF scan sin OCR, o URL inaccesible. Cada sesión debe intentar resolverlos buscando en fuentes oficiales alternativas antes de marcarlos como skip definitivo. Los gaps con status='pendiente' son candidatos prioritarios para Fase 2C (cuando se aborde OCR sistemático con Claude vision).",
+  "stats": {
+    "total_gaps": 6,
+    "by_reason": {
+      "scan_no_ocr": 5,
+      "no_url": 1
+    },
+    "by_status": {
+      "pendiente": 5,
+      "skip_definitivo": 1
+    }
+  },
+  "gaps": [
+    {
+      "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
+      "norm_title": "Resolución 631 de 2015 – Vertimientos – Parámetros y Valores Límites Máximos Permisibles en Vertimientos Puntuales",
+      "norm_number": "631",
+      "norm_year": 2015,
+      "norm_type": "resolucion",
+      "issuing_body": "MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE",
+      "reason": "scan_no_ocr",
+      "discovered_in": "Sprint A2 Fase 1A (scrap inicial ANLA inline PDF)",
+      "urls_intentadas": [
+        "https://www.anla.gov.co/eureka/images/2015_resolucion_631_vertimientos2.pdf"
+      ],
+      "metadata_pdf": {
+        "pages": 62,
+        "chars_extraidos_pypdf": 0,
+        "tipo": "scan completo sin capa de texto"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.minambiente.gov.co/wp-content/uploads/ — buscar versión OCR'd",
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Res 631 2015 en MADS",
+        "Diario Oficial No. 49.486 del 18/04/2015 (publicación original)",
+        "OCR via Claude vision (Sprint A usó este patrón con 4 normas — ver scripts/ocr_scans_via_edge.py)",
+        "ANLA — pedir version actualizada con texto"
+      ],
+      "status": "pendiente",
+      "prioridad": "alta",
+      "notas": "CRÍTICA — es la norma de referencia para vertimientos en Colombia. Sin ella, queries del bot sobre límites de vertimiento no encuentran texto. Patrón Sprint A: usar Claude OCR via edge function norm-extract-text (probado con Res 4 normas, costo $0.04-$0.15 c/u). Estimado ~$0.10 + 30 min para esta sola."
+    },
+    {
+      "slug": "resolucion-2086-de-2010-adopta-la-metodologia-para-la-tasacion-de-multas-por-infracciones-al-medio-ambiente",
+      "norm_title": "Resolución 2086 de 2010 – Adopta la Metodología para la Tasación de Multas por Infracciones al Medio Ambiente",
+      "norm_number": "2086",
+      "norm_year": 2010,
+      "norm_type": "resolucion",
+      "issuing_body": "MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE",
+      "reason": "scan_no_ocr",
+      "discovered_in": "Sprint A2 Fase 2D-minambiente-pdf (commit 9f6f674)",
+      "urls_intentadas": [
+        "https://www.minambiente.gov.co/wp-content/uploads/2022/02/Resolucion-2086-de-2010.pdf"
+      ],
+      "metadata_pdf": {
+        "pages": 11,
+        "chars_extraidos_pypdf": 10,
+        "tipo": "scan sin capa de texto (10 chars sugiere artefacto OCR fallido)"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp?ruta=Resolucion/30019929 — verificar si SUIN tiene texto",
+        "Diario Oficial No. 47.875 del 28/10/2010",
+        "OCR via Claude vision"
+      ],
+      "status": "pendiente",
+      "prioridad": "alta",
+      "notas": "CRÍTICA para el módulo de Inteligencia (alertas de tasación de multas). Vinculada con Ley 1333/2009 (Procedimiento Sancionatorio) que sí está en el corpus. Sin esta resolución el bot no puede explicar cómo se calculan multas concretas."
+    },
+    {
+      "slug": "resolucion-0108-de-2015-formato-unico-nacional-de-solicitud-de-licencia-ambiental",
+      "norm_title": "Resolución 108 de 2015 – Formato Único Nacional de Solicitud de Licencia Ambiental",
+      "norm_number": "108",
+      "norm_year": 2015,
+      "norm_type": "resolucion",
+      "issuing_body": "MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE",
+      "reason": "scan_no_ocr",
+      "discovered_in": "Sprint A2 Fase 2D-minambiente-pdf (commit 9f6f674)",
+      "urls_intentadas": [
+        "https://www.minambiente.gov.co/wp-content/uploads/2021/11/resolucion-108-de-2015.pdf"
+      ],
+      "metadata_pdf": {
+        "pages": 14,
+        "chars_extraidos_pypdf": 13,
+        "tipo": "scan sin capa de texto"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Res 108 2015 MADS",
+        "https://www.anla.gov.co/buscar-tramite — formato puede estar publicado vigente como anexo",
+        "Diario Oficial 2015",
+        "OCR via Claude vision"
+      ],
+      "status": "pendiente",
+      "prioridad": "media",
+      "notas": "Mayormente formato/plantilla (no articulado denso). Útil para queries sobre 'qué información se necesita para solicitar licencia ambiental'. Si OCR es costoso, considerar embeber solo descripción del contenido."
+    },
+    {
+      "slug": "resolucion-0827-de-2018-sistema-tecnico-de-clasificacion-para-procesos-administrativos-sancionatorios-ambientales",
+      "norm_title": "Resolución 827 de 2018 – Sistema Técnico de Clasificación para Procesos Administrativos Sancionatorios Ambientales",
+      "norm_number": "827",
+      "norm_year": 2018,
+      "norm_type": "resolucion",
+      "issuing_body": "MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE",
+      "reason": "scan_no_ocr",
+      "discovered_in": "Sprint A2 Fase 2D-minambiente-html (commit 8650ba4)",
+      "urls_intentadas": [
+        "https://www.minambiente.gov.co/documento-normativa/resolucion-0827-de-2018/ (carátula HTML)",
+        "https://www.minambiente.gov.co/wp-content/uploads/2021/08/resolucion-0827-de-2018.pdf (PDF resuelto)"
+      ],
+      "metadata_pdf": {
+        "pages": 6,
+        "chars_extraidos_pypdf": 5,
+        "tipo": "scan completo sin capa de texto"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Res 827 2018 MADS",
+        "Diario Oficial 2018",
+        "OCR via Claude vision (PDF chico, ~$0.02-0.05)"
+      ],
+      "status": "pendiente",
+      "prioridad": "media",
+      "notas": "Vinculada con Ley 1333/2009 sancionatorio. Permite al bot explicar el sistema de clasificación de infracciones. PDF es chico (6pp), OCR debería ser barato."
+    },
+    {
+      "slug": "resolucion-762-de-2022-reglamenta-los-limites-maximos-permisibles-de-emisiones-contaminantes-fuentes-moviles",
+      "norm_title": "Resolución 762 de 2022 – Reglamenta los Límites Máximos Permisibles de Emisiones Contaminantes para Fuentes Móviles",
+      "norm_number": "762",
+      "norm_year": 2022,
+      "norm_type": "resolucion",
+      "issuing_body": "MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE",
+      "reason": "scan_no_ocr",
+      "discovered_in": "Sprint A2 Fase 2D-minambiente-html (commit 8650ba4)",
+      "urls_intentadas": [
+        "https://www.minambiente.gov.co/documento-normativa/resolucion-0762-de-2022/ (carátula HTML)",
+        "https://www.minambiente.gov.co/wp-content/uploads/2022/07/Resolucion-0762-de-2022-Fuentes-moviles.pdf (PDF resuelto)"
+      ],
+      "metadata_pdf": {
+        "pages": 62,
+        "chars_extraidos_pypdf": 1065,
+        "tipo": "scan parcialmente OCR'd (1065 chars en 62 pp = ~17 chars/pp, basura)"
+      },
+      "ingesta_actual": {
+        "articles": 1,
+        "tipo": "fallback chunk único 'Documento completo' con texto degradado",
+        "calidad": "muy baja, no recuperable por similarity search"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Res 762 2022 MADS",
+        "Diario Oficial No. 52.097 del 22/07/2022",
+        "OCR via Claude vision (62pp, ~$0.10-0.15)",
+        "MinAmbiente puede tener versión actualizada con texto en otra URL"
+      ],
+      "status": "pendiente",
+      "prioridad": "alta",
+      "notas": "Norma reciente y muy relevante para sector transporte. La fila inserted con 1 chunk basura debería borrarse cuando se ingesta versión OCR'd. Ver normative_articles WHERE norm_id=(slug→nid) AND content_tokens<300 para detectar."
+    },
+    {
+      "slug": "decreto-43-de-2024-delimitacion-y-proteccion-de-reservas-naturales",
+      "norm_title": "Decreto 43 de 2024 – Delimitación y Protección de Reservas Naturales",
+      "norm_number": "43",
+      "norm_year": 2024,
+      "norm_type": "decreto",
+      "reason": "no_url",
+      "discovered_in": "Sprint A2 Fase 1A (recon EUREKA Normativa, commit 47b63e6)",
+      "urls_intentadas": [
+        "(EUREKA reportó primary_source_kind='none' — no link de fuente externa)"
+      ],
+      "metadata_eureka": {
+        "url_eureka": "https://www.anla.gov.co/eureka/normativa/decretos/decreto-43-de-2024-delimitacion-y-proteccion-de-reservas-naturales",
+        "primary_source_kind": "none",
+        "resumen_disponible": "sí (en eureka_sources_metadata)",
+        "concordancias_disponibles": "sí"
+      },
+      "fuentes_alternativas_sugeridas": [
+        "https://www.suin-juriscol.gov.co/viewDocument.asp — buscar Decreto 43 2024 (probablemente ya esté indexado)",
+        "https://www.funcionpublica.gov.co/eva/gestornormativo/ — buscar Decreto 43 2024",
+        "https://www.alcaldiabogota.gov.co/sisjur — buscar Decreto 43 2024",
+        "Diario Oficial 2024 (índice de decretos)",
+        "Buscar manualmente en presidencia.gov.co/normativa o ministerios pertinentes"
+      ],
+      "status": "pendiente",
+      "prioridad": "media",
+      "notas": "EUREKA tiene la ficha curada (resumen + concordancias) pero no expone URL al texto oficial. SUIN-Juriscol probablemente lo indexa con id distinto al que usa EUREKA. Una sesión futura puede buscar manualmente en SUIN (o por Diario Oficial) y agregarle source_url al doc en normative_sources, luego correr el scraper SUIN para esta sola norma."
+    }
+  ]
+}
