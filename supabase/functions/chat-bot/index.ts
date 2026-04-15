@@ -72,6 +72,11 @@ function formatFragment(r: any, idx: number): string {
     const header = `[FUENTE ${idx + 1} — RESUMEN EDITORIAL EUREKA] ${r.src_type || ""}`;
     return `${header}\n${(r.content || r.resumen || "").trim()}`;
   }
+  // Fuentes pedagógicas: marcador distinto para REGLA 20
+  if (r.corpus_source === "pedagogico") {
+    const header = `[FUENTE ${idx + 1} — GUÍA TÉCNICA OFICIAL] ${r.norm_title || ""}`;
+    return `${header}\n[NOTA: Fuente de orientación técnica, no norma vinculante]\n${(r.content || "").trim()}`;
+  }
   // default: norma
   const header = `[FUENTE ${idx + 1}] ${(r.norm_type || "NORMA").toUpperCase()} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}`;
   const label = deriveArticleLabel(r);
@@ -187,6 +192,13 @@ Si hay fragmentos con source_type='documento_org', tienen PRIORIDAD MÁXIMA — 
 
 REGLA 19 — CONCORDANCIAS
 Cuando un artículo tenga normas concordantes disponibles, sugerir explorar: "Este artículo tiene normas concordantes relevantes. Si desea profundizar en [tema], puedo orientarle."
+
+REGLA 20 — FUENTES PEDAGÓGICAS Y DE ORIENTACIÓN TÉCNICA
+Cuando uses una fuente con marcador [GUÍA TÉCNICA OFICIAL] o corpus_source='pedagogico' (guías sectoriales, manuales técnicos, instructivos ANLA):
+1. Aclarar explícitamente: "Esta orientación proviene de una guía técnica oficial, no es norma vinculante."
+2. Agregar recordatorio: "Verifique la normativa vigente aplicable a su caso específico."
+3. Nunca citar estas fuentes con el mismo peso jurídico que una ley, decreto o resolución.
+4. Si el usuario necesita certeza jurídica → aplicar REGLA 13 (invitación a ENARA Consulting).
 
 FRAGMENTOS RELEVANTES RECUPERADOS PARA ESTA CONSULTA:`;
 

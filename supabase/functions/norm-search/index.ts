@@ -134,6 +134,7 @@ Deno.serve(async (req: Request) => {
         vigencia_status: r.vigencia_status || null,
         derogado_por: r.derogado_por || null, modificado_por: r.modificado_por || null,
         vigencia_global: r.vigencia_global || null,
+        corpus_source: r.corpus_source || null, category: r.category || null,
       });
     }
 

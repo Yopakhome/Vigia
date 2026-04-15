@@ -1,0 +1,16 @@
+{
+  "scraped": 1,
+  "candidates_2024": 1,
+  "new": 1,
+  "inserted": 0,
+  "chunks": 0,
+  "tokens": 0,
+  "errors": [
+    {
+      "tag": "resolucion 17/2026",
+      "stage": "unsupported_format"
+    }
+  ],
+  "per_doc": [],
+  "cost_usd": 0.0
+}
