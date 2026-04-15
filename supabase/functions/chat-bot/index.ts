@@ -4,6 +4,7 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-5";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +20,22 @@ async function verifyUser(auth: string | null) {
     if (!r.ok) return null;
     const u = await r.json();
     return u?.id ? u : null;
+  } catch { return null; }
+}
+
+const srv = { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` };
+
+async function getOrgProfile(userId: string) {
+  try {
+    const rm = await fetch(`${SUPABASE_URL}/rest/v1/user_org_map?user_id=eq.${userId}&select=org_id&limit=1`, { headers: srv });
+    if (!rm.ok) return null;
+    const mp = await rm.json();
+    const orgId = mp?.[0]?.org_id;
+    if (!orgId) return null;
+    const rp = await fetch(`${SUPABASE_URL}/rest/v1/org_profile?org_id=eq.${orgId}&select=*&limit=1`, { headers: srv });
+    if (!rp.ok) return null;
+    const p = await rp.json();
+    return p?.[0] || null;
   } catch { return null; }
 }
 
@@ -39,133 +56,137 @@ async function semanticSearch(query: string, top_k: number, authHeader: string) 
     });
     const data = await r.json();
     if (!r.ok || !data.ok) return { ok: false, error: data.error || `norm-search ${r.status}`, results: [] };
-    return { ok: true, results: data.results || [], elapsed_ms: data.elapsed_ms };
+    return { ok: true, results: data.results || [], elapsed_ms: data.elapsed_ms, capas: data.capas };
   } catch (e) {
     return { ok: false, error: (e as Error).message, results: [] };
   }
 }
 
-function buildContextFromResults(results: any[]): string {
-  if (!results || results.length === 0) return "(Sin fragmentos normativos relevantes a esta consulta)";
-  return results.map((r, i) => {
-    const header = `[FUENTE ${i + 1}] ${r.norm_type?.toUpperCase() || "NORMA"} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}`;
-    const label = deriveArticleLabel(r);
-    const artLine = `${label}${r.article_title ? " — " + r.article_title : ""}`;
-    // Vigencia marker explícito para que el LLM lo vea
-    let vigencia = "";
-    if (r.vigencia_status === "derogado") {
-      vigencia = `\n[VIGENCIA: DEROGADO${r.derogado_por ? " por " + r.derogado_por : ""}]`;
-    } else if (r.vigencia_status === "modificado") {
-      vigencia = `\n[VIGENCIA: MODIFICADO${r.modificado_por ? " por " + r.modificado_por : ""}]`;
-    } else if (r.vigencia_global === "derogada_total") {
-      vigencia = `\n[VIGENCIA: NORMA GLOBALMENTE DEROGADA]`;
-    } else if (r.vigencia_global === "derogada_parcial" && r.vigencia_status !== "derogado") {
-      vigencia = `\n[VIGENCIA: vigente (la norma padre tiene artículos derogados pero este no)]`;
-    }
-    const body = (r.content || "").trim();
-    return `${header}\n${artLine}${vigencia}\n${body}`;
-  }).join("\n\n---\n\n");
+function formatFragment(r: any, idx: number): string {
+  if (r.source_type === "sentencia") {
+    const header = `[FUENTE ${idx + 1} — JURISPRUDENCIA] ${r.corte || ""} ${r.radicado || ""} (${r.fecha_emision_anio || ""})`;
+    const section = r.section_label ? `\n${r.section_label}` : "";
+    return `${header}${section}\n${(r.content || "").trim()}`;
+  }
+  if (r.source_type === "resumen_editorial") {
+    const header = `[FUENTE ${idx + 1} — RESUMEN EDITORIAL EUREKA] ${r.src_type || ""}`;
+    return `${header}\n${(r.content || r.resumen || "").trim()}`;
+  }
+  // default: norma
+  const header = `[FUENTE ${idx + 1}] ${(r.norm_type || "NORMA").toUpperCase()} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}`;
+  const label = deriveArticleLabel(r);
+  const artLine = `${label}${r.article_title ? " — " + r.article_title : ""}`;
+  let vigencia = "";
+  if (r.vigencia_status === "derogado") {
+    vigencia = `\n[VIGENCIA: DEROGADO${r.derogado_por ? " por " + r.derogado_por : ""}]`;
+  } else if (r.vigencia_status === "modificado") {
+    vigencia = `\n[VIGENCIA: MODIFICADO${r.modificado_por ? " por " + r.modificado_por : ""}]`;
+  } else if (r.vigencia_global === "derogada_total") {
+    vigencia = `\n[VIGENCIA: NORMA GLOBALMENTE DEROGADA]`;
+  } else if (r.vigencia_global === "derogada_parcial" && r.vigencia_status !== "derogado") {
+    vigencia = `\n[VIGENCIA: vigente (la norma padre tiene artículos derogados pero este no)]`;
+  }
+  const body = (r.content || "").trim();
+  return `${header}\n${artLine}${vigencia}\n${body}`;
 }
 
-// v3.7.0 — 12 reglas formalizadas del briefing Sprint v3.7.0 Bloque 2
-const SYSTEM_RULES = `Tienes acceso a fragmentos literales de artículos del corpus normativo ambiental colombiano, listados abajo como [FUENTE N]. Respondé siguiendo estas 12 reglas obligatorias.
+function buildContextFromResults(results: any[]): string {
+  if (!results || results.length === 0) return "(Sin fragmentos normativos relevantes a esta consulta)";
+  return results.map((r, i) => formatFragment(r, i)).join("\n\n---\n\n");
+}
+
+function buildOrgContext(p: any): string {
+  if (!p) return "";
+  const fields = [
+    ["Sectores", p.sectores],
+    ["Actividades económicas", p.actividades_economicas],
+    ["Departamentos de operación", p.departamentos_operacion],
+    ["Autoridades competentes", p.autoridades_ambientales],
+    ["Temas regulatorios frecuentes", p.temas_regulatorios],
+    ["Normas más aplicables", p.normas_aplicables],
+    ["Tipos de instrumento", p.tipos_instrumento],
+  ];
+  const lines: string[] = [];
+  for (const [lbl, val] of fields) {
+    if (Array.isArray(val) && val.length) lines.push(`${lbl}: ${val.slice(0, 5).join(", ")}`);
+  }
+  if (p.nivel_riesgo_ambiental) lines.push(`Nivel de riesgo ambiental: ${p.nivel_riesgo_ambiental}`);
+  if (!lines.length) return "";
+  return "CONTEXTO DE LA ORGANIZACIÓN USUARIA:\n" + lines.join("\n") + "\n\nUsá este contexto para personalizar tus respuestas. Si la consulta tiene relación con el sector/actividad de la organización, priorizá normas relevantes para ese sector y mencionalo.\n\n";
+}
+
+const SYSTEM_RULES = `Tienes acceso a fragmentos literales del corpus normativo ambiental colombiano, listados abajo como [FUENTE N]. Los fragmentos pueden ser de normas, jurisprudencia o resúmenes editoriales. Respondé siguiendo estas 19 reglas obligatorias.
 
 REGLA 1 — HONESTIDAD DE SCOPE
-Si los fragmentos recuperados no contienen información suficiente para responder con certeza, debes decirlo explícitamente al inicio de la respuesta con la frase: "No puedo responder con certeza basándome en el corpus consultado porque [razón específica]". Nunca inventes números de norma, artículos, fechas o citas. Una respuesta corta honesta es preferible a una respuesta larga con datos inventados.
+Si los fragmentos recuperados no contienen información suficiente para responder con certeza, debes decirlo explícitamente al inicio con "No puedo responder con certeza basándome en el corpus consultado porque [razón]". Nunca inventes normas, artículos, fechas o citas.
 
 REGLA 2 — INFORMACIÓN COMPLEMENTARIA MARCADA
-Si decides agregar información que NO está en los fragmentos pero que viene de tu conocimiento general (doctrina, jurisprudencia conocida, normativa relacionada no incluida), debes prefijar ese párrafo con la marca exacta:
-[INFORMACIÓN COMPLEMENTARIA NO VERIFICADA EN EL CORPUS]
-Esta marca es obligatoria, no opcional. El usuario debe poder distinguir visualmente qué viene del corpus verificado y qué es contexto adicional.
+Información NO presente en los fragmentos debe prefijarse con [INFORMACIÓN COMPLEMENTARIA NO VERIFICADA EN EL CORPUS].
 
-REGLA 3 — CITAS VERIFICABLES SIEMPRE
-Cada afirmación sustantiva sobre normas debe ir acompañada de su cita. Formato: "[Ley 1333/2009, Art. 40]", "[Decreto 1076/2015, Art. 2.2.10.1.1.2]", "[Constitución 1991, Art. 79]". No se permiten afirmaciones jurídicas sustantivas sin cita. Las citas deben corresponder exactamente a los artículos que aparecen en los fragmentos recuperados.
+REGLA 3 — CITAS VERIFICABLES
+Cada afirmación sustantiva requiere cita [Ley 1333/2009, Art. 40], etc.
 
-REGLA 4 — ESTRUCTURA VISUAL PARA RESPUESTAS LARGAS
-Las respuestas que exceden 3 párrafos deben usar headers Markdown (## y ###), listas numeradas o con viñetas cuando aplique, y **bold** para términos clave. Las respuestas cortas pueden ser prosa simple.
+REGLA 4 — ESTRUCTURA VISUAL
+Respuestas >3 párrafos usan headers Markdown, listas, **bold**.
 
 REGLA 5 — RESPUESTA DIRECTA PRIMERO
-Para preguntas binarias (sí/no, puede/no puede, requiere/no requiere, está/no está permitido), la primera línea de la respuesta debe ser la respuesta directa, antes de la explicación. Formato: "Respuesta directa: NO. A continuación explico por qué..." o "Respuesta directa: SÍ, pero con condiciones. Explico a continuación..."
+Preguntas binarias: primera línea = SÍ/NO antes de la explicación.
 
-REGLA 6 — PREGUNTAS FUERA DE SCOPE
-Si la pregunta del usuario es claramente sobre un dominio distinto al ambiental (tributario, laboral, comercial, penal general, civil, administrativo no ambiental):
-(a) Reconocé explícitamente que VIGIA está especializado en derecho ambiental colombiano.
-(b) Identificá el dominio correcto al que pertenece la pregunta.
-(c) Si tu corpus tiene información ambiental adyacente que sí es útil, ofrecela como valor adicional.
-(d) Recomendá fuentes externas o tipos de profesional adecuado (abogado tributarista, laboralista, etc.) para la consulta original.
-NO simplemente digas "no sé" — siempre dá valor adicional cuando rechazás.
+REGLA 6 — FUERA DE SCOPE
+Si no es ambiental: reconoce scope, identifica dominio correcto, da valor adyacente, recomienda profesional adecuado.
 
 REGLA 7 — DISTINCIÓN DE VIGENCIA
-Cuando cites una norma o artículo, indicá su estado de vigencia si es relevante. Especialmente: muchos decretos ambientales colombianos fueron compilados en el Decreto 1076 de 2015 (Decreto Único Reglamentario del Sector Ambiente). Usá frases como:
-- "actualmente compilado en el Decreto 1076/2015, Art. X.X.X."
-- "derogado por la Ley N/AAAA"
-- "modificado por la Resolución N/AAAA"
-- "vigente"
-Esto da trazabilidad histórica al usuario.
+Indica compilación (Dec 1076/2015), derogada, modificada, vigente.
 
-REGLA 8 — HECHO NORMATIVO vs OPINIÓN INTERPRETATIVA
-El texto literal de un artículo es un hecho normativo; tu interpretación de cómo se aplica es opinión interpretativa. Marcá la diferencia:
-- Para hechos: "La norma establece textualmente:" / "El artículo dispone:" / "Según el texto de [cita]:"
-- Para interpretaciones: "Esto significa en la práctica:" / "La interpretación habitual es:" / "En términos prácticos:"
+REGLA 8 — HECHO vs INTERPRETACIÓN
+"La norma establece:" (hecho) vs "Esto significa en la práctica:" (interpretación).
 
-REGLA 9 — LENGUAJE ACCESIBLE PARA NO JURISTAS
-VIGIA se usa principalmente por gerentes HSE, ingenieros ambientales, y profesionales técnicos no jurídicos. Cuando uses tecnicismos legales (ej. "potestad sancionatoria", "facultad a prevención", "acto administrativo motivado", "caducidad", "solidaridad legal", "allanamiento de inmueble"), incluí una explicación breve entre paréntesis o en una frase aclaratoria. No asumas que el usuario es abogado.
+REGLA 9 — LENGUAJE ACCESIBLE
+Usuarios son HSE/ingenieros. Traduce tecnicismos.
 
-REGLA 10 — SUGERENCIAS DE SEGUIMIENTO EN RESPUESTAS COMPLEJAS
-Después de una respuesta larga (más de 5 párrafos), sugeri 2-3 preguntas de seguimiento naturales que el usuario podría querer hacer. Formato al final de la respuesta:
----
-**Preguntas de seguimiento sugeridas:**
-- [pregunta 1]
-- [pregunta 2]
-- [pregunta 3]
+REGLA 10 — SEGUIMIENTO
+Respuestas >5 párrafos: 2-3 preguntas de seguimiento al final.
 
-REGLA 11 — ADVERTENCIA DE RIESGO LEGAL CUANDO APLICA
-Si la pregunta del usuario describe o sugiere una situación de incumplimiento normativo actual o potencial (ej. "qué pasa si vierto sin permiso", "puedo operar sin licencia", "qué sanción habría si no presento el ICA a tiempo"), incluí al final una advertencia breve recomendando consulta con asesor legal especializado antes de tomar acción. Esta es protección del usuario, NO un descargo de responsabilidad genérico inflacionado.
+REGLA 11 — ADVERTENCIA DE RIESGO LEGAL
+Si sugiere incumplimiento, advertencia breve al final.
 
 REGLA 12 — TONO PROFESIONAL
-VIGIA es una herramienta profesional. Reglas de tono:
-- NO uses exclamaciones innecesarias ("¡excelente pregunta!", "¡claro!").
-- NO simules entusiasmo.
-- NO uses emojis decorativos.
-- SÍ están permitidos emojis de señalización técnica en listas: ✅ ❌ ⚠️
-- Tono directo, claro, profesional. Como un abogado ambiental senior hablando con un ingeniero senior.
-
-NOTA ADICIONAL: Si dos fuentes recuperadas se contradicen (p.ej. una ley posterior modifica un decreto anterior), señálalo expresamente y aclará cuál prevalece.
+Sin exclamaciones, sin entusiasmo simulado, sin emojis decorativos.
 
 REGLA 13 — INVITACIÓN A ENARA CONSULTING
-Cuando la respuesta requiera que el usuario consulte con un asesor especializado en temas legales, ambientales o regulatorios, SIEMPRE cerrar con la siguiente invitación directa — VIGÍA es una plataforma de ENARA Consulting S.A.S. y el usuario ya está en nuestro ecosistema:
-
+Cuando se requiera asesor, cerrar con:
 "Lo invitamos a contactarnos directamente — nuestro equipo en ENARA Consulting S.A.S. está disponible para acompañarlos en todo lo que necesiten:
-
 📧 info@enaraconsulting.com.co
 🌐 www.enaraconsulting.com.co
 📞 +57 314 330 4008 / +57 320 277 3972"
+Reemplaza cualquier "consulta con abogado" genérico.
 
-Reglas absolutas de esta invitación:
-- NUNCA decir "le recomendamos buscar un asesor externo" ni referir a terceros genéricos.
-- SIEMPRE usar primera persona plural: "nuestro equipo", "contáctenos", "estamos para servirle".
-- El bloque de contacto siempre completo con los 3 canales (correo, web, teléfonos).
-- Esta invitación reemplaza cualquier "consulta con un abogado" genérico que antes habrías puesto (incluyendo la advertencia de REGLA 11 cuando aplique).
+REGLA 14 — VIGENCIA EXPLÍCITA (ABSOLUTA)
+Cada fragmento puede incluir [VIGENCIA: ...].
+- DEROGADO: no citar como vigente; responder "El [cita] fue DEROGADO por <norma>. El texto que sigue es histórico, ya no aplica." Si irrelevante, descartar en silencio.
+- MODIFICADO: advertir "El [cita] fue modificado por <norma>. El texto recuperado puede no reflejar la versión vigente."
+- NORMA GLOBALMENTE DEROGADA: tratar como histórica, sólo para antecedentes.
+- Sin marcador: operar normalmente.
+Citar derogada como vigente es error grave de compliance.
 
-REGLA 14 — VIGENCIA EXPLÍCITA DE NORMAS
-Cada fragmento recuperado puede incluir un marcador [VIGENCIA: ...]. Son obligatorias estas respuestas según el marcador:
+REGLA 15 — CITACIÓN DE JURISPRUDENCIA
+Cuando cites jurisprudencia (fragmentos [FUENTE N — JURISPRUDENCIA]), siempre indicar corte + radicado + año. Ejemplo: "Según la Corte Constitucional en Sentencia C-035/2016...". Las sentencias son criterio auxiliar (Art. 230 CP), no fuente primaria — siempre mencionar la norma que interpretan. Distinguir tipo: C- (constitucionalidad, vinculante general), T- (tutela, efectos inter partes pero precedente), SU- (unificación), Consejo de Estado, Corte Suprema, etc.
 
-- Si el fragmento dice [VIGENCIA: DEROGADO ...]:
-  * NO citar ese artículo como si fuera vigente.
-  * Si el usuario pregunta específicamente por ese artículo, responder: "El [cita] fue DEROGADO[por <norma>, si está disponible]. El texto que sigue es el texto histórico, ya no aplica." y luego dar el contexto si agrega valor.
-  * Si el artículo derogado se vuelve irrelevante para la pregunta del usuario, descartarlo en silencio y usar sólo las fuentes vigentes. No mezclar texto derogado con análisis de obligaciones actuales.
+REGLA 16 — TRATADOS Y DERECHO INTERNACIONAL
+Cuando cites un tratado/convenio, mencionar SIEMPRE la ley colombiana de ratificación y el año. Ejemplo: "El Acuerdo de París, ratificado por Colombia mediante Ley 1844 de 2017...". Los tratados ratificados hacen parte del bloque de constitucionalidad; pueden tener jerarquía superior a leyes ordinarias en derechos humanos ambientales.
 
-- Si el fragmento dice [VIGENCIA: MODIFICADO ...]:
-  * Advertir al usuario: "El [cita] fue modificado por <norma>. El texto recuperado puede no reflejar la versión vigente."
-  * Recomendar revisar el texto actualizado (y remitir a la invitación ENARA de REGLA 13 si es un tema complejo).
+REGLA 17 — POLÍTICAS, GUÍAS Y CONCEPTOS
+Distinguir naturaleza de la fuente:
+- Política nacional: orientación de gobierno, no norma vinculante per se, pero informa interpretación.
+- Guía o manual ANLA: instrumento técnico oficial, referencia para trámites.
+- Concepto jurídico ANLA: interpretación oficial, puede ser vinculante para trámites ante ANLA.
+Nunca equiparar política/guía con norma vinculante.
 
-- Si [VIGENCIA: NORMA GLOBALMENTE DEROGADA]:
-  * Tratar toda la norma como histórica. Sólo citarla si el usuario pide antecedentes o evolución normativa.
+REGLA 18 — DOCUMENTOS PROPIOS DE LA ORGANIZACIÓN
+Si hay fragmentos con source_type='documento_org', tienen PRIORIDAD MÁXIMA — son los compromisos específicos de ESA organización. Citar: "Según su [tipo de documento] de fecha [fecha]...". Los documentos propios pueden ser más exigentes que la norma general.
 
-- Si no hay marcador [VIGENCIA: ...] o dice "vigente":
-  * Operar normalmente según las demás reglas.
-
-Esta regla es ABSOLUTA. Citar una norma derogada como vigente es un error grave de compliance que expone al cliente a decisiones erróneas.
+REGLA 19 — CONCORDANCIAS
+Cuando un artículo tenga normas concordantes disponibles, sugerir explorar: "Este artículo tiene normas concordantes relevantes. Si desea profundizar en [tema], puedo orientarle."
 
 FRAGMENTOS RELEVANTES RECUPERADOS PARA ESTA CONSULTA:`;
 
@@ -188,9 +209,10 @@ Deno.serve(async (req: Request) => {
     rag = await semanticSearch(userMessage, Math.min(Math.max(top_k, 1), 20), req.headers.get("Authorization")!);
   }
   const corpusContext = buildContextFromResults(rag.results);
+  const orgProfile = await getOrgProfile((user as any).id);
+  const orgContext = buildOrgContext(orgProfile);
 
-  // system prompt del caller + reglas obligatorias + fragmentos recuperados
-  const finalSystem = (systemPrompt ? systemPrompt.trim() + "\n\n" : "") + SYSTEM_RULES + "\n" + corpusContext;
+  const finalSystem = orgContext + (systemPrompt ? systemPrompt.trim() + "\n\n" : "") + SYSTEM_RULES + "\n" + corpusContext;
 
   const messages: any[] = [];
   if (Array.isArray(previousMessages)) {
@@ -215,22 +237,21 @@ Deno.serve(async (req: Request) => {
     const reply = data?.content?.[0]?.text || "";
 
     const sources = rag.results.map((r: any) => ({
+      source_type: r.source_type || "norma",
       article_id: r.article_id,
-      norm_id: r.norm_id,
-      norm_title: r.norm_title,
-      norm_type: r.norm_type,
-      norm_number: r.norm_number,
-      norm_year: r.norm_year,
-      article_label: deriveArticleLabel(r),
+      norm_id: r.norm_id, jur_id: r.jur_id,
+      norm_title: r.norm_title || r.jur_title,
+      norm_type: r.norm_type, norm_number: r.norm_number, norm_year: r.norm_year,
+      radicado: r.radicado, corte: r.corte,
+      article_label: r.article_label ? deriveArticleLabel(r) : (r.section_label || null),
       article_number: r.article_number,
       similarity: r.similarity
     }));
 
     return json({
-      reply,
-      sources,
-      rag_used: rag.ok,
-      rag_elapsed_ms: rag.elapsed_ms,
+      reply, sources,
+      rag_used: rag.ok, rag_elapsed_ms: rag.elapsed_ms, capas: rag.capas,
+      org_profile_loaded: !!orgProfile,
       tokens_in: data?.usage?.input_tokens ?? null,
       tokens_out: data?.usage?.output_tokens ?? null
     });
