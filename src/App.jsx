@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.23";
+const EXPORT_VIGIA_VERSION = "v3.9.24";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2202,6 +2202,17 @@ const [ediFilter, setEdiFilter] = useState("todos");
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
 const [normScopeFilter, setNormScopeFilter] = useState("todos");
+// --- Modo Consultor ENARA (SuperAdmin) ---
+const [consultorOrgList, setConsultorOrgList] = useState([]);
+const [consultorOrgId, setConsultorOrgId] = useState(null);
+const [consultorOrg, setConsultorOrg] = useState(null);
+const [consultorInstruments, setConsultorInstruments] = useState([]);
+const [consultorObligations, setConsultorObligations] = useState([]);
+const [consultorDocuments, setConsultorDocuments] = useState([]);
+const [consultorLoading, setConsultorLoading] = useState(false);
+const [consultorBotInput, setConsultorBotInput] = useState("");
+const [consultorBotMessages, setConsultorBotMessages] = useState([{role:"system",text:"Modo Consultor ENARA. Selecciona un cliente para empezar."}]);
+const [consultorBotLoading, setConsultorBotLoading] = useState(false);
 const [exportMenu, setExportMenu] = useState(null); // null | "conv" | messageIndex
 useEffect(() => {
   if (exportMenu === null) return;
@@ -2289,6 +2300,74 @@ const refreshDashboardData = async () => {
     setLastSync(new Date());
   } catch(e) { console.log("refreshDashboardData silenced:", e); }
 };
+
+// --- Modo Consultor ENARA ---
+const loadConsultorOrgList = async () => {
+  if(!session?.access_token || !isSuperAdmin) return;
+  try {
+    const data = await callEdge("superadmin-api", { op: "list-overview" }, session.access_token);
+    const orgs = Array.isArray(data?.orgs) ? data.orgs : [];
+    setConsultorOrgList(orgs);
+  } catch(e) { console.log("loadConsultorOrgList error:", e); }
+};
+
+const selectConsultorOrg = async (orgId) => {
+  if(!orgId) {
+    setConsultorOrgId(null); setConsultorOrg(null);
+    setConsultorInstruments([]); setConsultorObligations([]); setConsultorDocuments([]);
+    setConsultorBotMessages([{role:"system",text:"Modo Consultor ENARA. Selecciona un cliente para empezar."}]);
+    return;
+  }
+  setConsultorLoading(true); setConsultorOrgId(orgId);
+  try {
+    const data = await callEdge("superadmin-api", { op: "list-org-context", payload: { org_id: orgId } }, session.access_token);
+    setConsultorOrg(data?.org || null);
+    setConsultorInstruments(Array.isArray(data?.instruments) ? data.instruments : []);
+    setConsultorObligations(Array.isArray(data?.obligations) ? data.obligations : []);
+    setConsultorDocuments(Array.isArray(data?.documents) ? data.documents : []);
+    setConsultorBotMessages([{role:"system",text:`Cliente activo: ${data?.org?.name || "(sin nombre)"} · ${(data?.instruments||[]).length} EDIs · ${(data?.obligations||[]).length} obligaciones`}]);
+  } catch(e) {
+    setConsultorBotMessages([{role:"system",text:"Error cargando contexto del cliente: "+(e.message||e)}]);
+  }
+  setConsultorLoading(false);
+};
+
+const sendConsultorBot = async () => {
+  if(!consultorBotInput.trim() || consultorBotLoading || !consultorOrgId || !consultorOrg) return;
+  const userMsg = { role:"user", text: consultorBotInput };
+  setConsultorBotMessages(p=>[...p, userMsg]); setConsultorBotInput(""); setConsultorBotLoading(true);
+  const overdueC = consultorObligations.filter(o=>derivedStatus(o)==="vencido").length;
+  const upcomingC = consultorObligations.filter(o=>derivedStatus(o)==="proximo").length;
+  const systemPrompt = `Eres VIGÍA actuando como asistente legal junior de ENARA Consulting.
+Estás analizando el caso del cliente: ${consultorOrg.name} (NIT: ${consultorOrg.nit||"sin registrar"}).
+Sector: ${consultorOrg.sector || "no especificado"}.
+Tier: ${consultorOrg.tier || consultorOrg.plan || "—"}.
+EDIs activos: ${consultorInstruments.length}.
+Obligaciones vigentes: ${consultorObligations.length} (${overdueC} vencidas, ${upcomingC} próximas).
+
+Tu rol: apoyar al equipo de ENARA con análisis jurídico rápido,
+identificación de riesgos de compliance y recomendaciones específicas
+para este cliente. Responde en español colombiano formal.
+Cita siempre la norma exacta con artículo.
+Cuando detectes un riesgo de compliance, destácalo claramente.`;
+  const previousMessages = consultorBotMessages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({role:m.role,content:m.text}));
+  try {
+    const res = await fetch(`${SB_URL}/functions/v1/chat-bot`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:`Bearer ${session?.access_token||SB_KEY}`, apikey:SB_KEY },
+      body: JSON.stringify({ systemPrompt, userMessage: userMsg.text, previousMessages, override_org_id: consultorOrgId })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.reply) throw new Error(data.error || `Error ${res.status}`);
+    const botSources = Array.isArray(data.sources) ? data.sources : [];
+    setConsultorBotMessages(p=>[...p, { role:"assistant", text: data.reply, sources: botSources, capas: data.capas||null }]);
+  } catch(e) {
+    setConsultorBotMessages(p=>[...p, { role:"assistant", text:"Error: "+(e.message||"No fue posible procesar la consulta."), layers:"" }]);
+  }
+  setConsultorBotLoading(false);
+};
+
+useEffect(()=>{ if(view==="consultor-enara" && isSuperAdmin && consultorOrgList.length===0) loadConsultorOrgList(); }, [view, isSuperAdmin]);
 
 useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
 
@@ -2401,7 +2480,7 @@ setBotLoading(false);
 };
 
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
@@ -2803,7 +2882,119 @@ const renderEDIs = () => {
   </div>;
 };
 
-const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);setLastSync(new Date());refreshDashboardData();}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);setLastSync(new Date());refreshDashboardData();}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));setLastSync(new Date());}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); return renderDashboard(); };
+const renderConsultorENARA = () => {
+  if(!isSuperAdmin) return <div style={{padding:28,color:C.red}}>Acceso restringido a SuperAdmins de ENARA.</div>;
+  const overdueC = consultorObligations.filter(o=>derivedStatus(o)==="vencido").length;
+  const upcomingC = consultorObligations.filter(o=>derivedStatus(o)==="proximo").length;
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16,overflowY:"auto"}}>
+      <div>
+        <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Consultor ENARA</h1>
+        <p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>Asistente legal junior por cliente · análisis y compliance</p>
+      </div>
+
+      {/* Zona A — Selector de cliente */}
+      {!consultorOrg ? (
+        <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px"}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.08em"}}>Selecciona un cliente</div>
+          {consultorOrgList.length===0 ? (
+            <div style={{color:C.textMuted,fontSize:12,padding:"12px 0"}}>{consultorLoading?"Cargando…":"Sin clientes cargados aún."}</div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:8}}>
+              {consultorOrgList.map(o=>(
+                <button key={o.id} onClick={()=>selectConsultorOrg(o.id)} disabled={consultorLoading} style={{textAlign:"left",background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",cursor:consultorLoading?"wait":"pointer",color:C.text,fontFamily:FONT}}>
+                  <div style={{fontSize:12,fontWeight:600,color:C.text,marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{o.name||"(sin nombre)"}</div>
+                  <div style={{fontSize:10,color:C.textMuted,display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {o.nit && <span>NIT {o.nit}</span>}
+                    {o.sector && <span>· {o.sector}</span>}
+                    {(o.tier||o.plan) && <span style={{color:C.primary,fontWeight:600}}>· {o.tier||o.plan}</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{background:C.surface,border:`1px solid ${C.green}55`,borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style={{width:34,height:34,borderRadius:8,background:C.greenDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Scale size={16} color={C.green}/></div>
+          <div style={{flex:1,minWidth:200}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.green,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}}>Cliente activo</div>
+            <div style={{fontSize:14,fontWeight:700,color:C.text}}>{consultorOrg.name}</div>
+            <div style={{fontSize:11,color:C.textSec,marginTop:2,display:"flex",gap:8,flexWrap:"wrap"}}>
+              {consultorOrg.nit && <span>NIT {consultorOrg.nit}</span>}
+              {consultorOrg.sector && <span>· {consultorOrg.sector}</span>}
+              {(consultorOrg.tier||consultorOrg.plan) && <span>· {consultorOrg.tier||consultorOrg.plan}</span>}
+            </div>
+          </div>
+          <button onClick={()=>selectConsultorOrg(null)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 12px",color:C.textSec,fontSize:11,cursor:"pointer"}}>Cambiar cliente</button>
+        </div>
+      )}
+
+      {/* Zona B — Contexto del cliente */}
+      {consultorOrg && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+          <StatCard icon={Layers} label="EDIs activos" value={consultorInstruments.length} color={C.primary}/>
+          <StatCard icon={AlertTriangle} label="Vencidas" value={overdueC} color={C.red}/>
+          <StatCard icon={Clock} label="Próximas" value={upcomingC} color={C.yellow}/>
+          <StatCard icon={FileText} label="Documentos" value={consultorDocuments.length} color={C.blue}/>
+        </div>
+      )}
+
+      {consultorOrg && consultorInstruments.length>0 && (
+        <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px 18px"}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>EDIs del cliente ({consultorInstruments.length})</div>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            {consultorInstruments.slice(0,5).map(i=>(
+              <div key={i.id} style={{padding:"6px 10px",background:C.surfaceEl,borderRadius:6,fontSize:11,color:C.text,display:"flex",gap:8,flexWrap:"wrap"}}>
+                <span style={{color:C.primary,fontWeight:600,textTransform:"uppercase"}}>{i.instrument_type||"EDI"}</span>
+                {i.number && <span>· {i.number}</span>}
+                {i.project_name && <span style={{color:C.textSec}}>· {i.project_name.slice(0,60)}</span>}
+                {i.edi_status && <span style={{marginLeft:"auto",color:C.textMuted}}>{i.edi_status}</span>}
+              </div>
+            ))}
+            {consultorInstruments.length>5 && <div style={{fontSize:10,color:C.textMuted,padding:"4px 10px"}}>… y {consultorInstruments.length-5} más</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Zona C — Chat en contexto del cliente */}
+      {consultorOrg && (
+        <div style={{flex:1,minHeight:340,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          <div style={{flex:1,overflowY:"auto",padding:"14px 16px",display:"flex",flexDirection:"column",gap:10}}>
+            {consultorBotMessages.map((msg,i)=>(
+              <div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>
+                {msg.role!=="user"&&<div style={{width:26,height:26,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Scale size={12} color={C.primary}/></div>}
+                <div style={{maxWidth:"80%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px"}}>
+                  {msg.role==="system"&&<div style={{fontSize:10,color:C.green,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>Consultor ENARA</div>}
+                  {msg.role==="assistant" ? <MarkdownText text={msg.text}/> : <div style={{fontSize:13,color:C.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{msg.text}</div>}
+                  {msg.role==="assistant" && Array.isArray(msg.sources) && msg.sources.length>0 && (
+                    <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>
+                      {msg.sources.length} fuente{msg.sources.length!==1?"s":""} · {msg.capas?.documentos_org>0 && <span style={{color:C.green,fontWeight:600}}>{msg.capas.documentos_org} documento{msg.capas.documentos_org!==1?"s":""} del cliente</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {consultorBotLoading && (
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:26,height:26,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Scale size={12} color={C.primary}/></div>
+                <div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"10px 14px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div>
+              </div>
+            )}
+          </div>
+          <div style={{padding:"10px 14px",borderTop:`1px solid ${C.border}`,display:"flex",gap:8,alignItems:"flex-end"}}>
+            <textarea value={consultorBotInput} onChange={e=>setConsultorBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendConsultorBot();}}} placeholder={`Consulta sobre ${consultorOrg.name}…`} style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"9px 12px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:40,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/>
+            <button onClick={sendConsultorBot} disabled={consultorBotLoading||!consultorBotInput.trim()} style={{background:consultorBotLoading||!consultorBotInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"10px 14px",cursor:"pointer"}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={consultorBotLoading||!consultorBotInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const renderView=()=>{ if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={clientOrg} sessionToken={session?.access_token} instruments={instruments} obligations={obligations} onNewInstrument={inst=>{setInstruments(p=>[inst,...p]);setLastSync(new Date());refreshDashboardData();}} onNewObligation={obs=>{setObligations(p=>[...obs,...p]);setLastSync(new Date());refreshDashboardData();}} onObligationUpdate={ob=>{setObligations(p=>p.map(o=>o.id===ob.id?ob:o));setLastSync(new Date());}}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
@@ -2812,11 +3003,11 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.23</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.24</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
-{navItems.map(({key,icon:Icon,label,badge})=>{ const active=view===key||(key==="edis"&&view==="edi-detail"); return <button key={key} onClick={()=>setView(key)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:8,marginBottom:2,background:active?C.primaryDim:"transparent",border:active?`1px solid ${C.primary}33`:"1px solid transparent",color:active?C.primary:C.textSec,cursor:"pointer",textAlign:"left",fontSize:13,fontWeight:active?600:400,fontFamily:FONT}}><Icon size={15}/><span style={{flex:1}}>{label}</span>{badge>0&&<span style={{background:C.red,color:"#fff",borderRadius:8,padding:"1px 7px",fontSize:9,fontWeight:700}}>{badge}</span>}</button>; })}
+{navItems.map(({key,icon:Icon,label,badge,sub})=>{ const active=view===key||(key==="edis"&&view==="edi-detail"); return <button key={key} onClick={()=>setView(key)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:8,marginBottom:2,background:active?C.primaryDim:"transparent",border:active?`1px solid ${C.primary}33`:"1px solid transparent",color:active?C.primary:C.textSec,cursor:"pointer",textAlign:"left",fontSize:13,fontWeight:active?600:400,fontFamily:FONT}}><Icon size={15}/><span style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}><span>{label}</span>{sub&&<span style={{fontSize:9,color:C.green,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{sub}</span>}</span>{badge>0&&<span style={{background:C.red,color:"#fff",borderRadius:8,padding:"1px 7px",fontSize:9,fontWeight:700}}>{badge}</span>}</button>; })}
 </nav>
 <div style={{padding:"10px 12px",borderTop:`1px solid ${C.border}`,borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",borderRadius:6,background:dbStatus==="connected"?C.greenDim:C.yellowDim}}>

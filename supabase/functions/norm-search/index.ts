@@ -5,6 +5,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUP
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const EMBEDDING_MODEL = Deno.env.get("OPENAI_EMBEDDING_MODEL") || "text-embedding-3-small";
+const SUPERADMIN_EMAILS = (Deno.env.get("SUPERADMIN_EMAILS") || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -111,7 +112,7 @@ Deno.serve(async (req: Request) => {
   if (!user) return json({ error: "No autorizado" }, 401);
 
   let body: any; try { body = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
-  const { query, top_k = 10, filters = {}, include_jur = true, include_eureka = true, include_org = true, include_pedagogico = false } = body || {};
+  const { query, top_k = 10, filters = {}, include_jur = true, include_eureka = true, include_org = true, include_pedagogico = false, override_org_id = null } = body || {};
   if (!query || typeof query !== "string" || query.trim().length < 3) return json({ error: "Query vacía o demasiado corta" }, 400);
 
   const t0 = Date.now();
@@ -135,7 +136,12 @@ Deno.serve(async (req: Request) => {
     const jurTopK = Math.max(2, Math.floor(topK * 0.3));
     const euTopK = Math.max(2, Math.floor(topK * 0.2));
 
-    const orgId = include_org ? await getUserOrgId((user as any).id) : null;
+    // override_org_id: solo SuperAdmin puede pivotear contexto a otra org (modo Consultor ENARA).
+    // Si no es SuperAdmin, se ignora silenciosamente y se usa el org del usuario.
+    const userEmail = String((user as any).email || "").toLowerCase();
+    const isSuperAdmin = SUPERADMIN_EMAILS.includes(userEmail);
+    const effectiveOrgId = (isSuperAdmin && override_org_id) ? override_org_id : await getUserOrgId((user as any).id);
+    const orgId = include_org ? effectiveOrgId : null;
     const orgDocsTopK = Math.max(2, Math.floor(topK * 0.3));
 
     const [normRows, jurRows, euRows, orgDocsRows] = await Promise.all([

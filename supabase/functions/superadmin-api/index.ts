@@ -102,6 +102,20 @@ Deno.serve(async (req: Request) => {
       const data = await adminReq(`/rest/v1/normative_articles?norm_id=eq.${norm_id}&select=id,article_number,article_label,title,chapter,content,order_index,content_tokens,embedding_generated_at&order=order_index.asc&limit=${limit}&offset=${offset}`);
       return jsonResponse({ articles: data });
     }
+    if (op === "list-org-context") {
+      const { org_id } = payload || {};
+      if (!org_id) return jsonResponse({ error: "Falta org_id" }, 400);
+      const [org, inst, obs, docs] = await Promise.all([
+        adminReq(`/rest/v1/organizations?id=eq.${org_id}&select=*&limit=1`),
+        adminReq(`/rest/v1/instruments?org_id=eq.${org_id}&select=*&order=created_at.desc`),
+        adminReq(`/rest/v1/obligations?org_id=eq.${org_id}&select=*&order=due_date.asc`),
+        adminReq(`/rest/v1/documents?org_id=eq.${org_id}&select=id,original_name,doc_type_detected,doc_role,created_at&order=created_at.desc&limit=20`),
+      ]);
+      return jsonResponse({
+        org: Array.isArray(org) ? org[0] : org,
+        instruments: inst, obligations: obs, documents: docs
+      });
+    }
     return jsonResponse({ error: `op desconocida: ${op}` }, 400);
   } catch (e) {
     return jsonResponse({ error: (e as Error).message }, 500);
