@@ -1,0 +1,71 @@
+{
+  "started_at": "2026-04-14T22:33:26-0500",
+  "dry_run": false,
+  "total": 4,
+  "skipped_existing": 0,
+  "fetch_failed": 0,
+  "empty_pdf": 0,
+  "chunks_created": 10,
+  "articles_inserted": 10,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 10,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 51625,
+  "errors": [],
+  "would_insert_articles": 0,
+  "per_doc": [
+    {
+      "radicado": "CE-2019-00262",
+      "corte": "Consejo de Estado",
+      "url": "https://www.anla.gov.co/eureka/images/2026_ce_sent_decreto1500_2018.pdf",
+      "pages": 76,
+      "chars": 258499,
+      "chunks": 2,
+      "sections": [
+        "preambulo",
+        "antecedentes"
+      ]
+    },
+    {
+      "radicado": "CE-2007-00383",
+      "corte": "Consejo de Estado",
+      "url": "https://www.anla.gov.co/eureka/images/2022_ce_sent_2007_00383_medidas_preventivas.pdf",
+      "pages": 76,
+      "chars": 140744,
+      "chunks": 3,
+      "sections": [
+        "preambulo",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "radicado": "T-038/2019",
+      "corte": "Tribunal",
+      "url": "https://www.anla.gov.co/eureka/images/2019_Sentencia_TSM_Rio_Cauca.pdf",
+      "pages": 46,
+      "chars": 84360,
+      "chunks": 4,
+      "sections": [
+        "preambulo",
+        "antecedentes",
+        "considerandos",
+        "decision"
+      ]
+    },
+    {
+      "radicado": "STC-4360/2018",
+      "corte": "Corte Suprema de Justicia",
+      "url": "https://sinchi.org.co/files/sentecia/stc4360-2018.pdf",
+      "pages": 51,
+      "chars": 91522,
+      "chunks": 1,
+      "sections": [
+        "documento_completo"
+      ]
+    }
+  ],
+  "elapsed_seconds": 23.2,
+  "finished_at": "2026-04-14T22:33:49-0500",
+  "openai_cost_usd_estimated": 0.001032
+}

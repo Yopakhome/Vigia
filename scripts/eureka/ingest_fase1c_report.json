@@ -1,0 +1,278 @@
+{
+  "started_at": "2026-04-14T22:29:15-0500",
+  "dry_run": false,
+  "total": 33,
+  "skipped_existing": 3,
+  "fetch_failed": 0,
+  "pdf_not_found": 8,
+  "empty_pdf": 2,
+  "sources_inserted": 20,
+  "articles_inserted": 77,
+  "articles_insert_failed": 0,
+  "embeddings_generated": 77,
+  "embeddings_failed": 0,
+  "embedding_tokens_total": 258209,
+  "errors": [
+    {
+      "stage": "no_pdf",
+      "slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental",
+      "detail_url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/manuales/manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco",
+      "detail_url": "https://www.anla.gov.co/eureka/manuales-guias-y-programas/planes/plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco"
+    },
+    {
+      "stage": "empty_pdf",
+      "slug": "concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/documentos/250424-concepto-2024-01-04.pdf",
+      "chars": 5,
+      "pages": 6
+    },
+    {
+      "stage": "empty_pdf",
+      "slug": "concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/documentos/MADS-4120-E1-16644_medidas_preventivas.pdf",
+      "chars": 3,
+      "pages": 4
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/formatos/formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "politica-nacional-de-cambio-climatico-pncc",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-de-cambio-climatico-pncc"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005"
+    },
+    {
+      "stage": "no_pdf",
+      "slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004",
+      "detail_url": "https://www.anla.gov.co/eureka/documentos-estrategicos/politicas/politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004"
+    }
+  ],
+  "would_insert_sources": 0,
+  "would_insert_articles": 0,
+  "per_doc": [
+    {
+      "slug": "guia-de-implementacion-del-acuerdo-regional-sobre-el-acceso-a-la-informacion-la-participacion-publica-y-el-acceso-a-la-justicia-en-asuntos-ambientales-en-america-latina-y-el-caribe-acuerdo-de-escazu",
+      "category": "/eureka/manuales-guias-y-programas",
+      "subcat": "guias",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2022_escazu_cepal.pdf",
+      "pages": 191,
+      "chars": 671569,
+      "chunking": "39_articulos",
+      "arts": 39
+    },
+    {
+      "slug": "guia-procedimiento-administrativo-ambiental-sancionatorio-ley-1333-de-2009-modificada-por-la-ley-2387-de-2024",
+      "category": "/eureka/manuales-guias-y-programas",
+      "subcat": "guias",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/documentos/2024_guia_paas_pgn.pdf",
+      "pages": 178,
+      "chars": 380055,
+      "chunking": "18_articulos",
+      "arts": 18
+    },
+    {
+      "slug": "manual-de-seguimiento-ambiental-de-proyectos-criterios-y-procedimientos",
+      "category": "/eureka/manuales-guias-y-programas",
+      "subcat": "manuales",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/manual_seguimiento_ambiental_2002.pdf",
+      "pages": 164,
+      "chars": 245241,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales-participacion-de-terceros-en-actuaciones-administrativas-no-sancionatorias",
+      "category": "/eureka/conceptos-y-problemas-juridicos",
+      "subcat": "conceptos-juridicos",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/20262300130061_concepto_terceros.pdf",
+      "pages": 11,
+      "chars": 32582,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "concepto-juridico-sobre-los-terceros-intervinientes-en-la-etapa-de-seguimiento-ambiental-de-las-licencias-y-los-permisos-ambientales",
+      "category": "/eureka/conceptos-y-problemas-juridicos",
+      "subcat": "conceptos-juridicos",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/documentos/2025_concepto_mads_terceros.pdf",
+      "pages": 4,
+      "chars": 13501,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "concepto-juridico-sobre-la-publicidad-de-los-expedientes-procesos-sancionatorios-ambientales-y-reserva-legal-en-el-marco-del-acuerdo-de-escazu-y-los-derechos-de-acceso-a-la-informacion-participacion-y-justicia-ambiental",
+      "category": "/eureka/conceptos-y-problemas-juridicos",
+      "subcat": "conceptos-juridicos",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/20251405416303_anla_concepto_publicidad_expedientes.pdf",
+      "pages": 10,
+      "chars": 29899,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "no-cesion-de-los-procesos-sancionatorios-ambientales-en-el-marco-de-la-cesion-de-una-licencia-ambiental",
+      "category": "/eureka/conceptos-y-problemas-juridicos",
+      "subcat": "conceptos-juridicos",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2017092996-3-000_ANLA_Cesion_LA.pdf",
+      "pages": 8,
+      "chars": 21837,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "concepto-juridico-sobre-proyectos-mineros-en-paramos",
+      "category": "/eureka/conceptos-y-problemas-juridicos",
+      "subcat": "conceptos-juridicos",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/documentos/130924-concepto-5595-2024-02-27.pdf",
+      "pages": 7,
+      "chars": 21821,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "politica-para-la-consolidacion-del-sistema-nacional-de-areas-protegidas-sinap-documento-conpes-4050-de-2021",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/CONPES_4050_2021_politica_sinap.pdf",
+      "pages": 114,
+      "chars": 583746,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "politica-de-gestion-del-riesgo-asociado-al-uso-de-sustancias-quimicas-documento-conpes-3868-de-2016",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2016_conpes_3868_sust_quim.pdf",
+      "pages": 74,
+      "chars": 182458,
+      "chunking": "2_articulos",
+      "arts": 2
+    },
+    {
+      "slug": "estrategia-nacional-de-economia-circular-enec-de-2018-economia-circular-residuos-solidos-crecimiento-verde",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2018_economia_circular_enec_100_compressed.pdf",
+      "pages": 86,
+      "chars": 211395,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "lineamientos-de-politica-y-programa-nacional-de-pago-por-servicios-ambientales-para-la-construccion-de-paz-documento-conpes-3886-de-2017",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2017_conpes_3886_PSA.pdf",
+      "pages": 94,
+      "chars": 229931,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "politica-para-el-mejoramiento-de-la-calidad-del-aire-calidad-del-aire-aire-documento-conpes-3943-de-2018",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2018_conpes_3943_aire.pdf",
+      "pages": 86,
+      "chars": 225039,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "politica-de-crecimiento-verde-crecimiento-verde-documento-conpes-3934-de-2018",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2018_conpes_3934_crecimiento_verde.pdf",
+      "pages": 114,
+      "chars": 289390,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "declaracion-de-importancia-estrategica-del-proyecto-de-inversion-recuperacion-de-la-selva-amazonica-y-territorios-estrategicos-alrededor-del-agua-a-nivel-nacional-bpin-202500000022983-documento-conpes-4174-de-2025",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2025_conpes_4174_selva_amazonica.pdf",
+      "pages": 47,
+      "chars": 108734,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "politica-colombia-potencia-bioceanica-sostenible-2030-politica-nacional-ambiental-documento-conpes-3990-de-2020",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2020_conpes_3990_bioceanica.pdf",
+      "pages": 91,
+      "chars": 235593,
+      "chunking": "2_articulos",
+      "arts": 2
+    },
+    {
+      "slug": "politica-nacional-para-la-gestion-integral-de-residuos-solidos-pngrs-residuos-solidos-gestion-integral-de-residuos-solidos-documento-conpes-3874-de-2016",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/2016_conpes_3874_rs.pdf",
+      "pages": 73,
+      "chars": 173583,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "economia-circular-en-la-gestion-de-los-servicios-de-agua-potable-y-manejo-de-aguas-residuales-en-colombia-documento-conpes-4004-de-2020",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/conpes_4004_2020_ec.pdf",
+      "pages": 64,
+      "chars": 151372,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "estrategia-institucional-para-la-articulacion-de-politicas-y-acciones-en-materia-de-cambio-climatico-en-colombia-documento-conpes-3700-de-2011",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/conpes_3700_2011_cc.pdf",
+      "pages": 75,
+      "chars": 166764,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    },
+    {
+      "slug": "estrategia-para-la-implementacion-de-los-objetivos-de-desarrollo-sostenible-ods-en-colombia-documento-conpes-3918-de-2018",
+      "category": "/eureka/documentos-estrategicos",
+      "subcat": "politicas",
+      "pdf_url": "https://www.anla.gov.co/eureka/images/conpes_3918_2018_ODS.pdf",
+      "pages": 74,
+      "chars": 152962,
+      "chunking": "fallback_doc_completo",
+      "arts": 1
+    }
+  ],
+  "elapsed_seconds": 220.6,
+  "finished_at": "2026-04-14T22:32:55-0500",
+  "openai_cost_usd_estimated": 0.005164
+}

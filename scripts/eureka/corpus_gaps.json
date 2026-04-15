@@ -14,7 +14,7 @@
       "skip_definitivo": 1
     }
   },
-  "last_updated": "2026-04-14 (Fase 2D-jur + Fase 1C recon)",
+  "last_updated": "2026-04-14 (Fase 1C ingesta + jurisprudence PDFs no-CC)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -244,9 +244,33 @@
       "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores."
     }
   ],
+  "fase1c_ingesta_gaps": {
+    "description": "10 docs de Fase 1C que no se ingestaron en la primera pasada (23/33 procesados). Quedaron fuera por: (a) sin PDF inline ANLA (8) — requieren seguir el link externo a minambiente/DNP; (b) PDF scan sin capa de texto (2) — requiere OCR.",
+    "executed_at": "2026-04-14",
+    "ingestados": 23,
+    "pendientes": 10,
+    "sin_inline_pdf": [
+      {"slug": "manual-conceptual-y-procedimental-de-la-metodologia-para-el-calculo-de-multas-por-infraccion-a-la-normativa-ambiental", "subcat": "manuales", "sugerencia": "probable link externo minambiente.gov.co"},
+      {"slug": "plan-de-manejo-del-distrito-regional-de-manejo-integrado-drmi-la-playona-loma-la-caleta-ubicado-en-el-norte-del-departamento-de-choco", "subcat": "planes", "sugerencia": "buscar en CODECHOCO/minambiente"},
+      {"slug": "formato-unico-nacional-de-solicitud-de-permiso-de-estudio-para-la-recoleccion-de-especimenes-de-especies-silvestres-de-la-diversidad-biologica-con-fines-de-elaboracion-de-estudios-ambientales", "subcat": "formatos", "sugerencia": "formato plantilla, probable anexo de resolución minambiente"},
+      {"slug": "politica-nacional-de-cambio-climatico-pncc", "subcat": "politicas", "sugerencia": "link externo minambiente.gov.co"},
+      {"slug": "lineamientos-para-la-formulacion-de-la-politica-integral-de-salud-ambiental-documento-conpes-3550-de-2008", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co/DNPN/archivos-virtuales/CONPES"},
+      {"slug": "estrategia-para-el-manejo-ambiental-de-la-cuenca-ubate-suarez-documento-conpes-3451-de-2006", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co"},
+      {"slug": "lineamientos-para-la-formulacion-de-la-politica-de-prevencion-y-control-de-la-contaminacion-del-aire-documento-conpes-3344-de-2005", "subcat": "politicas", "sugerencia": "CONPES — dnp.gov.co"},
+      {"slug": "politica-nacional-ambiental-para-el-desarrollo-sostenible-de-los-espacios-oceanicos-y-las-zonas-costeras-e-insulares-de-colombia-plan-de-accion-2002-2004", "subcat": "politicas", "sugerencia": "link externo minambiente.gov.co"}
+    ],
+    "scan_no_ocr": [
+      {"slug": "concepto-juridico-sobre-las-medidas-preventivas-en-el-procedimiento-sancionatorio-ambiental", "subcat": "conceptos-juridicos", "pages": 6, "chars": 5, "sugerencia": "OCR via Claude vision (~$0.02)"},
+      {"slug": "concepto-juridico-sobre-la-proporcionalidad-de-las-medidas-preventivas", "subcat": "conceptos-juridicos", "pages": 4, "chars": 3, "sugerencia": "OCR via Claude vision (~$0.02)"}
+    ],
+    "accion_recomendada": "Sprint futuro: (1) para los 8 sin inline PDF, resolver el link externo a minambiente/DNP y adaptar fetch_detail_pdf. (2) para los 2 conceptos jurídicos scan, usar el pattern OCR de Sprint A (scripts/ocr_scans_via_edge.py). Costo total estimado: ~$0.05."
+  },
   "jurisprudence_non_corte": {
-    "description": "5 sentencias de jurisprudence_sources que NO son Corte Constitucional y quedaron fuera del scraper de Fase 2D-jur (que procesó 115/115 docs de corteconstitucional.gov.co + suin). Estos 5 tienen PDFs accesibles (3 inline ANLA, 1 en sinchi, 1 URL de noticia) y son procesables en futuro con un scraper PDF adaptado.",
-    "status": "procesables_futuro",
+    "description": "5 sentencias NO Corte Constitucional. 4/5 INGESTADAS en Fase 2D-jur-pdfs (10 chunks). 1 queda pendiente: STC-3872/2020 (URL es nota de prensa, no la sentencia).",
+    "status": "4_de_5_ingestadas",
+    "executed_at": "2026-04-14",
+    "ingestadas": ["CE-2007-00383", "CE-2019-00262", "STC-4360/2018", "T-038/2019"],
+    "pendiente": "STC-3872/2020",
     "docs": [
       {
         "radicado": "CE-2007-00383",
