@@ -1,0 +1,73 @@
+{
+  "politicas_procesadas": 10,
+  "politicas_fallidas": 0,
+  "chunks_inserted": 53,
+  "tokens": 56833,
+  "errors": [],
+  "tratados_en_corpus": [
+    "Basilea (Ley 253/1996)",
+    "Rotterdam (Ley 1159/2007)",
+    "Kyoto (Ley 629/2000)",
+    "París (Ley 1844/2017)",
+    "Minamata (Ley 1892/2018)",
+    "Biodiversidad (Ley 165/1994)",
+    "OIT 169 (Ley 21/1991)",
+    "CITES (Ley 17/1981)"
+  ],
+  "tratados_faltantes": [
+    "Estocolmo POPs (Ley 994/2005)"
+  ],
+  "per_doc": [
+    {
+      "title": "Política Nacional de Biodiversidad",
+      "arts": 1,
+      "tokens": 2640
+    },
+    {
+      "title": "Política de Bosques",
+      "arts": 1,
+      "tokens": 2683
+    },
+    {
+      "title": "Política Nacional de Humedales Interiores",
+      "arts": 1,
+      "tokens": 2016
+    },
+    {
+      "title": "Política Ambiental Gestión Integral Residuos Peligrosos",
+      "arts": 41,
+      "tokens": 31450
+    },
+    {
+      "title": "Política Nacional Producción Más Limpia",
+      "arts": 1,
+      "tokens": 2960
+    },
+    {
+      "title": "Política Nacional Prevención Contaminación Aire",
+      "arts": 1,
+      "tokens": 2936
+    },
+    {
+      "title": "Política Nacional Investigación Ambiental",
+      "arts": 1,
+      "tokens": 2518
+    },
+    {
+      "title": "Política Nacional Educación Ambiental",
+      "arts": 1,
+      "tokens": 2518
+    },
+    {
+      "title": "Política Participación Social Conservación",
+      "arts": 4,
+      "tokens": 4338
+    },
+    {
+      "title": "Política Desarrollo Ecoturismo",
+      "arts": 1,
+      "tokens": 2774
+    }
+  ],
+  "cost_usd": 0.001137
+}
