@@ -1,0 +1,140 @@
+{
+  "fuente": "https://www.alcaldiabogota.gov.co/sisjur",
+  "muestras": [
+    {
+      "norm": "ley 99/1993",
+      "sisjur_id": 297,
+      "status": "ok",
+      "url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=297",
+      "metadata": {
+        "panel": {
+          "fecha_de_expedicin": "22/12/1993",
+          "fecha_de_entrada_en_vigencia": "22/12/1993",
+          "medio_de_publicacin": "Diario Oficial 41146 de Diciembre 22 de 1993"
+        },
+        "deroga_links": 16,
+        "modif_links": 38,
+        "has_concordancias": true,
+        "html_size": 498674,
+        "title": "Ley  99 de 1993 Congreso de la Rep�blica de Colombia"
+      }
+    },
+    {
+      "norm": "ley 1333/2009",
+      "sisjur_id": 38247,
+      "status": "ok",
+      "url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=38247",
+      "metadata": {
+        "panel": {
+          "fecha_de_expedicin": "16/12/2009",
+          "fecha_de_entrada_en_vigencia": "01/01/2010",
+          "medio_de_publicacin": "Registro Distrital 4341 de diciembre 17 de 2009"
+        },
+        "deroga_links": 0,
+        "modif_links": 0,
+        "has_concordancias": false,
+        "html_size": 26585,
+        "title": "Resoluci�n  464 de 2009 Secretar�a General Alcald�a Mayor de Bogot�, D.C."
+      }
+    },
+    {
+      "norm": "ley 685/2001",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    },
+    {
+      "norm": "ley 1753/2015",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    },
+    {
+      "norm": "ley 1955/2019",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    },
+    {
+      "norm": "ley 2294/2023",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    },
+    {
+      "norm": "decreto 1076/2015",
+      "sisjur_id": 62510,
+      "status": "ok",
+      "url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=62510",
+      "metadata": {
+        "panel": {
+          "fecha_de_expedicin": "26/05/2015",
+          "fecha_de_entrada_en_vigencia": "26/05/2015",
+          "medio_de_publicacin": "Diario Oficial No. 49523 del 26 de mayo de 2015."
+        },
+        "deroga_links": 9,
+        "modif_links": 86,
+        "has_concordancias": true,
+        "html_size": 7961480,
+        "title": "Decreto �nico Reglamentario  1075 de 2015 Nivel Nacional"
+      }
+    },
+    {
+      "norm": "decreto 2041/2014",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    },
+    {
+      "norm": "decreto_ley 2811/1974",
+      "sisjur_id": 1551,
+      "status": "ok",
+      "url": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=1551",
+      "metadata": {
+        "panel": {
+          "fecha_de_expedicin": "18/12/1974",
+          "fecha_de_entrada_en_vigencia": "18/12/1974",
+          "medio_de_publicacin": "Diario Oficial No. 34243."
+        },
+        "deroga_links": 3,
+        "modif_links": 8,
+        "has_concordancias": false,
+        "html_size": 294431,
+        "title": "Decreto  2811 de 1974 Nivel Nacional"
+      }
+    },
+    {
+      "norm": "resolucion 631/2015",
+      "sisjur_id": null,
+      "status": "unknown_id (SISJUR requiere búsqueda manual)"
+    }
+  ],
+  "hallazgos": {
+    "total_muestra": 10,
+    "accesibles_con_id": 4,
+    "requieren_busqueda_manual": 6,
+    "metadata_expuesta": {
+      "fecha_expedicion": "sí (campo panel)",
+      "fecha_entrada_vigencia": "sí",
+      "medio_publicacion": "sí (Diario Oficial número)",
+      "derogatorias_inline": "sí (links <a>Derogado por ...</a>)",
+      "modificatorias_inline": "sí (links <a>Modificado por ...</a>)",
+      "concordancias": "sí (búsqueda por keyword en texto)",
+      "control_constitucional": "parcial (via links a sentencias C-)",
+      "vigencia_articulo_por_articulo": "sí — cada artículo con sus derogs/modifs inline",
+      "texto_integro": "sí"
+    },
+    "api_endpoint": "no hay API REST — solo Norma1.jsp?i=ID (requiere conocer ID)",
+    "busqueda": "consulta_avanzada.jsp?tipodoc=LEY&nrodoc=X&ano1=Y&ano2=Y (lenta, full-page scrape)",
+    "sitemap_o_indice": "no encontrado en recon inicial",
+    "utilidad_para_vigia": "ALTA para normas ya identificadas con ID. Baja si hay que buscar por number+year (JSP search no scrapea bien)."
+  },
+  "sample_norms": [
+    "ley 99/1993",
+    "ley 1333/2009",
+    "ley 685/2001",
+    "ley 1753/2015",
+    "ley 1955/2019",
+    "ley 2294/2023",
+    "decreto 1076/2015",
+    "decreto 2041/2014",
+    "decreto_ley 2811/1974",
+    "resolucion 631/2015"
+  ],
+  "recomendacion": "SISJUR es valioso cuando ya se conoce el ID. Para VIGÍA, la estrategia viable es: (1) mantener mapeo persistente slug→sisjur_id en nueva tabla o metadata field; (2) usar SISJUR como FUENTE COMPLEMENTARIA para derogatorias/modificatorias de normas distritales o normas que SUIN no cubre bien. (3) NO usar como fuente primaria del corpus — la cobertura y taxonomía están sesgadas a Bogotá D.C."
+}

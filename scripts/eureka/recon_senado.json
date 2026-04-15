@@ -1,0 +1,151 @@
+{
+  "fuente": "http://www.secretariasenado.gov.co/senado/basedoc",
+  "muestras": [
+    {
+      "norm": "ley 99/1993",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_0099_1993.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 47,
+        "notas_vigencia": 48,
+        "notas_editor": 88,
+        "html_size": 201969,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_0099_1993]"
+      }
+    },
+    {
+      "norm": "ley 1333/2009",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_1333_2009.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 27,
+        "notas_vigencia": 23,
+        "notas_editor": 4,
+        "html_size": 104028,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_1333_2009]"
+      }
+    },
+    {
+      "norm": "ley 685/2001",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_0685_2001.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 27,
+        "notas_vigencia": 6,
+        "notas_editor": 2,
+        "html_size": 87501,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_0685_2001]"
+      }
+    },
+    {
+      "norm": "ley 1753/2015",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_1753_2015.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 18,
+        "notas_vigencia": 31,
+        "notas_editor": 8,
+        "html_size": 189027,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_1753_2015]"
+      }
+    },
+    {
+      "norm": "ley 1955/2019",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_1955_2019.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 9,
+        "notas_vigencia": 30,
+        "notas_editor": 3,
+        "html_size": 195642,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_1955_2019]"
+      }
+    },
+    {
+      "norm": "ley 2294/2023",
+      "status": "ok",
+      "url": "http://www.secretariasenado.gov.co/senado/basedoc/ley_2294_2023.html",
+      "metadata": {
+        "vigencia_expresa": true,
+        "control_constitucional": true,
+        "deroga_inline": 0,
+        "modif_inline": 0,
+        "jurisprudencia_refs": 16,
+        "notas_vigencia": 3,
+        "notas_editor": 1,
+        "html_size": 135386,
+        "title": "Leyes desde 1992 - Vigencia expresa y control de constitucionalidad [LEY_2294_2023]"
+      }
+    },
+    {
+      "norm": "decreto 1076/2015",
+      "status": "skip (Senado solo indexa leyes, tipo=decreto)"
+    },
+    {
+      "norm": "decreto 2041/2014",
+      "status": "skip (Senado solo indexa leyes, tipo=decreto)"
+    },
+    {
+      "norm": "decreto_ley 2811/1974",
+      "status": "skip (Senado solo indexa leyes, tipo=decreto_ley)"
+    },
+    {
+      "norm": "resolucion 631/2015",
+      "status": "skip (Senado solo indexa leyes, tipo=resolucion)"
+    }
+  ],
+  "hallazgos": {
+    "total_muestra": 10,
+    "leyes_en_muestra": 6,
+    "accesibles": 6,
+    "cobertura": "SOLO leyes — no decretos/resoluciones/actos legislativos",
+    "metadata_expuesta": {
+      "vigencia_expresa": "sí (titulo explícito por ley)",
+      "control_constitucionalidad": "sí (sentencias C- inline)",
+      "derogatorias_inline": "sí (por artículo)",
+      "modificatorias_inline": "sí (por artículo)",
+      "notas_de_vigencia": "sí (JavaScript insRow toggle — pero el contenido ESTÁ en el HTML)",
+      "jurisprudencia_vigencia": "sí (refs a sentencias Corte Constitucional)",
+      "notas_del_editor": "sí",
+      "texto_integro": "sí (artículo por artículo, parseable)",
+      "gaceta_del_congreso": "no en esta vista — está en exposiciones de motivos separadas",
+      "exposicion_motivos": "no en basedoc (está en otro sistema)"
+    },
+    "url_pattern": "http://www.secretariasenado.gov.co/senado/basedoc/ley_NNNN_YYYY.html (cero-padded 4 dígitos)",
+    "api_endpoint": "no — HTML estático con charset iso-8859-1",
+    "utilidad_para_vigia": "MUY ALTA para leyes — metadata de vigencia más completa que SISJUR y SUIN. Único inconveniente: solo leyes."
+  },
+  "sample_norms": [
+    "ley 99/1993",
+    "ley 1333/2009",
+    "ley 685/2001",
+    "ley 1753/2015",
+    "ley 1955/2019",
+    "ley 2294/2023",
+    "decreto 1076/2015",
+    "decreto 2041/2014",
+    "decreto_ley 2811/1974",
+    "resolucion 631/2015"
+  ],
+  "recomendacion": "Secretaría del Senado (basedoc) es la MEJOR fuente disponible para vigencia de leyes nacionales. Recomendación STRONGLY SUPPORTED: escribir scraper dedicado `scrape_senado_to_vigencia.py` que para cada ley del corpus: (1) fetch ley_NNNN_YYYY.html, (2) parsee derogs/modifs artículo-por-artículo, (3) actualice normative_articles con campo `vigencia_status` (vigente/derogado/modificado) y `vigencia_source_norm` (link a la norma que lo deroga/modifica). Esto desbloquea el feature crítico de 'NO citar normas derogadas'. Estimado: 1-2 horas de scraping + ~$0 (fetch solamente). Cobertura: ~60% del corpus normativo (leyes únicamente)."
+}

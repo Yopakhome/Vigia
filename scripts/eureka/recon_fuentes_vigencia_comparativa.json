@@ -1,0 +1,33 @@
+{
+  "descripcion": "Tabla comparativa de fuentes para metadata de vigencia",
+  "dimensiones": {
+    "SUIN_Juriscol": {
+      "cobertura": "Leyes + decretos + algunos acuerdos (nacional)",
+      "vigencia_explicita": "bajo: texto libre con posibles mentions; no campo estructurado",
+      "derogatorias_articulo_a_articulo": "parcial (en notas dentro del texto)",
+      "modificatorias": "parcial",
+      "control_constitucionalidad": "limitado",
+      "acceso": "HTML legacy ASP, scraper ya existe en VIGÍA",
+      "en_corpus_actual": "239 normas (~75% del corpus normativo proviene de SUIN)"
+    },
+    "SISJUR_Bogota": {
+      "cobertura": "Normas distritales Bogotá + muchas nacionales",
+      "vigencia_explicita": "campo panel estructurado (fecha expedición/vigencia)",
+      "derogatorias_articulo_a_articulo": "SÍ, muy detallado con links",
+      "modificatorias": "SÍ, muy detallado con links",
+      "control_constitucionalidad": "parcial (links a sentencias)",
+      "acceso": "Norma1.jsp?i=ID — pero ID no es descubrible por search automation confiable",
+      "en_corpus_actual": "no se usa actualmente"
+    },
+    "Secretaria_Senado_basedoc": {
+      "cobertura": "SOLO leyes (nacional, desde 1992)",
+      "vigencia_explicita": "título de la página incluye vigencia — mejor metadata disponible",
+      "derogatorias_articulo_a_articulo": "SÍ — la mejor de las 3",
+      "modificatorias": "SÍ — la mejor de las 3",
+      "control_constitucionalidad": "SÍ — sentencias C- vinculadas",
+      "acceso": "URL estable y predecible ley_NNNN_YYYY.html",
+      "en_corpus_actual": "no se usa actualmente"
+    }
+  },
+  "recomendacion_VIGIA": "Estrategia de triple fuente: (1) SUIN como fuente primaria de texto íntegro (ya implementado); (2) Senado basedoc como fuente AUTORITATIVA de vigencia de leyes — integrar como próximo sprint; (3) SISJUR como fuente complementaria opcional para normas distritales Bogotá D.C."
+}
