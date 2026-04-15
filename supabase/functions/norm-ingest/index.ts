@@ -89,7 +89,7 @@ interface Article { article_number: string; article_label: string; title: string
 
 function parseArticlesRegex(fullText: string): Article[] {
   const norm = fullText.replace(/\r/g, "").replace(/[\u00A0\t]+/g, " ");
-  const pattern = /(^|\n)\s*(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?(\d{1,4}[A-Za-z]?)[°º\.\s]/g;
+  const pattern = /(^|\n)\s*(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?(\d{1,4}[A-Za-z]?)[°º\.\s]/gi;
   const matches: Array<{ idx: number; label: string; num: string }> = [];
   let m: RegExpExecArray | null;
   while ((m = pattern.exec(norm)) !== null) matches.push({ idx: m.index + m[1].length, label: `${m[2]} ${m[3]}`.trim(), num: m[3] });
@@ -106,7 +106,7 @@ function parseArticlesRegex(fullText: string): Article[] {
     const chunk = norm.slice(start, end).trim();
     const firstNl = chunk.indexOf("\n");
     const firstLine = firstNl > 0 ? chunk.slice(0, firstNl).trim() : chunk.slice(0, 200).trim();
-    const afterLabel = firstLine.replace(/^(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?\d{1,4}[A-Za-z]?[°º\.\s]*/, "").trim();
+    const afterLabel = firstLine.replace(/^(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?\d{1,4}[A-Za-z]?[°º\.\s]*/i, "").trim();
     const title = afterLabel.length > 0 && afterLabel.length < 160 && /[.:]$/.test(afterLabel) ? afterLabel.replace(/[.:]$/, "") : null;
     articles.push({ article_number: matches[i].num, article_label: matches[i].label, title, content: chunk, order_index: i + 1, chapter: chapterAt(start), section: null });
   }
