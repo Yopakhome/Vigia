@@ -47,12 +47,12 @@ function deriveArticleLabel(s: any): string {
   return current || `Art. ${s.article_number || ""}`.trim();
 }
 
-async function semanticSearch(query: string, top_k: number, authHeader: string) {
+async function semanticSearch(query: string, top_k: number, authHeader: string, include_pedagogico: boolean) {
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/norm-search`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: authHeader, apikey: SUPABASE_ANON_KEY },
-      body: JSON.stringify({ query, top_k })
+      body: JSON.stringify({ query, top_k, include_pedagogico })
     });
     const data = await r.json();
     if (!r.ok || !data.ok) return { ok: false, error: data.error || `norm-search ${r.status}`, results: [] };
@@ -213,18 +213,22 @@ Deno.serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
 
-  const { systemPrompt = "", userMessage, previousMessages, top_k = 12, use_rag = true } = payload || {};
+  const { systemPrompt = "", userMessage, previousMessages, top_k = 12, use_rag = true, include_pedagogico = false } = payload || {};
   if (!userMessage || typeof userMessage !== "string") return json({ error: "Falta userMessage" }, 400);
 
   let rag: any = { ok: false, results: [] };
   if (use_rag) {
-    rag = await semanticSearch(userMessage, Math.min(Math.max(top_k, 1), 20), req.headers.get("Authorization")!);
+    rag = await semanticSearch(userMessage, Math.min(Math.max(top_k, 1), 20), req.headers.get("Authorization")!, include_pedagogico);
   }
   const corpusContext = buildContextFromResults(rag.results);
   const orgProfile = await getOrgProfile((user as any).id);
   const orgContext = buildOrgContext(orgProfile);
 
-  const finalSystem = orgContext + (systemPrompt ? systemPrompt.trim() + "\n\n" : "") + SYSTEM_RULES + "\n" + corpusContext;
+  const pedagogicoNote = include_pedagogico
+    ? `\n\nFUENTES ACTIVAS EN ESTA CONSULTA: incluye circulares, guías técnicas y conceptos (corpus pedagógico). Estas fuentes son orientación técnica del regulador, NO norma vinculante. Cuando las cites, indica explícitamente "orientación técnica" o "guía no vinculante". REGLA 20 aplica con máxima prioridad.\n`
+    : "";
+
+  const finalSystem = orgContext + (systemPrompt ? systemPrompt.trim() + "\n\n" : "") + SYSTEM_RULES + "\n" + corpusContext + pedagogicoNote;
 
   const messages: any[] = [];
   if (Array.isArray(previousMessages)) {

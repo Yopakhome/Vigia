@@ -94,12 +94,24 @@ Deno.serve(async (req: Request) => {
   if (!user) return json({ error: "No autorizado" }, 401);
 
   let body: any; try { body = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
-  const { query, top_k = 10, filters = {}, include_jur = true, include_eureka = true, include_org = true } = body || {};
+  const { query, top_k = 10, filters = {}, include_jur = true, include_eureka = true, include_org = true, include_pedagogico = false } = body || {};
   if (!query || typeof query !== "string" || query.trim().length < 3) return json({ error: "Query vacía o demasiado corta" }, 400);
 
   const t0 = Date.now();
   try {
     const embedding = await embedQuery(query);
+
+    // Si NO se incluye la capa pedagógica, obtener IDs de normas pedagógicas + circulares para excluirlos después del RPC
+    let excluded_norm_ids: string[] = [];
+    if (!include_pedagogico) {
+      try {
+        const rx = await fetch(`${SUPABASE_URL}/rest/v1/normative_sources?select=id&or=(corpus_source.eq.pedagogico,norm_type.eq.circular)`, { headers: srv });
+        if (rx.ok) {
+          const rows = await rx.json();
+          excluded_norm_ids = (rows || []).map((n: any) => n.id);
+        }
+      } catch { /* si falla el fetch, no filtramos */ }
+    }
 
     // Consultas en paralelo
     const topK = Math.min(Math.max(top_k, 1), 50);
@@ -118,8 +130,12 @@ Deno.serve(async (req: Request) => {
 
     const results: any[] = [];
 
-    // Normas
-    for (const r of (normRows as any[])) {
+    // Normas (filtrando pedagógicas/circulares si corresponde)
+    const excludedSet = new Set(excluded_norm_ids);
+    const normRowsFiltered = excluded_norm_ids.length > 0
+      ? (normRows as any[]).filter(r => !excludedSet.has(r.norm_id))
+      : (normRows as any[]);
+    for (const r of normRowsFiltered) {
       results.push({
         source_type: "norma",
         article_id: r.article_id, norm_id: r.norm_id,
@@ -172,7 +188,7 @@ Deno.serve(async (req: Request) => {
       ok: true, results, total_returned: results.length,
       query, top_k: topK, filters,
       content_truncation: CONTENT_TRUNC, elapsed_ms: t_total,
-      capas: { normas: normRows.length, sentencias: jurRows.length, resumenes_editoriales: euRows.length }
+      capas: { normas: normRowsFiltered.length, sentencias: jurRows.length, resumenes_editoriales: euRows.length, pedagogico_included: include_pedagogico, excluded_pedagogico_ids: excluded_norm_ids.length }
     });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
