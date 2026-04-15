@@ -78,7 +78,8 @@ function formatFragment(r: any, idx: number): string {
     return `${header}\n[NOTA: Fuente de orientación técnica, no norma vinculante]\n${(r.content || "").trim()}`;
   }
   // default: norma
-  const header = `[FUENTE ${idx + 1}] ${(r.norm_type || "NORMA").toUpperCase()} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}`;
+  const categoryTag = r.category ? ` [Categoría: ${r.category}]` : "";
+  const header = `[FUENTE ${idx + 1}] ${(r.norm_type || "NORMA").toUpperCase()} ${r.norm_number}/${r.norm_year} — ${r.norm_issuing_authority || ""}${categoryTag}`;
   const label = deriveArticleLabel(r);
   const artLine = `${label}${r.article_title ? " — " + r.article_title : ""}`;
   let vigencia = "";
@@ -120,7 +121,7 @@ function buildOrgContext(p: any): string {
   return "CONTEXTO DE LA ORGANIZACIÓN USUARIA:\n" + lines.join("\n") + "\n\nUsá este contexto para personalizar tus respuestas. Si la consulta tiene relación con el sector/actividad de la organización, priorizá normas relevantes para ese sector y mencionalo.\n\n";
 }
 
-const SYSTEM_RULES = `Tienes acceso a fragmentos literales del corpus normativo ambiental colombiano, listados abajo como [FUENTE N]. Los fragmentos pueden ser de normas, jurisprudencia o resúmenes editoriales. Respondé siguiendo estas 19 reglas obligatorias.
+const SYSTEM_RULES = `Tienes acceso a fragmentos literales del corpus normativo ambiental colombiano, listados abajo como [FUENTE N]. Los fragmentos pueden ser de normas, jurisprudencia o resúmenes editoriales. Respondé siguiendo estas 21 reglas obligatorias.
 
 REGLA 1 — HONESTIDAD DE SCOPE
 Si los fragmentos recuperados no contienen información suficiente para responder con certeza, debes decirlo explícitamente al inicio con "No puedo responder con certeza basándome en el corpus consultado porque [razón]". Nunca inventes normas, artículos, fechas o citas.
@@ -199,6 +200,17 @@ Cuando uses una fuente con marcador [GUÍA TÉCNICA OFICIAL] o corpus_source='pe
 2. Agregar recordatorio: "Verifique la normativa vigente aplicable a su caso específico."
 3. Nunca citar estas fuentes con el mismo peso jurídico que una ley, decreto o resolución.
 4. Si el usuario necesita certeza jurídica → aplicar REGLA 13 (invitación a ENARA Consulting).
+
+REGLA 21 — PRIORIDAD POR DOMINIO TEMÁTICO
+Cada fragmento recuperado tiene un campo category que indica su dominio
+(ej: "Aguas y vertimientos", "Biodiversidad y fauna silvestre",
+"Licenciamiento ambiental", etc.).
+Cuando la consulta del usuario sea claramente sobre un dominio específico,
+prioriza en tu respuesta los fragmentos cuya category coincida con ese dominio.
+Si hay contradicción entre un artículo de "Marco general e institucional"
+y uno de la categoría específica sobre el mismo tema, el específico prevalece.
+Menciona la categoría cuando sea relevante para ayudar al usuario a entender
+el alcance de la norma citada.
 
 FRAGMENTOS RELEVANTES RECUPERADOS PARA ESTA CONSULTA:`;
 
