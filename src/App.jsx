@@ -261,7 +261,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.5";
+const EXPORT_VIGIA_VERSION = "v3.9.6";
 
 function exportTimestamp() {
   const d = new Date();
@@ -679,6 +679,28 @@ const saveToSupabase = async (analysisResult, file) => {
         } catch(e) { console.log("obligation save error", e); }
       }
       if(newObs.length > 0 && onNewObligation) onNewObligation(newObs);
+    }
+  }
+
+  // ORG-3: enriquecer perfil de org (fire-and-forget)
+  if (sessionToken && clientOrg?.id) {
+    const enrichText = (analysisResult.content_summary || "") + "\n\n" +
+      (analysisResult.subject || "") + "\n" +
+      (analysisResult.obligations_affected || []).join("\n");
+    if (enrichText.length >= 200) {
+      fetch(`${SB_URL}/functions/v1/enrich-org-profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+        body: JSON.stringify({
+          org_id: clientOrg.id,
+          text: enrichText.slice(0, 8000),
+          metadata: {
+            instrument_type: analysisResult.candidate_edi || analysisResult.doc_nature,
+            issuing_authority: analysisResult.sender,
+            sector: clientOrg?.sector,
+          }
+        })
+      }).catch(e => console.warn('enrich-org-profile silenced:', e));
     }
   }
   return instrId;
@@ -2117,6 +2139,7 @@ const [obligations, setObligations] = useState([]);
 const [alerts, setAlerts] = useState([]);
 const [normSources, setNormSources] = useState([]);
 const [oversight, setOversight] = useState([]);
+const [orgProfile, setOrgProfile] = useState(null);
 const [dbStatus, setDbStatus] = useState("demo");
 const [clientOrg, setClientOrg] = useState(null);
 const [lastSync, setLastSync] = useState(null);
@@ -2172,6 +2195,13 @@ const [inst,obs,alrt,norms,ovs]=await Promise.all([sb("instruments","select=*&or
           setAlerts(Array.isArray(alrt)?alrt:[]);
           setNormSources(Array.isArray(norms)?norms:[]);
           setOversight(Array.isArray(ovs)?ovs:[]);
+          // ORG-5: fetch org_profile para el Dashboard
+          if (clientOrg?.id) {
+            try {
+              const op = await sb("org_profile", `select=*&org_id=eq.${clientOrg.id}&limit=1`, t);
+              if (Array.isArray(op) && op[0]) setOrgProfile(op[0]);
+            } catch(e) { console.log("org_profile fetch silenced:", e); }
+          }
           setDbStatus("connected");
           setLastSync(new Date());
           // Fetch client org via edge function (no service_role en browser)
@@ -2326,6 +2356,51 @@ const renderDashboard=()=>(
 <StatCard icon={Clock} label="Proximas (30 dias)" value={upcoming} color={C.yellow}/>
 <StatCard icon={CheckCircle} label="Al dia" value={compliant} color={C.green}/>
 </div>
+{!isSuperAdmin && userOrgRole!=="viewer" && (
+  <div style={{marginTop:0,marginBottom:24,padding:"20px 24px",background:C.surface,border:`1px solid ${C.border}`,borderRadius:12}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:C.text}}>Perfil Regulatorio de su Organización</div>
+      {orgProfile?.total_documentos_procesados>0 && <span style={{fontSize:11,color:C.textSec}}>{orgProfile.total_documentos_procesados} documento{orgProfile.total_documentos_procesados!==1?"s":""} procesado{orgProfile.total_documentos_procesados!==1?"s":""} · confianza {Math.round((orgProfile.confianza_perfil||0)*100)}%</span>}
+    </div>
+    {(!orgProfile||orgProfile.total_documentos_procesados===0)?(
+      <div style={{textAlign:"center",padding:"20px 0",color:C.textSec}}>
+        <div style={{fontSize:13,marginBottom:8}}>Su perfil regulatorio aún está vacío.</div>
+        <div style={{fontSize:12,maxWidth:520,margin:"0 auto"}}>Suba documentos en INTAKE para que VIGÍA identifique automáticamente sus normas aplicables, autoridades competentes y nivel de riesgo ambiental.</div>
+        <button onClick={()=>setView("intake")} style={{marginTop:12,background:C.primary,border:"none",borderRadius:8,padding:"8px 18px",color:"#060c14",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Abrir INTAKE</button>
+      </div>
+    ):(
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+        {(orgProfile.sectores||[]).length>0 && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Sectores</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:4}}>{orgProfile.sectores.slice(0,6).map(s=><span key={s} style={{fontSize:11,background:C.green+"22",color:C.green,padding:"2px 8px",borderRadius:4}}>{s}</span>)}</div>
+        </div>}
+        {orgProfile.nivel_riesgo_ambiental && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Nivel de riesgo</div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{width:12,height:12,borderRadius:"50%",background:orgProfile.nivel_riesgo_ambiental==="critico"?C.red:orgProfile.nivel_riesgo_ambiental==="alto"?C.red:orgProfile.nivel_riesgo_ambiental==="medio"?C.yellow:C.green}}/>
+            <span style={{fontSize:12,fontWeight:600,color:C.text,textTransform:"capitalize"}}>{orgProfile.nivel_riesgo_ambiental}</span>
+          </div>
+        </div>}
+        {(orgProfile.autoridades_ambientales||[]).length>0 && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Autoridades competentes</div>
+          <div style={{fontSize:11,color:C.text,lineHeight:1.5}}>{orgProfile.autoridades_ambientales.slice(0,5).join(" · ")}</div>
+        </div>}
+        {(orgProfile.temas_regulatorios||[]).length>0 && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Temas regulatorios</div>
+          <ul style={{margin:0,padding:"0 0 0 16px",fontSize:11,color:C.text,lineHeight:1.7}}>{orgProfile.temas_regulatorios.slice(0,5).map(t=><li key={t}>{t}</li>)}</ul>
+        </div>}
+        {(orgProfile.normas_aplicables||[]).length>0 && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Normas más aplicables</div>
+          <ul style={{margin:0,padding:"0 0 0 16px",fontSize:11,color:C.text,lineHeight:1.7}}>{orgProfile.normas_aplicables.slice(0,5).map(n=><li key={n} onClick={()=>setView("normativa")} style={{cursor:"pointer",textDecoration:"underline",textDecorationColor:C.border}}>{n}</li>)}</ul>
+        </div>}
+        {(orgProfile.departamentos_operacion||[]).length>0 && <div style={{background:C.surfaceEl,borderRadius:8,padding:"10px 12px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Departamentos</div>
+          <div style={{fontSize:11,color:C.text,lineHeight:1.5}}>{orgProfile.departamentos_operacion.slice(0,5).join(" · ")}</div>
+        </div>}
+      </div>
+    )}
+  </div>
+)}
 <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:16}}>
 <div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>Expedientes Digitales Inteligentes</span><span style={{fontSize:11,color:C.textSec}}>{instruments.length} EDIs activos</span></div>
@@ -2443,11 +2518,17 @@ return <div key={alert.id} style={{background:C.surface,border:`1px solid ${!ale
   </div>;
 
 const renderNormativa=()=>{
-  // Filtrar por scope si aplica y agrupar
-  const filtered = normSources.filter(n => normScopeFilter==="todos" || (n.scope||"otra")===normScopeFilter);
-  const grouped = filtered.reduce((acc,n)=>{ const k=n.scope||"otra"; (acc[k]=acc[k]||[]).push(n); return acc; }, {});
+  // UI-4: tabs dinámicos por categoría real. Fallback: si no hay category, usar scope.
+  const hasCategories = normSources.some(n=>n.category);
+  const groupKey = hasCategories ? (n=>n.category||"Otra") : (n=>n.scope||"otra");
+  const filtered = normSources.filter(n => normScopeFilter==="todos" || groupKey(n)===normScopeFilter);
+  const grouped = filtered.reduce((acc,n)=>{ const k=groupKey(n); (acc[k]=acc[k]||[]).push(n); return acc; }, {});
   const scopes = Object.keys(grouped).sort((a,b)=>(grouped[b].length-grouped[a].length));
-  const totalScopes = Array.from(new Set(normSources.map(n=>n.scope||"otra"))).sort();
+  const allCats = {};
+  normSources.forEach(n=>{ const k=groupKey(n); allCats[k]=(allCats[k]||0)+1; });
+  const totalScopes = Object.keys(allCats).filter(k=>k!=="Otra"&&k!=="otra").sort((a,b)=>allCats[b]-allCats[a]);
+  if(allCats["Otra"]) totalScopes.push("Otra");
+  if(allCats["otra"]) totalScopes.push("otra");
   const detail = selectedNorm ? normSources.find(n=>n.id===selectedNorm) : null;
   const detailArticles = selectedNorm ? (normArticles[selectedNorm]||[]) : [];
   return (
@@ -2458,7 +2539,7 @@ const renderNormativa=()=>{
       </div>
       <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
         {["todos", ...totalScopes].map(s=>{
-          const label = s==="todos"?`Todos (${normSources.length})`:`${SCOPE_LABELS[s]||s} (${(grouped[s]||normSources.filter(n=>(n.scope||"otra")===s)).length})`;
+          const label = s==="todos"?`Todos (${normSources.length})`:`${SCOPE_LABELS[s]||s} (${allCats[s]||0})`;
           const col = s==="todos"?C.primary:(SCOPE_COLORS[s]||C.textSec);
           const active = normScopeFilter===s;
           return <button key={s} onClick={()=>setNormScopeFilter(s)} style={{background:active?`${col}22`:C.surface,border:`1px solid ${active?col+"66":C.border}`,borderRadius:6,padding:"6px 12px",color:active?col:C.textSec,fontSize:11,fontWeight:active?700:500,cursor:"pointer"}}>{label}</button>;
@@ -2544,7 +2625,7 @@ const renderOversight=()=><div style={{padding:28}}>
 
   </div>;
 
-const renderConsultar=()=>{ const c=conf(); const hasAssistantMsgs = botMessages.some(m=>m.role==="assistant"); const convMenuOpen = exportMenu==="conv"; return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div>{hasAssistantMsgs&&<div style={{position:"relative"}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(convMenuOpen?null:"conv")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,borderRadius:8,padding:"7px 14px",color:C.primary,fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><Download size={13}/>Exportar conversación</button>{convMenuOpen&&<div style={{position:"absolute",top:"calc(100% + 4px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:180,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f)} style={{padding:"9px 14px",fontSize:12,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`,transition:"background 0.12s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}</div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px",position:"relative"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}{msg.role==="assistant"&&msg.text&&!msg.text.startsWith("Error:")&&<div style={{position:"absolute",top:6,right:6}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(exportMenu===i?null:i)} title="Exportar esta respuesta" style={{background:"transparent",border:"none",padding:4,borderRadius:4,cursor:"pointer",color:C.textMuted,display:"flex"}} onMouseEnter={e=>{e.currentTarget.style.background=C.bg;e.currentTarget.style.color=C.primary;}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=C.textMuted;}}><Download size={12}/></button>{exportMenu===i&&<div style={{position:"absolute",top:"calc(100% + 2px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:6,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:170,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f,i)} style={{padding:"8px 12px",fontSize:11,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}{msg.role==="assistant"?<MarkdownText text={msg.text}/>:<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>}{msg.role==="assistant"&&Array.isArray(msg.sources)&&msg.sources.length>0&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.primary,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Fuentes consultadas ({msg.sources.length})</div><div style={{display:"flex",flexDirection:"column",gap:4}}>{msg.sources.map((s,si)=>(<div key={si} onClick={()=>{setView("normativa");setSelectedNorm(s.norm_id);}} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",background:C.bg,borderRadius:4,fontSize:10,color:C.textSec,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background=C.bg}><span style={{color:C.primary,fontWeight:600,minWidth:20}}>[{si+1}]</span><span style={{textTransform:"uppercase",fontWeight:600,color:C.blue}}>{s.norm_type}</span><span style={{color:C.text}}>{s.norm_number}/{s.norm_year}</span><span style={{color:C.textMuted}}>·</span><span>{s.article_label||`Art. ${s.article_number}`}</span><span style={{marginLeft:"auto",fontSize:9,color:C.textMuted}}>{(s.similarity*100).toFixed(0)}%</span></div>))}</div></div>}{msg.layers&&msg.role==="assistant"&&!Array.isArray(msg.sources)&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
+const renderConsultar=()=>{ const c=conf(); const hasAssistantMsgs = botMessages.some(m=>m.role==="assistant"); const convMenuOpen = exportMenu==="conv"; return <div style={{height:"100%",display:"flex",flexDirection:"column",padding:28,gap:16}}><div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Motor de consulta</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{normSources.length} normas - {obligations.length} obligaciones - trazabilidad juridica</p></div>{hasAssistantMsgs&&<div style={{position:"relative"}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(convMenuOpen?null:"conv")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,borderRadius:8,padding:"7px 14px",color:C.primary,fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><Download size={13}/>Exportar conversación</button>{convMenuOpen&&<div style={{position:"absolute",top:"calc(100% + 4px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:180,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f)} style={{padding:"9px 14px",fontSize:12,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`,transition:"background 0.12s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}</div><div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}><div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Fuentes de consulta</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{key:"documentos",icon:Database,label:"Mis documentos",sub:"Capa 1 - EDIs propios",color:C.primary},{key:"normativa",icon:BookOpen,label:"Normativa vigente",sub:`Capa 2 - ${normSources.length} normas`,color:C.blue},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia",sub:"Capa 2 - Tribunales y cortes",color:C.purple},{key:"validacion",icon:Eye,label:"Validacion humana",sub:"Capa 3 - ENARA",color:C.yellow}].map(({key,icon:Icon,label,sub,color})=>(<div key={key} onClick={()=>toggleSource(key)} style={{background:sources[key]?`${color}12`:C.surfaceEl,border:`1px solid ${sources[key]?color+"66":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:6,background:sources[key]?`${color}22`:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={13} color={sources[key]?color:C.textMuted}/></div><div><div style={{fontSize:12,fontWeight:600,color:sources[key]?C.text:C.textSec}}>{label}</div><div style={{fontSize:10,color:C.textMuted}}>{sub}</div></div></div>))}</div><div style={{padding:"8px 12px",borderRadius:8,background:c.color===C.green?C.greenDim:c.color===C.red?C.redDim:C.yellowDim,fontSize:12,color:c.color,fontWeight:500}}>{c.risk} {c.label}</div></div><div style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}><div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>{botMessages.map((msg,i)=>(<div key={i} style={{display:"flex",flexDirection:msg.role==="user"?"row-reverse":"row",alignItems:"flex-start",gap:10}}>{msg.role!=="user"&&<div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={13} color={C.primary}/></div>}<div style={{maxWidth:"78%",background:msg.role==="user"?C.primaryDim:C.surfaceEl,border:`1px solid ${msg.role==="user"?C.primary+"44":C.border}`,borderRadius:msg.role==="user"?"12px 4px 12px 12px":"4px 12px 12px 12px",padding:"10px 14px",position:"relative"}}>{msg.role==="system"&&<div style={{fontSize:10,color:C.primary,fontWeight:700,marginBottom:6,textTransform:"uppercase"}}>VIGIA</div>}{msg.role==="assistant"&&msg.text&&!msg.text.startsWith("Error:")&&<div style={{position:"absolute",top:6,right:6}} onClick={e=>e.stopPropagation()}><button onClick={()=>setExportMenu(exportMenu===i?null:i)} title="Exportar esta respuesta" style={{background:"transparent",border:"none",padding:4,borderRadius:4,cursor:"pointer",color:C.textMuted,display:"flex"}} onMouseEnter={e=>{e.currentTarget.style.background=C.bg;e.currentTarget.style.color=C.primary;}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=C.textMuted;}}><Download size={12}/></button>{exportMenu===i&&<div style={{position:"absolute",top:"calc(100% + 2px)",right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:6,boxShadow:"0 6px 24px rgba(0,0,0,0.35)",zIndex:20,minWidth:170,overflow:"hidden"}}>{[["md","Markdown (.md)"],["txt","Texto plano (.txt)"],["pdf","PDF (.pdf)"],["doc","Word (.doc)"]].map(([f,l])=>(<div key={f} onClick={()=>runExport(f,i)} style={{padding:"8px 12px",fontSize:11,color:C.text,cursor:"pointer",borderBottom:`1px solid ${C.border}`}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{l}</div>))}</div>}</div>}{msg.role==="assistant"?<MarkdownText text={msg.text}/>:<div style={{fontSize:13,color:C.text,lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.text}</div>}{msg.role==="assistant"&&Array.isArray(msg.sources)&&msg.sources.length>0&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.primary,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Fuentes consultadas ({msg.sources.length})</div><div style={{display:"flex",flexDirection:"column",gap:4}}>{msg.sources.map((s,si)=>(<div key={si} onClick={()=>{setView("normativa");setSelectedNorm(s.norm_id);}} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",background:C.bg,borderRadius:4,fontSize:10,color:C.textSec,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primaryDim} onMouseLeave={e=>e.currentTarget.style.background=C.bg}><span style={{color:C.primary,fontWeight:600,minWidth:20}}>[{si+1}]</span>{s?.source_type==="sentencia"?<><span style={{textTransform:"uppercase",fontWeight:600,color:C.purple}}>{s.corte||"SENTENCIA"}</span><span style={{color:C.text}}>{s.radicado||""}</span><span style={{background:C.blue+"22",color:C.blue,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4}}>🔵 JURISPRUDENCIA</span></>:s?.source_type==="resumen_editorial"?<><span style={{textTransform:"uppercase",fontWeight:600,color:C.textSec}}>EDITORIAL</span><span style={{color:C.text}}>{(s.norm_title||"").slice(0,50)}</span><span style={{background:C.textMuted+"22",color:C.textMuted,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4}}>⬜ EDITORIAL</span></>:<><span style={{textTransform:"uppercase",fontWeight:600,color:C.blue}}>{s.norm_type}</span><span style={{color:C.text}}>{s.norm_number}/{s.norm_year}</span><span style={{color:C.textMuted}}>·</span><span>{s.article_label||`Art. ${s.article_number}`}</span>{s?.vigencia_status==="derogado"&&<span style={{background:C.red+"22",color:C.red,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4}}>🔴 DEROGADO</span>}{s?.vigencia_status==="modificado"&&<span style={{background:C.yellow+"22",color:C.yellow,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4}}>🟡 MODIFICADO</span>}{s?.vigencia_global==="derogada_total"&&!s?.vigencia_status&&<span style={{background:C.red+"22",color:C.red,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4}}>🔴 NORMA DEROGADA</span>}</>}<span style={{marginLeft:"auto",fontSize:9,color:C.textMuted}}>{(s.similarity*100).toFixed(0)}%</span></div>))}</div></div>}{msg.layers&&msg.role==="assistant"&&!Array.isArray(msg.sources)&&<div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textMuted}}>Fuentes: {msg.layers}</div>}</div></div>))}{botLoading&&<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:28,height:28,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={13} color={C.primary}/></div><div style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:"4px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:C.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}</div><div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"flex-end"}}><textarea value={botInput} onChange={e=>setBotInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendBot();}}} placeholder="Escribe tu consulta..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,resize:"none",minHeight:42,maxHeight:120,outline:"none",lineHeight:1.5}} rows={1}/><button onClick={sendBot} disabled={botLoading||!botInput.trim()} style={{background:botLoading||!botInput.trim()?C.surfaceEl:C.primary,border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",flexShrink:0}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={botLoading||!botInput.trim()?C.textMuted:"#060c14"} strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div></div>; };
 
 const renderEDIs = () => {
   const hC2=(h)=>h==="critico"?C.red:h==="moderado"?C.yellow:C.green;
@@ -2636,7 +2717,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.5</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.6</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
