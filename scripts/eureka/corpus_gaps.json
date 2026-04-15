@@ -15,7 +15,7 @@
       "pendiente_ssl_workaround": 1
     }
   },
-  "last_updated": "2026-04-14 (Fase 1 — OCR gaps resolución)",
+  "last_updated": "2026-04-14 (Fase 2 — SSL gap)",
   "gaps": [
     {
       "slug": "resolucion-631-de-2015-vertimientos-establece-los-parametros-y-los-valores-limites-maximos-permisibles-en-los-vertimientos-puntuales-a-cuerpos-de-aguas-superficiales-y-a-los-sistemas-de-alcantarillado-publico",
@@ -247,9 +247,18 @@
         "Diario Oficial 2013 (publicación original)",
         "Workaround técnico: configurar SSLContext con `set_ciphers('DEFAULT@SECLEVEL=1')` y `OP_LEGACY_SERVER_CONNECT` en un script especial. NO es seguro como práctica general; usar SOLO para este doc específico y descartar el adapter después."
       ],
-      "status": "pendiente_ssl_workaround",
+      "status": "pendiente",
       "prioridad": "media",
-      "notas": "Doc importante: guía oficial para Consulta Previa. Vinculado con Convenio 169 OIT (Ley 21/1991) que sí está en el corpus. Workaround SSL es viable pero requiere código aislado. Alternativa más segura: buscar el mismo doc en SUIN o Función Pública (probablemente más actualizado y con TLS moderno)."
+      "notas": "Doc importante: guía oficial para Consulta Previa. Vinculado con Convenio 169 OIT (Ley 21/1991) que sí está en el corpus. Workaround SSL es viable pero requiere código aislado. Alternativa más segura: buscar el mismo doc en SUIN o Función Pública (probablemente más actualizado y con TLS moderno).",
+      "ultimo_intento": "2026-04-14",
+      "fuentes_intentadas": [
+        {
+          "url": "https://www.cancilleria.gov.co/normograma/compilacion/docs/directiva_presidencia_0010_2013.htm",
+          "via": "ssl_legacy_adapter",
+          "status": "fail",
+          "error": "('No cipher can be selected.',)"
+        }
+      ]
     }
   ],
   "pending_research": [
