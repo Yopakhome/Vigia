@@ -21,6 +21,7 @@ from openai import OpenAI  # noqa: E402
 OPENAI_CLIENT = OpenAI()
 
 BASE = "https://www.minambiente.gov.co/normativa/"
+AJAX_URL = "https://www.minambiente.gov.co/wp-admin/admin-ajax.php"
 RECON_JSON = HERE / "minambiente_normativa_recon.json"
 REPORT_JSON = HERE / "ingest_minambiente_recent_report.json"
 UA = "Mozilla/5.0 (compatible; VIGIA-Ingest/1.0)"
@@ -28,7 +29,7 @@ DELAY = 2.0
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_MAX_CHARS = 10_000
 ARTICLES_INSERT_BATCH = 20
-MAX_PAGES = 7
+MAX_PAGES = 40
 
 REST_HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}",
                 "Content-Type": "application/json", "Prefer": "return=representation"}
@@ -42,8 +43,10 @@ ARTICLE_RE = re.compile(
 
 
 def fetch_page(page_num):
-    url = BASE if page_num == 1 else f"{BASE}page/{page_num}/"
-    r = SESSION.get(url, timeout=30)
+    """AJAX endpoint discovered en recon_minambiente_ajax."""
+    data = {"page": page_num, "areaActivador": 2, "action": "normativa_paginacion-load-posts"}
+    r = SESSION.post(AJAX_URL, data=data,
+                     headers={"X-Requested-With": "XMLHttpRequest"}, timeout=30)
     r.raise_for_status()
     return r.text
 

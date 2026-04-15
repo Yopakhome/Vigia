@@ -1,16 +1,124 @@
 {
-  "scraped": 1,
-  "candidates_2024": 1,
-  "new": 1,
-  "inserted": 0,
-  "chunks": 0,
-  "tokens": 0,
+  "scraped": 33,
+  "candidates_2024": 22,
+  "new": 22,
+  "inserted": 2,
+  "chunks": 20,
+  "tokens": 11221,
   "errors": [
     {
       "tag": "resolucion 17/2026",
       "stage": "unsupported_format"
+    },
+    {
+      "tag": "auto 18/2026",
+      "stage": "empty",
+      "chars": 28
+    },
+    {
+      "tag": "auto 17/2026",
+      "stage": "empty",
+      "chars": 6
+    },
+    {
+      "tag": "auto 16/2026",
+      "stage": "empty",
+      "chars": 5
+    },
+    {
+      "tag": "auto 15/2026",
+      "stage": "empty",
+      "chars": 15
+    },
+    {
+      "tag": "auto 73/2025",
+      "stage": "empty",
+      "chars": 7
+    },
+    {
+      "tag": "circular 1000/2025",
+      "stage": "empty",
+      "chars": 7
+    },
+    {
+      "tag": "auto 172/2025",
+      "stage": "empty",
+      "chars": 13
+    },
+    {
+      "tag": "auto 435/2024",
+      "stage": "empty",
+      "chars": 10
+    },
+    {
+      "tag": "auto 265/2024",
+      "stage": "empty",
+      "chars": 15
+    },
+    {
+      "tag": "auto 210/2025",
+      "stage": "empty",
+      "chars": 8
+    },
+    {
+      "tag": "auto 192/2025",
+      "stage": "empty",
+      "chars": 11
+    },
+    {
+      "tag": "resolucion 1720/2025",
+      "stage": "empty",
+      "chars": 44
+    },
+    {
+      "tag": "auto 246/2025",
+      "stage": "empty",
+      "chars": 13
+    },
+    {
+      "tag": "resolucion 1648/2025",
+      "stage": "empty",
+      "chars": 31
+    },
+    {
+      "tag": "resolucion 1630/2025",
+      "stage": "empty",
+      "chars": 27
+    },
+    {
+      "tag": "auto 238/2025",
+      "stage": "empty",
+      "chars": 8
+    },
+    {
+      "tag": "auto 226/2025",
+      "stage": "empty",
+      "chars": 7
+    },
+    {
+      "tag": "resolucion 1491/2025",
+      "stage": "empty",
+      "chars": 267
+    },
+    {
+      "tag": "auto 206/2025",
+      "stage": "empty",
+      "chars": 11
     }
   ],
-  "per_doc": [],
-  "cost_usd": 0.0
+  "per_doc": [
+    {
+      "tag": "resolucion 1519/2025",
+      "arts": 10,
+      "tokens": 2267,
+      "pages": 6
+    },
+    {
+      "tag": "resolucion 1499/2025",
+      "arts": 10,
+      "tokens": 8954,
+      "pages": 28
+    }
+  ],
+  "cost_usd": 0.000224
 }
