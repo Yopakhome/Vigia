@@ -208,5 +208,53 @@
       "prioridad": "media",
       "notas": "Doc importante: guía oficial para Consulta Previa. Vinculado con Convenio 169 OIT (Ley 21/1991) que sí está en el corpus. Workaround SSL es viable pero requiere código aislado. Alternativa más segura: buscar el mismo doc en SUIN o Función Pública (probablemente más actualizado y con TLS moderno)."
     }
-  ]
+  ],
+  "pending_research": [
+    {
+      "id": "pnd-2022-2026",
+      "title": "Plan Nacional de Desarrollo 2022-2026 — Colombia Potencia Mundial de la Vida",
+      "ley": "Ley 2294 de 2023",
+      "componentes": [
+        "Texto completo Ley 2294/2023 en SUIN",
+        "Bases del PND — PDF en dnp.gov.co"
+      ],
+      "status": "pendiente",
+      "prioridad": "alta",
+      "fuentes": ["suin-juriscol.gov.co", "dnp.gov.co", "funcionpublica.gov.co"],
+      "notas": "PND vigente. Contiene obligaciones ambientales directas para minería, energía y manufactura. Aplicar filtro temático de 8 dimensiones para extraer solo artículos relevantes."
+    },
+    {
+      "id": "pnd-2018-2022",
+      "title": "Plan Nacional de Desarrollo 2018-2022 — Pacto por Colombia",
+      "ley": "Ley 1955 de 2019",
+      "componentes": ["Texto completo Ley 1955/2019 en SUIN"],
+      "status": "pendiente",
+      "prioridad": "media",
+      "fuentes": ["suin-juriscol.gov.co"],
+      "notas": "Cruzar contra Ley 2294/2023 para confirmar vigencia antes de ingestar. Solo artículos no derogados."
+    },
+    {
+      "id": "pnd-2014-2018",
+      "title": "Plan Nacional de Desarrollo 2014-2018 — Todos por un nuevo país",
+      "ley": "Ley 1753 de 2015",
+      "componentes": ["Texto completo Ley 1753/2015 en SUIN"],
+      "status": "pendiente",
+      "prioridad": "media",
+      "fuentes": ["suin-juriscol.gov.co"],
+      "notas": "Mismo proceso de verificación de vigencia contra PNDs posteriores."
+    }
+  ],
+  "filtro_tematico_pnd": {
+    "logica": "OR entre dimensiones — si el artículo toca cualquiera, entra al corpus",
+    "dimensiones": {
+      "D1_recursos_naturales": ["agua", "recurso hídrico", "cuenca", "acuífero", "humedal", "páramo", "manglar", "bosque", "deforestación", "reforestación", "biodiversidad", "fauna", "flora", "especies", "ecosistema", "área protegida", "SINAP", "reserva natural", "corredor biológico", "servicios ecosistémicos", "suelo", "erosión"],
+      "D2_contaminacion": ["vertimiento", "emisión", "residuo", "residuo peligroso", "RESPEL", "ruido", "olores", "contaminación", "calidad del aire", "calidad del agua", "calidad del suelo", "material particulado"],
+      "D3_licenciamiento": ["licencia ambiental", "permiso ambiental", "concesión de aguas", "permiso de vertimientos", "plan de manejo ambiental", "PMA", "EIA", "estudio de impacto ambiental", "DAA", "diagnóstico ambiental", "ANLA", "autoridad ambiental", "CAR", "CARDER", "CORNARE"],
+      "D4_sectores": ["minería", "hidrocarburos", "petróleo", "gas", "energía", "energía renovable", "solar", "eólica", "hidroeléctrica", "geotérmica", "biomasa", "transmisión", "infraestructura", "vías", "puertos", "aeropuertos", "construcción", "agroindustria", "agricultura", "ganadería", "pesca", "acuicultura", "industria", "manufactura", "químicos", "plaguicidas"],
+      "D5_cambio_climatico": ["cambio climático", "carbono", "GEI", "gases de efecto invernadero", "NDC", "REDD+", "NAMA", "adaptación", "mitigación", "resiliencia", "transición energética", "economía circular", "huella de carbono", "mercados de carbono", "bonos de carbono"],
+      "D6_ordenamiento": ["ordenamiento territorial", "POT", "POMCA", "zonificación ambiental", "uso del suelo", "áreas de exclusión", "zonas de reserva", "consulta previa", "comunidades indígenas", "afrocolombianas", "territorios colectivos", "conflicto uso del suelo"],
+      "D7_institucional": ["MADS", "Ministerio de Ambiente", "IDEAM", "IAVH", "INVEMAR", "IIAP", "SINCHI", "fondo ambiental", "inversión ambiental", "tasa retributiva", "tasa por uso del agua", "compensación ambiental", "sanción ambiental", "infracción ambiental", "multa ambiental", "medida preventiva", "decomiso"],
+      "D8_salud_ambiente": ["salud ambiental", "riesgo ambiental", "sustancia química", "mercurio", "plomo", "amianto", "asbesto", "plaguicida", "biocida", "residuo hospitalario", "residuo especial"]
+    }
+  }
 }
