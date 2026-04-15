@@ -261,7 +261,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.8";
+const EXPORT_VIGIA_VERSION = "v3.9.9";
 
 function exportTimestamp() {
   const d = new Date();
@@ -711,8 +711,14 @@ const analyzeDocument = async (file) => {
   setAnalysisStep(0);
   const isPDF = file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf");
   const isImage = file.type.startsWith("image/");
-  if (!isPDF && !isImage) {
-    setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name,content_summary:"Tipo no soportado. Subí un PDF o imagen.",actions_detected:[],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Convertir a PDF y reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
+  const fn = file.name.toLowerCase();
+  const isDocx = file.type.includes("wordprocessingml") || fn.endsWith(".docx");
+  const isTxt = file.type === "text/plain" || fn.endsWith(".txt");
+  const isMd = file.type === "text/markdown" || fn.endsWith(".md");
+  const isHtml = file.type === "text/html" || fn.endsWith(".html") || fn.endsWith(".htm");
+  const needsPreExtract = isDocx || isTxt || isMd || isHtml;
+  if (!isPDF && !isImage && !needsPreExtract) {
+    setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name,content_summary:"Tipo no soportado. Acepta PDF, DOCX, TXT, MD, HTML, PNG, JPG o WebP.",actions_detected:[],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Convertir a PDF y reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
     setUploadState("result");
     return;
   }
@@ -726,6 +732,25 @@ const analyzeDocument = async (file) => {
   try {
     base64Data = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(",")[1]); r.onerror=reject; r.readAsDataURL(file); });
   } catch { base64Data=null; }
+
+  // Pre-extract para formatos no-PDF/imagen (DOCX, TXT, MD, HTML) via multi-format-extractor
+  let preExtractedText = null;
+  let extractionMethod = null;
+  if (needsPreExtract && base64Data && sessionToken) {
+    try {
+      const ex = await fetch(`${SB_URL}/functions/v1/multi-format-extractor`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json", Authorization:`Bearer ${sessionToken}`, apikey: SB_KEY},
+        body: JSON.stringify({ file_base64: base64Data, mime_type: file.type, filename: file.name })
+      });
+      const ed = await ex.json();
+      if (ed.text && ed.text.length > 50) {
+        preExtractedText = ed.text;
+        extractionMethod = ed.method;
+      }
+    } catch(e) { console.warn("multi-format-extractor silenced:", e); }
+  }
+
   for(let i=1;i<=5;i++){ await new Promise(r=>setTimeout(r,500)); setAnalysisStep(i); }
 
   const oblNums = obligations.map(o=>o.obligation_num||o.num).filter(Boolean);
@@ -749,6 +774,8 @@ Responde SOLO en JSON:
 {"doc_nature":"norma|acto_administrativo|jurisprudencia|comunicacion|evidencia_cumplimiento|documento_tecnico|otro","is_norma":true,"sender":"emisor","receiver":"destinatario","doc_date":"YYYY-MM-DD","radicado":"numero o null","subject":"asunto exacto","content_summary":"resumen 2-3 oraciones","actions_detected":["crea_obligacion|modifica_obligacion|confirma_cumplimiento|inicia_sancion|requiere_respuesta|amplia_plazo|aprueba_tramite|agrega_a_normativa|genera_alerta|informativo"],"obligations_affected":["OBL-04|OBL-07|OBL-11|OBL-03"],"deadlines_found":["plazos detectados"],"candidate_edi":"nombre EDI o null","candidate_confidence":0-100,"matching_reasons":["razon"],"urgency":"critica|moderada|informativa","requires_confirmation":false,"confirmation_questions":[],"recommended_classification":"como clasificar","norma_data":{"tipo_norma":"Ley|Decreto|Resolucion|Circular|Sentencia|Proyecto","numero":"numero","fecha_expedicion":"YYYY-MM-DD","autoridad_emisora":"quien la expidio","vigencia":"Vigente|Derogada|En consulta publica","articulos_relevantes":["Art. X - descripcion"]},"proposed_changes":[{"obligation_num":"OBL-XX","field":"campo a cambiar","before":"valor actual","after":"nuevo valor","reason":"articulo que lo sustenta"}],"fuente":{"tipo":"normativa|jurisprudencial|administrativa","tipo_norma":"si aplica","numero":"numero","articulo":"articulo","parrafo":"parrafo","fecha_expedicion":"fecha","autoridad_emisora":"autoridad","vigencia":"vigencia","tribunal":"si es jurisprudencia","numero_sentencia":"si aplica","magistrado_ponente":"si aplica","ratio_decidendi":"si aplica","tipo_acto":"si es administrativa","numero_acto":"numero","fecha":"fecha","autoridad_competente":"autoridad","radicado":"radicado","objeto":"objeto del acto"}}`;
 
   try {
+    const payload = { fileData: base64Data, fileName: file.name, fileType: file.type || (isPDF?"application/pdf":"application/octet-stream"), systemPrompt: SYSTEM };
+    if (preExtractedText) payload.preExtractedText = preExtractedText.slice(0, 30000);
     const res = await fetch(`${SB_URL}/functions/v1/analyze-document`, {
       method: "POST",
       headers: {
@@ -756,14 +783,14 @@ Responde SOLO en JSON:
         Authorization: `Bearer ${sessionToken||SB_KEY}`,
         apikey: SB_KEY
       },
-      body: JSON.stringify({ fileData: base64Data, fileName: file.name, fileType: file.type || (isPDF?"application/pdf":"application/octet-stream"), systemPrompt: SYSTEM })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (!res.ok || !data.result) {
       const errMsg = data.error || `Error ${res.status}`;
       setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:`No se pudo procesar: ${errMsg}`,actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:["Error del analizador"],urgency:"informativa",requires_confirmation:true,confirmation_questions:[{question:"Tipo de documento?",options:Object.values(DOC_TYPES).map(t=>t.label)}],recommended_classification:"Clasificar manualmente.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
     } else {
-      setAnalysisResult({...data.result, file_name:file.name, file_type:file.name.split(".").pop(), file_size:`${(file.size/1024/1024).toFixed(1)} MB`, ocr_used:true});
+      setAnalysisResult({...data.result, file_name:file.name, file_type:file.name.split(".").pop(), file_size:`${(file.size/1024/1024).toFixed(1)} MB`, ocr_used:true, extraction_method: extractionMethod, raw_text: preExtractedText});
     }
   } catch (e) {
     setAnalysisResult({doc_nature:"otro",is_norma:false,sender:"Por determinar",receiver:clientOrg?.name||"Mi Empresa",doc_date:null,radicado:null,subject:file.name.replace(/\.[^/.]+$/,"").replace(/_/g," "),content_summary:`Error de red: ${e.message}`,actions_detected:["informativo"],obligations_affected:[],deadlines_found:[],candidate_edi:null,candidate_confidence:0,matching_reasons:[],urgency:"informativa",requires_confirmation:true,confirmation_questions:[],recommended_classification:"Reintentar.",norma_data:null,proposed_changes:[],fuente:null,file_name:file.name,file_type:file.name.split(".").pop(),file_size:`${(file.size/1024/1024).toFixed(1)} MB`,ocr_used:false});
@@ -2717,7 +2744,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.8</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.9</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
