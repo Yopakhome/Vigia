@@ -143,6 +143,24 @@ Deno.serve(async (req: Request) => {
       );
       return jsonResponse({ ok: true });
     }
+    if (op === "update-org") {
+      const { org_id, updates } = payload || {};
+      if (!org_id || !updates) return jsonResponse({ error: "Faltan org_id y updates" }, 400);
+      const ALLOWED = ["name","representante_legal","email_corporativo","telefono",
+        "sector","ciudad","departamento","client_type","tier","plan","plan_estado",
+        "plan_inicio","plan_renovacion","limite_edis","limite_usuarios",
+        "limite_intake_mes","nivel_confidencialidad","contacto_vigia","cargo_contacto",
+        "risk_profile","direccion"];
+      const safe = Object.fromEntries(
+        Object.entries(updates).filter(([k]) => ALLOWED.includes(k))
+      );
+      if (Object.keys(safe).length === 0) return jsonResponse({ error: "Sin campos válidos" }, 400);
+      if (safe.client_type && !["vigia_subscriber","enara_consulting","both"].includes(safe.client_type as string)) {
+        return jsonResponse({ error: "client_type inválido" }, 400);
+      }
+      await adminReq(`/rest/v1/organizations?id=eq.${org_id}`, "PATCH", safe, "return=minimal");
+      return jsonResponse({ ok: true });
+    }
     return jsonResponse({ error: `op desconocida: ${op}` }, 400);
   } catch (e) {
     return jsonResponse({ error: (e as Error).message }, 500);

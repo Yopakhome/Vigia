@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.27";
+const EXPORT_VIGIA_VERSION = "v3.9.28";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1295,7 +1295,50 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [selectedNormCat, setSelectedNormCat] = React.useState(null);
   const [normCatArticles, setNormCatArticles] = React.useState({});
   const [catalogSearch, setCatalogSearch] = React.useState("");
+  const [editingOrg, setEditingOrg] = React.useState(null);
+  const [editOrgData, setEditOrgData] = React.useState({});
+  const [editOrgSaving, setEditOrgSaving] = React.useState(false);
+  const [editOrgMsg, setEditOrgMsg] = React.useState(null);
   const A = C;
+
+  const openEditOrg = (o) => {
+    setEditingOrg(o);
+    setEditOrgMsg(null);
+    setEditOrgData({
+      name: o.name || "",
+      representante_legal: o.representante_legal || "",
+      email_corporativo: o.email_corporativo || "",
+      telefono: o.telefono || "",
+      sector: o.sector || "",
+      ciudad: o.ciudad || "",
+      departamento: o.departamento || "",
+      direccion: o.direccion || "",
+      client_type: o.client_type || "vigia_subscriber",
+      tier: o.tier || "",
+      plan: o.plan || "",
+      plan_estado: o.plan_estado || "",
+      limite_edis: o.limite_edis ?? 5,
+      limite_usuarios: o.limite_usuarios ?? 4,
+      limite_intake_mes: o.limite_intake_mes ?? 100,
+      nivel_confidencialidad: o.nivel_confidencialidad || "estandar",
+      contacto_vigia: o.contacto_vigia || "",
+      cargo_contacto: o.cargo_contacto || ""
+    });
+  };
+
+  const saveEditOrg = async () => {
+    if (!editingOrg?.id) return;
+    setEditOrgSaving(true); setEditOrgMsg(null);
+    try {
+      await saCall("update-org", { org_id: editingOrg.id, updates: editOrgData });
+      setOrgs(list => list.map(o => o.id === editingOrg.id ? { ...o, ...editOrgData } : o));
+      setEditingOrg(p => p ? { ...p, ...editOrgData } : p);
+      setEditOrgMsg({ t: "success", m: "Organización actualizada." });
+    } catch (e) {
+      setEditOrgMsg({ t: "error", m: e.message || String(e) });
+    }
+    setEditOrgSaving(false);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -1571,17 +1614,156 @@ function SuperAdminModule({reviewerId, sessionToken}) {
         </div>
       )}
 
-      {tab==="orgs"&&(
+      {tab==="orgs"&&!editingOrg&&(
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {orgs.map(function(o){ return <div key={o.id} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"14px 18px"}}>
-            <div style={{fontSize:13,fontWeight:600,color:A.text,marginBottom:4}}>{o.name}</div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              {o.nit&&<span style={{fontSize:10,color:A.textSec}}>NIT: {o.nit}</span>}
-              {o.sector&&<span style={{fontSize:10,color:A.blue}}>{o.sector}</span>}
-              {o.plan&&<span style={{fontSize:10,color:A.primary,fontWeight:600}}>{o.plan}</span>}
-              {o.ciudad&&<span style={{fontSize:10,color:A.textMuted}}>{o.ciudad}</span>}
+          {orgs.map(function(o){
+            const ct = o.client_type || "vigia_subscriber";
+            const ctColor = ct==="enara_consulting"?A.blue:ct==="both"?A.green:A.primary;
+            const ctLabel = ct==="enara_consulting"?"CONSULTORÍA":ct==="both"?"SUSCRIPTOR + CONSULTORÍA":"VIGÍA";
+            return <div key={o.id} onClick={()=>openEditOrg(o)} style={{background:A.surface,border:"1px solid "+A.border,borderRadius:10,padding:"14px 18px",cursor:"pointer",transition:"border-color 0.15s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=A.primary+"66"} onMouseLeave={e=>e.currentTarget.style.borderColor=A.border}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                <div style={{fontSize:13,fontWeight:600,color:A.text}}>{o.name}</div>
+                <span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,background:ctColor+"22",color:ctColor,textTransform:"uppercase",letterSpacing:"0.05em"}}>{ctLabel}</span>
+              </div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {o.nit&&<span style={{fontSize:10,color:A.textSec}}>NIT: {o.nit}</span>}
+                {o.sector&&<span style={{fontSize:10,color:A.blue}}>{o.sector}</span>}
+                {o.plan&&ct!=="enara_consulting"&&<span style={{fontSize:10,color:A.primary,fontWeight:600}}>{o.plan}</span>}
+                {o.ciudad&&<span style={{fontSize:10,color:A.textMuted}}>{o.ciudad}</span>}
+                <span style={{marginLeft:"auto",fontSize:10,color:A.textMuted}}>Editar →</span>
+              </div>
+            </div>;
+          })}
+        </div>
+      )}
+
+      {tab==="orgs"&&editingOrg&&(
+        <div style={{maxWidth:680}}>
+          <button onClick={()=>{ setEditingOrg(null); setEditOrgMsg(null); }} style={{background:"transparent",border:"1px solid "+A.border,borderRadius:6,padding:"6px 12px",color:A.textSec,fontSize:11,cursor:"pointer",marginBottom:14}}>← Volver a la lista</button>
+          <div style={{background:A.surface,border:"1px solid "+A.border,borderRadius:14,padding:28}}>
+            <div style={{fontSize:16,fontWeight:700,color:A.text,marginBottom:4}}>Editar organización</div>
+            <div style={{fontSize:12,color:A.textSec,marginBottom:20}}>NIT: {editingOrg.nit||"—"} (no editable) · Creada {editingOrg.created_at?new Date(editingOrg.created_at).toLocaleDateString("es-CO"):"—"}</div>
+
+            {editOrgMsg&&<div style={{background:editOrgMsg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(editOrgMsg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:editOrgMsg.t==="success"?A.green:A.red,marginBottom:16}}>{editOrgMsg.m}</div>}
+
+            {/* Tipo de cliente */}
+            <div style={{marginBottom:22}}>
+              <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Tipo de cliente</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {[
+                  {value:"vigia_subscriber",label:"Suscriptor VIGÍA",desc:"Accede a la plataforma",color:A.primary},
+                  {value:"enara_consulting",label:"Cliente consultoría",desc:"ENARA gestiona sus EDIs",color:A.blue},
+                  {value:"both",label:"Ambos",desc:"Suscriptor + consultoría",color:A.green}
+                ].map(opt => { const active = editOrgData.client_type===opt.value; return (
+                  <div key={opt.value} onClick={()=>setEditOrgData(p=>({...p,client_type:opt.value}))} style={{border:"1px solid "+(active?opt.color+"66":A.border),background:active?opt.color+"12":A.surfaceEl,borderRadius:8,padding:"10px 12px",cursor:"pointer"}}>
+                    <div style={{fontSize:12,fontWeight:600,color:active?A.text:A.textSec,marginBottom:3}}>{opt.label}</div>
+                    <div style={{fontSize:10,color:A.textMuted}}>{opt.desc}</div>
+                  </div>
+                ); })}
+              </div>
             </div>
-          </div>; })}
+
+            {/* Datos básicos */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Datos básicos</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Razón social / Nombre","name","text"],["Representante legal","representante_legal","text"],["Email corporativo","email_corporativo","email"],["Teléfono","telefono","text"]].map(f => (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type={f[2]} value={editOrgData[f[1]]||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,[f[1]]:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Sector</div>
+                <select value={editOrgData.sector||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,sector:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  <option value="">Sin definir</option>
+                  {["energia","mineria","manufactura","construccion","agro","logistica","servicios","otro"].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+                </select>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Nivel de confidencialidad</div>
+                <select value={editOrgData.nivel_confidencialidad||"estandar"} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,nivel_confidencialidad:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  <option value="estandar">Estándar</option>
+                  <option value="medio">Medio</option>
+                  <option value="alto">Alto</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Ubicación */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Ubicación</div>
+            <div style={{marginBottom:14}}>
+              <ColombiaLocation A={A}
+                dpto={editOrgData.departamento||""} ciudad={editOrgData.ciudad||""}
+                onDpto={v=>setEditOrgData(p=>({...p,departamento:v,ciudad:""}))}
+                onCiudad={v=>setEditOrgData(p=>({...p,ciudad:v}))}
+              />
+            </div>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Dirección</div>
+              <input type="text" value={editOrgData.direccion||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,direccion:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+            </div>
+
+            {/* Contacto */}
+            <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Contacto VIGÍA</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+              {[["Nombre contacto","contacto_vigia"],["Cargo","cargo_contacto"]].map(f => (
+                <div key={f[1]}>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                  <input type="text" value={editOrgData[f[1]]||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,[f[1]]:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                </div>
+              ))}
+            </div>
+
+            {/* Plan + límites (solo suscriptores) */}
+            {editOrgData.client_type!=="enara_consulting" && (<>
+              <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Plan y configuración</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+                <div>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Plan</div>
+                  <select value={editOrgData.plan||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,plan:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                    <option value="">—</option>
+                    <option value="prueba">Prueba</option>
+                    <option value="basico">Básico</option>
+                    <option value="profesional">Profesional</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Estado plan</div>
+                  <select value={editOrgData.plan_estado||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,plan_estado:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                    <option value="">—</option>
+                    <option value="activo">Activo</option>
+                    <option value="suspendido">Suspendido</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Tier</div>
+                  <select value={editOrgData.tier||""} onChange={e=>{var v=e.target.value;setEditOrgData(p=>({...p,tier:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                    <option value="">—</option>
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+                {[["Límite EDIs","limite_edis"],["Límite usuarios","limite_usuarios"],["Intake/mes","limite_intake_mes"]].map(f => (
+                  <div key={f[1]}>
+                    <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
+                    <input type="number" value={editOrgData[f[1]]!==undefined?editOrgData[f[1]]:""} onChange={e=>{var v=parseInt(e.target.value);setEditOrgData(p=>({...p,[f[1]]:isNaN(v)?0:v}));}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                  </div>
+                ))}
+              </div>
+            </>)}
+
+            <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}>
+              <button onClick={()=>{ setEditingOrg(null); setEditOrgMsg(null); }} style={{background:"transparent",border:"1px solid "+A.border,borderRadius:8,padding:"10px 18px",color:A.textSec,fontSize:12,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={saveEditOrg} disabled={editOrgSaving} style={{background:editOrgSaving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"10px 18px",color:editOrgSaving?A.textSec:"#060c14",fontSize:12,fontWeight:700,cursor:editOrgSaving?"not-allowed":"pointer"}}>{editOrgSaving?"Guardando…":"Guardar cambios"}</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1678,12 +1860,18 @@ function SuperAdminModule({reviewerId, sessionToken}) {
           </div>; })}
           <div style={{marginBottom:14}}>
             <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase"}}>Organizacion</div>
-            {orgs.length===0?<div style={{fontSize:12,color:A.yellow,padding:"10px 14px",background:A.yellowDim,borderRadius:8}}>No hay organizaciones — crea una en "+ Nueva Org" primero.</div>:(
-              <select value={newUser.org_id} onChange={function(e){ var v=e.target.value; setNewUser(function(p){ return Object.assign({},p,{org_id:v}); }); }} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,outline:"none"}}>
-                <option value="">Selecciona una organizacion...</option>
-                {orgs.map(function(o){ return <option key={o.id} value={o.id}>{o.name} ({o.plan||"prueba"})</option>; })}
-              </select>
-            )}
+            {(function(){
+              const subscribers = orgs.filter(o => !o.client_type || o.client_type==="vigia_subscriber" || o.client_type==="both");
+              if(orgs.length===0) return <div style={{fontSize:12,color:A.yellow,padding:"10px 14px",background:A.yellowDim,borderRadius:8}}>No hay organizaciones — crea una en "+ Nueva Org" primero.</div>;
+              if(subscribers.length===0) return <div style={{fontSize:11,color:A.yellow,padding:"10px 14px",background:A.yellowDim,borderRadius:8}}>No hay organizaciones suscriptoras activas. Crea una org de tipo "Suscriptor VIGÍA" primero.</div>;
+              return (
+                <select value={newUser.org_id} onChange={function(e){ var v=e.target.value; setNewUser(function(p){ return Object.assign({},p,{org_id:v}); }); }} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"10px 14px",color:A.text,fontSize:13,outline:"none"}}>
+                  <option value="">Selecciona una organizacion...</option>
+                  {subscribers.map(function(o){ return <option key={o.id} value={o.id}>{o.name} ({o.plan||"prueba"}){o.client_type==="both"?" · también consultoría":""}</option>; })}
+                </select>
+              );
+            })()}
+            <div style={{fontSize:10,color:A.textMuted,marginTop:4}}>Solo organizaciones suscritas a VIGÍA pueden tener usuarios. Los clientes de consultoría no tienen acceso a la plataforma.</div>
           </div>
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600,textTransform:"uppercase"}}>Rol</div>
@@ -3168,7 +3356,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.27</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.28</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
