@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, BookMarked, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck, Users, Paperclip, Download, Copy, Menu } from "lucide-react";
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock, Search, ChevronRight, Shield, MessageSquare, BookOpen, BookMarked, Database, TrendingUp, Eye, BarChart2, Zap, RefreshCw, Layers, Mail, X, Upload, ArrowDown, ArrowUp, Scale, Gavel, FileCheck, Users, Paperclip, Download, Copy, Menu, LayoutGrid } from "lucide-react";
 
 const SB_URL = "https://itkbujkqjesuntgdkubt.supabase.co";
 const SB_KEY = "sb_publishable_JJtvT8sbd3PKVAb7FeZekw_Z16AR0TV";
@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.10.0";
+const EXPORT_VIGIA_VERSION = "v3.11.0";
 
 function exportTimestamp() {
   const d = new Date();
@@ -3203,6 +3203,10 @@ const [oblHistory, setOblHistory] = useState([]);
 const [oblNewComment, setOblNewComment] = useState("");
 const [oblSaving, setOblSaving] = useState(false);
 const [orgUsers, setOrgUsers] = useState([]);
+const [notifications, setNotifications] = useState([]);
+const [unreadNotif, setUnreadNotif] = useState(0);
+const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+const [kanbanFilter, setKanbanFilter] = useState("all");
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
 const [normScopeFilter, setNormScopeFilter] = useState("todos");
@@ -3482,6 +3486,49 @@ const loadJurisArticles=async(jurId)=>{
 };
 useEffect(()=>{if(jurisSelected) loadJurisArticles(jurisSelected);},[jurisSelected]);
 
+// Notification polling (30s)
+useEffect(()=>{
+  if(!session?.user?.id||isDemoMode) return;
+  let cancelled=false;
+  const loadNotifs=async()=>{
+    try{
+      const d=await sb("notifications",`select=*&user_id=eq.${session.user.id}&order=created_at.desc&limit=30`,session.access_token);
+      if(cancelled) return;
+      const arr=Array.isArray(d)?d:[];
+      setNotifications(arr);
+      setUnreadNotif(arr.filter(n=>!n.read_at).length);
+    }catch{}
+  };
+  loadNotifs();
+  const id=setInterval(loadNotifs,30000);
+  return ()=>{cancelled=true;clearInterval(id);};
+},[session?.user?.id]);
+
+const markNotifRead=async(notifId)=>{
+  try{
+    await fetch(`${SB_URL}/rest/v1/notifications?id=eq.${notifId}`,{method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({read_at:new Date().toISOString()})});
+    setNotifications(p=>p.map(n=>n.id===notifId?{...n,read_at:new Date().toISOString()}:n));
+    setUnreadNotif(c=>Math.max(0,c-1));
+  }catch{}
+};
+
+const markAllNotifsRead=async()=>{
+  try{
+    await fetch(`${SB_URL}/rest/v1/notifications?user_id=eq.${session.user.id}&read_at=is.null`,{method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({read_at:new Date().toISOString()})});
+    setNotifications(p=>p.map(n=>n.read_at?n:{...n,read_at:new Date().toISOString()}));
+    setUnreadNotif(0);
+  }catch{}
+};
+
+const handleNotifClick=(notif)=>{
+  if(!notif.read_at) markNotifRead(notif.id);
+  if(notif.link_params?.instrument_id){
+    const inst=instruments.find(i=>i.id===notif.link_params.instrument_id);
+    if(inst){setSelectedEDI(inst);setView("edi-detail");if(notif.link_params?.obligation_id)setTimeout(()=>loadOblDetail(notif.link_params.obligation_id),150);}
+  }
+  setNotifPanelOpen(false);
+};
+
 useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
 
 useEffect(()=>{
@@ -3644,7 +3691,7 @@ const copyBotResponse = (msgIndex) => {
 };
 
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia"},{key:"conceptos",icon:BookMarked,label:"Conceptos & Guías"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(!isSuperAdmin?[{key:"soporte",icon:MessageSquare,label:"Soporte"}]:[]),...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"kanban",icon:LayoutGrid,label:"Mi Trabajo"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia"},{key:"conceptos",icon:BookMarked,label:"Conceptos & Guías"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(!isSuperAdmin?[{key:"soporte",icon:MessageSquare,label:"Soporte"}]:[]),...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(isPrivacidadPage) return <PoliticaPrivacidad/>;
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
@@ -4292,6 +4339,51 @@ const renderConceptosGuias=()=>{
   </div>;
 };
 
+const renderKanban=()=>{
+  const COLS=[{key:"pendiente",title:"Por hacer",color:C.textMuted},{key:"en_progreso",title:"En progreso",color:C.blue||C.primary},{key:"en_revision",title:"En revisión",color:C.yellow},{key:"cumplida",title:"Cumplidas",color:C.green}];
+  const filtered=obligations.filter(o=>{
+    if(kanbanFilter==="me"&&o.assigned_to!==session?.user?.id) return false;
+    return true;
+  });
+  const byCol={};COLS.forEach(c=>byCol[c.key]=[]);
+  filtered.forEach(o=>{const ws=o.work_status||"pendiente";if(byCol[ws])byCol[ws].push(o);else byCol["pendiente"].push(o);});
+  const handleDrop=async(oblId,fromStatus,toStatus)=>{
+    setObligations(p=>p.map(o=>o.id===oblId?{...o,work_status:toStatus}:o));
+    try{await updateOblWorkStatus(oblId,toStatus);}catch{setObligations(p=>p.map(o=>o.id===oblId?{...o,work_status:fromStatus}:o));}
+  };
+  return <div style={{padding:28,height:"100%",display:"flex",flexDirection:"column"}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
+      <div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Mi Trabajo</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{obligations.length} obligaciones · Kanban interactivo</p></div>
+      <div style={{display:"flex",gap:6}}>
+        {[{k:"all",l:"Todas"},{k:"me",l:"Mis obligaciones"}].map(f=><button key={f.k} onClick={()=>setKanbanFilter(f.k)} style={{background:kanbanFilter===f.k?C.primaryDim:"transparent",border:`1px solid ${kanbanFilter===f.k?C.primary+"66":C.border}`,borderRadius:6,padding:"4px 12px",color:kanbanFilter===f.k?C.primary:C.textSec,fontSize:11,fontWeight:kanbanFilter===f.k?700:500,cursor:"pointer",fontFamily:FONT}}>{f.l}</button>)}
+      </div>
+    </div>
+    <div style={{flex:1,display:"flex",gap:12,overflowX:"auto",minHeight:0}}>
+      {COLS.map(col=>{const items=byCol[col.key]||[];return <div key={col.key}
+        onDragOver={e=>e.preventDefault()}
+        onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData("oblId");const from=e.dataTransfer.getData("fromWs");if(id&&from!==col.key)handleDrop(id,from,col.key);}}
+        style={{flex:1,minWidth:220,background:C.bg,border:`1px solid ${C.border}`,borderRadius:10,padding:12,display:"flex",flexDirection:"column"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <span style={{fontSize:11,fontWeight:700,color:col.color,textTransform:"uppercase",letterSpacing:"0.08em"}}>{col.title}</span>
+          <span style={{fontSize:10,color:C.textMuted,background:C.surfaceEl,padding:"2px 8px",borderRadius:10}}>{items.length}</span>
+        </div>
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
+          {items.map(ob=>{const ds=derivedStatus(ob);const uc=ds==="vencido"?C.red:ds==="proximo"?C.yellow:C.green;const days=ob.due_date?Math.ceil((new Date(ob.due_date)-new Date())/86400000):null;
+            return <div key={ob.id} draggable onDragStart={e=>{e.dataTransfer.setData("oblId",ob.id);e.dataTransfer.setData("fromWs",ob.work_status||"pendiente");}} onClick={()=>{const inst=instruments.find(i=>i.id===ob.instrument_id);if(inst){setSelectedEDI(inst);setView("edi-detail");setTimeout(()=>loadOblDetail(ob.id),150);}}} style={{background:C.surface,border:`1px solid ${C.border}`,borderLeft:`3px solid ${uc}`,borderRadius:8,padding:"10px 12px",cursor:"grab"}}>
+              <div style={{fontSize:12,fontWeight:600,color:C.text,marginBottom:4,lineHeight:1.3}}>{(ob.name||ob.obligation_num||"").slice(0,80)}</div>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:10,color:C.textMuted}}>
+                <span>{days!==null?(days<0?`${Math.abs(days)}d vencido`:`${days}d`):"\u2014"}</span>
+                {ob.assigned_to&&<span style={{color:C.primary}}>{(orgUsers.find(u=>u.user_id===ob.assigned_to)?.email||"").split("@")[0]||"asignado"}</span>}
+              </div>
+            </div>;
+          })}
+          {items.length===0&&<div style={{fontSize:11,color:C.textMuted,fontStyle:"italic",textAlign:"center",padding:20}}>Sin obligaciones</div>}
+        </div>
+      </div>;})}
+    </div>
+  </div>;
+};
+
 const renderOversight=()=><div style={{padding:28}}>
 <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 6px"}}>Oversight legal automatico</h1>
 <p style={{fontSize:13,color:C.textSec,margin:"0 0 24px"}}>Anomalias detectadas - {oversight.length} activas</p>
@@ -4615,7 +4707,7 @@ const renderConsultorENARA = () => {
   );
 };
 
-const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="jurisprudencia")return renderJurisprudencia(); if(view==="conceptos")return renderConceptosGuias(); if(view==="oversight")return renderOversight(); if(view==="soporte")return <SupportModule clientOrg={clientOrg} session={session}/>; if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
+const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="kanban")return renderKanban(); if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="jurisprudencia")return renderJurisprudencia(); if(view==="conceptos")return renderConceptosGuias(); if(view==="oversight")return renderOversight(); if(view==="soporte")return <SupportModule clientOrg={clientOrg} session={session}/>; if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden",paddingTop:isDemoMode?32:0}}>
@@ -4697,7 +4789,28 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.10.0</div></div>
+<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.11.0</div></div>
+<div style={{position:"relative"}}><button onClick={()=>setNotifPanelOpen(p=>!p)} style={{background:"transparent",border:"none",cursor:"pointer",color:C.textSec,padding:4,position:"relative"}}><Bell size={16}/>{unreadNotif>0&&<span style={{position:"absolute",top:0,right:0,background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 4px",borderRadius:8,minWidth:14,textAlign:"center"}}>{unreadNotif>99?"99+":unreadNotif}</span>}</button>
+{notifPanelOpen&&<div style={{position:"absolute",top:"calc(100% + 8px)",right:0,width:320,maxHeight:400,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",zIndex:300,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
+  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:`1px solid ${C.border}`}}>
+    <span style={{fontSize:12,fontWeight:700,color:C.text}}>Notificaciones</span>
+    {unreadNotif>0&&<button onClick={markAllNotifsRead} style={{background:"transparent",border:"none",color:C.primary,fontSize:10,cursor:"pointer",fontFamily:FONT}}>Marcar todas leídas</button>}
+  </div>
+  <div style={{maxHeight:340,overflowY:"auto"}}>
+    {notifications.length===0?<div style={{padding:"24px 14px",textAlign:"center",fontSize:12,color:C.textMuted}}>Sin notificaciones</div>:
+    notifications.map(n=><div key={n.id} onClick={()=>handleNotifClick(n)} style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:n.read_at?"transparent":`${C.primary}08`}} onMouseEnter={e=>e.currentTarget.style.background=C.surfaceEl} onMouseLeave={e=>e.currentTarget.style.background=n.read_at?"transparent":`${C.primary}08`}>
+      <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+        {!n.read_at&&<div style={{width:6,height:6,borderRadius:"50%",background:n.severity==="urgent"?C.red:n.severity==="warning"?C.yellow:C.primary,marginTop:5,flexShrink:0}}/>}
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:11,fontWeight:600,color:C.text,marginBottom:2}}>{n.title}</div>
+          <div style={{fontSize:10,color:C.textSec,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.body}</div>
+          <div style={{fontSize:9,color:C.textMuted,marginTop:3}}>{new Date(n.created_at).toLocaleString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
+        </div>
+      </div>
+    </div>)}
+  </div>
+</div>}
+</div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
