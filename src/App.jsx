@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.31";
+const EXPORT_VIGIA_VERSION = "v3.9.32";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2577,6 +2577,8 @@ const [botMessages, setBotMessages] = useState([{role:"system",text:"VIGÍA acti
 const [botLoading, setBotLoading] = useState(false);
 const [botHistory, setBotHistory] = useState([]);
 const [botHistoryOpen, setBotHistoryOpen] = useState(false);
+const [globalSearch, setGlobalSearch] = useState("");
+const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 const [sources, setSources] = useState({documentos:true,normativa:true,jurisprudencia:true,pedagogico:false,validacion:false});
 const [ediSearch, setEdiSearch] = useState("");
 const [ediFilter, setEdiFilter] = useState("todos");
@@ -2935,6 +2937,46 @@ const renderDashboard=()=>(
 <StatCard icon={Clock} label="Proximas (30 dias)" value={upcoming} color={C.yellow}/>
 <StatCard icon={CheckCircle} label="Al dia" value={compliant} color={C.green}/>
 </div>
+{obligations.length > 0 && (
+  <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:12,marginBottom:24}}>
+    {/* Compliance rate */}
+    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      {(()=>{
+        const rate = Math.round((compliant / obligations.length) * 100);
+        const color = rate >= 80 ? C.green : rate >= 60 ? C.yellow : C.red;
+        return <>
+          <div style={{fontSize:36,fontWeight:800,color,lineHeight:1}}>{rate}%</div>
+          <div style={{fontSize:11,color:C.textSec,marginTop:6}}>Tasa de cumplimiento</div>
+          <div style={{width:"100%",background:C.surfaceEl,borderRadius:4,height:6,marginTop:10}}>
+            <div style={{width:`${rate}%`,background:color,borderRadius:4,height:"100%",transition:"width 0.3s"}}/>
+          </div>
+          <div style={{fontSize:10,color:C.textMuted,marginTop:4}}>{compliant} de {obligations.length} obligaciones al día</div>
+        </>;
+      })()}
+    </div>
+    {/* Próximos vencimientos */}
+    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px"}}>
+      <div style={{fontSize:11,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Próximos vencimientos</div>
+      {(()=>{
+        const prox = [...obligations].filter(o=>o.due_date && (derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo")).sort((a,b)=>new Date(a.due_date)-new Date(b.due_date)).slice(0,5);
+        if(prox.length===0) return <div style={{fontSize:12,color:C.textMuted,padding:"8px 0"}}>Sin vencimientos pendientes.</div>;
+        return <div style={{display:"flex",flexDirection:"column",gap:6}}>{prox.map(ob=>{
+          const days = Math.ceil((new Date(ob.due_date)-new Date())/86400000);
+          const isVenc = days < 0;
+          const edi = instruments.find(i=>i.id===ob.instrument_id);
+          return <div key={ob.id} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 8px",background:C.surfaceEl,borderRadius:6}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:isVenc?C.red:C.yellow,flexShrink:0}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:11,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ob.name||ob.obligation_num}</div>
+              <div style={{fontSize:10,color:C.textMuted}}>{edi?.title||edi?.project_name||"—"}</div>
+            </div>
+            <span style={{fontSize:10,fontWeight:600,color:isVenc?C.red:C.yellow,flexShrink:0}}>{isVenc?`VENCIDA hace ${Math.abs(days)}d`:`${days}d restantes`}</span>
+          </div>;
+        })}</div>;
+      })()}
+    </div>
+  </div>
+)}
 {!isSuperAdmin && userOrgRole!=="viewer" && (
   <div style={{marginTop:0,marginBottom:24,padding:"20px 24px",background:C.surface,border:`1px solid ${C.border}`,borderRadius:12}}>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
@@ -3534,7 +3576,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.31</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.32</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
@@ -3555,7 +3597,37 @@ return (
 </div>
 <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column"}}>
 <div style={{height:50,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 28px",flexShrink:0,background:C.bg,position:"sticky",top:0,zIndex:10}}>
-<div style={{display:"flex",alignItems:"center",gap:8,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"6px 12px",width:280}}><Search size={13} color={C.textMuted}/><span style={{fontSize:12,color:C.textMuted}}>Buscar en EDIs, obligaciones...</span></div>
+<div style={{position:"relative",width:300}}>
+<div style={{display:"flex",alignItems:"center",gap:8,background:C.surface,border:`1px solid ${globalSearchOpen?C.primary+"66":C.border}`,borderRadius:8,padding:"6px 12px"}}>
+<Search size={13} color={C.textMuted}/>
+<input value={globalSearch} onChange={e=>{setGlobalSearch(e.target.value);setGlobalSearchOpen(e.target.value.length>=2);}} onFocus={()=>{if(globalSearch.length>=2)setGlobalSearchOpen(true);}} onBlur={()=>setTimeout(()=>setGlobalSearchOpen(false),150)} onKeyDown={e=>{if(e.key==="Escape"){setGlobalSearch("");setGlobalSearchOpen(false);}}} placeholder="Buscar en EDIs, obligaciones, normas..." style={{border:"none",background:"transparent",outline:"none",fontSize:12,color:C.text,fontFamily:FONT,width:"100%"}}/>
+{globalSearch&&<button onClick={()=>{setGlobalSearch("");setGlobalSearchOpen(false);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.textMuted,padding:0,display:"flex"}}><X size={12}/></button>}
+</div>
+{globalSearchOpen&&(()=>{
+  const q=globalSearch.toLowerCase();
+  const results=[];
+  instruments.forEach(inst=>{
+    const t=[inst.title,inst.project_name,inst.number,inst.instrument_type,inst.authority_name].filter(Boolean).join(" ").toLowerCase();
+    if(t.includes(q)) results.push({type:"edi",label:inst.title||inst.project_name||inst.number,sub:`${(inst.instrument_type||"").replace(/_/g," ")} · ${inst.number||""}`,action:()=>{setSelectedEDI(inst);setView("edi-detail");setGlobalSearch("");setGlobalSearchOpen(false);}});
+  });
+  obligations.forEach(ob=>{
+    const t=[ob.name,ob.description,ob.obligation_num,ob.norma_fundamento].filter(Boolean).join(" ").toLowerCase();
+    if(t.includes(q)) results.push({type:"obligación",label:ob.name||ob.obligation_num,sub:`${ob.obligation_num||""} · ${ob.status||""}`,action:()=>{setView("edis");setGlobalSearch("");setGlobalSearchOpen(false);}});
+  });
+  if(Array.isArray(normSources)) normSources.slice(0,200).forEach(n=>{
+    const t=[n.norm_title,n.norm_number,n.norm_type,n.issuing_body].filter(Boolean).join(" ").toLowerCase();
+    if(t.includes(q)) results.push({type:"norma",label:n.norm_title||`${n.norm_type} ${n.norm_number}`,sub:`${n.norm_type||""} ${n.norm_number||""}/${n.norm_year||""}`,action:()=>{setSelectedNorm(n.id);setView("normativa");setGlobalSearch("");setGlobalSearchOpen(false);}});
+  });
+  const r=results.slice(0,8);
+  return <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",zIndex:100,overflow:"hidden"}}>
+    {r.length===0?<div style={{padding:"12px 16px",fontSize:12,color:C.textMuted}}>Sin resultados para "{globalSearch}"</div>:r.map((res,i)=>(<div key={i} onClick={res.action} style={{padding:"10px 16px",cursor:"pointer",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:12}} onMouseEnter={e=>e.currentTarget.style.background=C.surfaceEl} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+      <span style={{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:4,background:res.type==="edi"?C.primary+"22":res.type==="norma"?C.blue+"22":C.yellow+"22",color:res.type==="edi"?C.primary:res.type==="norma"?C.blue:C.yellow,textTransform:"uppercase",flexShrink:0}}>{res.type}</span>
+      <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{res.label}</div><div style={{fontSize:10,color:C.textMuted}}>{res.sub}</div></div>
+    </div>))}
+    {r.length>0&&<div style={{padding:"6px 16px",fontSize:10,color:C.textMuted,borderTop:`1px solid ${C.border}`}}>{r.length} resultado{r.length!==1?"s":""}</div>}
+  </div>;
+})()}
+</div>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{display:"flex",alignItems:"center",gap:5,background:C.greenDim,border:`1px solid ${C.green}33`,borderRadius:6,padding:"4px 10px"}}><RefreshCw size={10} color={C.green}/><span style={{fontSize:10,color:C.green,fontWeight:600}}>{instruments.length} EDIs - {obligations.length} obligaciones - {alerts.length} alertas - {normSources.length} normas</span></div>
 <button style={{background:"transparent",border:"none",cursor:"pointer",padding:4,position:"relative"}}><Bell size={16} color={C.textSec}/>{unreadAlerts>0&&<span style={{position:"absolute",top:0,right:0,width:8,height:8,background:C.red,borderRadius:"50%",border:`2px solid ${C.bg}`}}/>}</button>
