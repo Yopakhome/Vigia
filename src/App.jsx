@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.37";
+const EXPORT_VIGIA_VERSION = "v3.9.38";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1616,8 +1616,17 @@ function SuperAdminModule({reviewerId, sessionToken}) {
               {[["Supabase","itkbujkqjesuntgdkubt"],["GitHub","Yopakhome/Vigia"],["URL","vigia-five.vercel.app"],["Modelo IA","claude-sonnet-4-20250514"],["Stack","React + Vite + Supabase"],["Auth","Supabase Auth + RLS"]].map(function(item){ return <div key={item[0]} style={{background:A.surfaceEl,borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:A.textMuted,marginBottom:2,textTransform:"uppercase"}}>{item[0]}</div><div style={{fontSize:11,color:A.text,fontWeight:500}}>{item[1]}</div></div>; })}
             </div>
           </div>
-          <div style={{marginTop:12,textAlign:"right"}}>
-            <button onClick={()=>{localStorage.removeItem("vigia_onboarded");setMsg({t:"success",m:"Onboarding reseteado. El próximo usuario sin EDIs verá el wizard."});}} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:6,padding:"4px 10px",color:A.textMuted,fontSize:10,cursor:"pointer"}}>Resetear onboarding</button>
+          <div style={{marginTop:12,display:"flex",gap:8,justifyContent:"flex-end",alignItems:"center"}}>
+            <button onClick={async()=>{
+              setMsg({t:"info",m:"Enviando alertas de vencimiento..."});
+              try {
+                const r = await fetch(`${SB_URL}/functions/v1/send-alerts`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${sessionToken}`,apikey:SB_KEY},body:"{}"});
+                const d = await r.json();
+                if(d.error) { setMsg({t:"error",m:d.error}); }
+                else { setMsg({t:"success",m:`${d.sent} email${d.sent!==1?"s":""} enviado${d.sent!==1?"s":""} a ${d.orgs||0} org${d.orgs!==1?"s":""}. ${d.sent===0?"(Sin obligaciones próximas o RESEND_API_KEY no configurada)":""}`}); }
+              } catch(e) { setMsg({t:"error",m:"Error: "+e.message}); }
+            }} style={{background:A.primary,border:"none",borderRadius:6,padding:"4px 14px",color:"#060c14",fontSize:10,fontWeight:700,cursor:"pointer"}}>Enviar alertas de vencimiento</button>
+            <button onClick={()=>{localStorage.removeItem("vigia_onboarded");setMsg({t:"success",m:"Onboarding reseteado."});}} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:6,padding:"4px 10px",color:A.textMuted,fontSize:10,cursor:"pointer"}}>Resetear onboarding</button>
           </div>
         </div>
       )}
@@ -3823,7 +3832,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.37</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.38</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
