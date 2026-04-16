@@ -222,8 +222,27 @@ Deno.serve(async (req: Request) => {
   const user = await verifyUser(req.headers.get("Authorization"));
   if (!user) return json({ error: "No autorizado" }, 401);
 
+  // Rate limiting: max 20 queries per hour per user
+  const RATE_LIMIT = 20;
+  try {
+    const windowStart = new Date();
+    windowStart.setMinutes(0, 0, 0);
+    const windowKey = windowStart.toISOString();
+    const rlCheck = await fetch(`${SUPABASE_URL}/rest/v1/rate_limits?user_id=eq.${(user as any).id}&window_start=eq.${windowKey}&select=query_count`, { headers: srv });
+    const rlData = rlCheck.ok ? await rlCheck.json() : [];
+    const currentCount = Array.isArray(rlData) && rlData[0] ? rlData[0].query_count : 0;
+    if (currentCount >= RATE_LIMIT) {
+      return json({ error: `L\u00edmite de ${RATE_LIMIT} consultas por hora alcanzado. Vuelve en ${60 - new Date().getMinutes()} minutos.` }, 429);
+    }
+    await fetch(`${SUPABASE_URL}/rest/v1/rate_limits`, {
+      method: "POST",
+      headers: { ...srv, Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ user_id: (user as any).id, window_start: windowKey, query_count: currentCount + 1 })
+    });
+  } catch { /* rate limit check failed — allow request */ }
+
   let payload: any;
-  try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
+  try { payload = await req.json(); } catch { return json({ error: "Body inv\u00e1lido" }, 400); }
 
   const { systemPrompt = "", userMessage, previousMessages, top_k = 12, use_rag = true, include_pedagogico = false, override_org_id = null } = payload || {};
   if (!userMessage || typeof userMessage !== "string") return json({ error: "Falta userMessage" }, 400);

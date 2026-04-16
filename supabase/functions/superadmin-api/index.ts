@@ -80,6 +80,9 @@ Deno.serve(async (req: Request) => {
       if (!ueEmail || !password) return jsonResponse({ error: "Faltan email y password" }, 400);
       const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRx.test(ueEmail)) return jsonResponse({ error: "Email inv\u00e1lido" }, 400);
+      if (password.length < 8 || !/[0-9]/.test(password) || !/[A-Z]/.test(password)) {
+        return jsonResponse({ error: "La contrase\u00f1a debe tener m\u00ednimo 8 caracteres, un n\u00famero y una may\u00fascula" }, 400);
+      }
       const created = await adminReq("/auth/v1/admin/users", "POST", { email: ueEmail, password, email_confirm: true }) as any;
       if (!created?.id) return jsonResponse({ error: "No se pudo crear usuario", detail: created }, 500);
       if (org_id && role && role !== "superadmin") {

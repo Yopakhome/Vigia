@@ -73,6 +73,13 @@ const sbLogout = () => {
   localStorage.removeItem("vigia_session");
 };
 
+const validatePassword = (pwd) => {
+  if(!pwd || pwd.length < 8) return "La contraseña debe tener al menos 8 caracteres";
+  if(!/[0-9]/.test(pwd)) return "La contraseña debe incluir al menos un número";
+  if(!/[A-Z]/.test(pwd)) return "La contraseña debe incluir al menos una mayúscula";
+  return null;
+};
+
 const sbForgotPassword = async (email) => {
   try {
     const r = await fetch(`${SB_URL}/auth/v1/recover`, {
@@ -264,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.40";
+const EXPORT_VIGIA_VERSION = "v3.9.41";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1422,6 +1429,8 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const createUser = async function() {
     if(!newUser.email||!newUser.password||!newUser.org_id){ setMsg({t:"error",m:"Completa todos los campos"}); return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())){ setMsg({t:"error",m:"Email inválido (ej: nombre@empresa.com.co)"}); return; }
+    var pwdErr = validatePassword(newUser.password);
+    if(pwdErr){ setMsg({t:"error",m:pwdErr}); return; }
     setLoading(true); setMsg(null);
     try {
       await saCall("create-user", newUser);
@@ -2534,6 +2543,8 @@ function MyTeamModule({orgId, orgName, limiteUsuarios, sessionToken}) {
   const createUser = async () => {
     if(!newUser.email || !newUser.password) { setMsg({t:"error",m:"Email y password requeridos"}); return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())) { setMsg({t:"error",m:"Email inválido (ej: nombre@empresa.com.co)"}); return; }
+    const pwdErr = validatePassword(newUser.password);
+    if(pwdErr) { setMsg({t:"error",m:pwdErr}); return; }
     if(limiteUsuarios && users.length >= limiteUsuarios) { setMsg({t:"error",m:`Límite de ${limiteUsuarios} usuarios alcanzado para este plan.`}); return; }
     setLoading(true); setMsg(null);
     try {
@@ -2965,6 +2976,21 @@ useEffect(()=>{
   return () => clearInterval(id);
 },[session?.refresh_token, session?.expires_at]);
 
+useEffect(()=>{
+  if(!session?.refresh_token || isDemoMode) return;
+  const h = async () => {
+    if(document.visibilityState!=="visible") return;
+    const now = Math.floor(Date.now()/1000);
+    if(session.expires_at && session.expires_at - now < 300) {
+      const refreshed = await sbRefresh(session.refresh_token);
+      if(refreshed) setSession(refreshed);
+      else { sbLogout(); setSession(null); }
+    }
+  };
+  document.addEventListener("visibilitychange",h);
+  return ()=>document.removeEventListener("visibilitychange",h);
+},[session?.refresh_token, session?.expires_at]);
+
 // Deriva el estado efectivo de una obligación desde due_date + days_alert_before.
 // Respeta estados finales (cumplido/suspendido/no_aplica) y el legacy "vencido"
 // si alguien ya lo fijó manualmente. Para el resto, calcula en tiempo real.
@@ -3058,6 +3084,7 @@ const systemPrompt=`Eres VIGÍA, asistente de inteligencia regulatoria ambiental
 const previousMessages = botMessages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({role:m.role,content:m.text}));
 try {
 const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session?.access_token||SB_KEY}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages,include_pedagogico:sources.pedagogico})});
+if(res.status===429) { const d=await res.json(); setBotMessages(p=>[...p,{role:"assistant",text:`\u23f1\ufe0f ${d.error||"Límite de consultas alcanzado. Intenta en unos minutos."}`,sources:[]}]); setBotLoading(false); return; }
 const data=await res.json();
 if(!res.ok||!data.reply) throw new Error(data.error||`Error ${res.status}`);
 const reply=data.reply;
@@ -3945,7 +3972,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.40</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.41</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
