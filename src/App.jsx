@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.42";
+const EXPORT_VIGIA_VERSION = "v3.9.43";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2519,6 +2519,37 @@ function OrgProfileModule({clientOrg, sessionToken, userId}) {
           );
         })}
       </div>
+
+      {/* Plan y suscripción */}
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"20px 24px",marginTop:16}}>
+        <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:16}}>Plan y suscripción</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,padding:"12px 16px",background:A.surfaceEl,borderRadius:8,border:`1px solid ${A.border}`}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:A.text}}>{clientOrg?.tier==="enterprise"?"Enterprise":clientOrg?.tier==="pro"?"Profesional":"Gratuito"}</div>
+            <div style={{fontSize:11,color:A.textMuted,marginTop:2}}>{clientOrg?.limite_edis??"—"} EDIs · {clientOrg?.limite_usuarios??"—"} usuarios{clientOrg?.plan_estado?` · ${clientOrg.plan_estado}`:""}</div>
+          </div>
+          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:6,background:clientOrg?.tier==="enterprise"?A.primaryDim:clientOrg?.tier==="pro"?(A.blueDim||A.surfaceEl):A.surfaceEl,color:clientOrg?.tier==="enterprise"?A.primary:clientOrg?.tier==="pro"?(A.blue||A.textSec):A.textMuted,textTransform:"uppercase",letterSpacing:"0.05em"}}>{clientOrg?.tier||"free"}</span>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+          {[{n:"Gratuito",t:"free",p:"$0",e:"5 EDIs",u:"2 usuarios",i:"10 análisis/mes",c:A.textMuted},{n:"Profesional",t:"pro",p:"$3MM COP/mes",e:"25 EDIs",u:"5 usuarios",i:"50 análisis/mes",c:A.blue||A.primary},{n:"Enterprise",t:"enterprise",p:"$6MM COP/mes",e:"Ilimitados",u:"Ilimitados",i:"Ilimitados",c:A.primary}].map(plan=>{
+            const cur=clientOrg?.tier===plan.t;
+            return <div key={plan.t} style={{padding:"14px",borderRadius:8,border:`1px solid ${cur?plan.c+"66":A.border}`,background:cur?plan.c+"0d":A.surfaceEl,position:"relative"}}>
+              {cur&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:4,background:plan.c,color:"#060c14",whiteSpace:"nowrap"}}>Plan actual</div>}
+              <div style={{fontSize:12,fontWeight:700,color:plan.c,marginBottom:4}}>{plan.n}</div>
+              <div style={{fontSize:14,fontWeight:800,color:A.text,marginBottom:8}}>{plan.p}</div>
+              {[plan.e,plan.u,plan.i].map((f,i)=><div key={i} style={{fontSize:10,color:A.textSec,marginBottom:2}}>✓ {f}</div>)}
+            </div>;
+          })}
+        </div>
+        {clientOrg?.tier!=="enterprise" ? (
+          <div style={{background:A.primaryDim,border:`1px solid ${A.primary}33`,borderRadius:8,padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+            <div><div style={{fontSize:12,fontWeight:600,color:A.text,marginBottom:2}}>¿Necesitas más capacidad?</div><div style={{fontSize:11,color:A.textSec}}>Contacta a ENARA para escalar tu plan.</div></div>
+            <a href={`mailto:info@enaraconsulting.com.co?subject=${encodeURIComponent("Solicitud upgrade plan VIGÍA — "+(clientOrg?.name||""))}&body=${encodeURIComponent("Hola equipo ENARA,\n\nSomos "+(clientOrg?.name||"")+" y estamos interesados en escalar nuestro plan de VIGÍA.\n\nPlan actual: "+(clientOrg?.tier||"free")+"\n\nQuedamos atentos.\n\nGracias.")}`} style={{background:A.primary,color:"#060c14",fontWeight:700,fontSize:11,padding:"8px 16px",borderRadius:6,textDecoration:"none",flexShrink:0,whiteSpace:"nowrap"}}>Solicitar upgrade →</a>
+          </div>
+        ) : (
+          <div style={{fontSize:11,color:A.textSec,textAlign:"center",padding:"8px 0"}}>Estás en el plan más completo. Para necesidades personalizadas: <span style={{color:A.primary}}>info@enaraconsulting.com.co</span></div>
+        )}
+      </div>
     </div>
   );
 }
@@ -2642,12 +2673,12 @@ const DEMO_DATA = {
 function PoliticaPrivacidad() {
   const L={bg:"#060c14",surface:"#0c1523",border:"#162236",primary:"#00c9a7",text:"#d8e6f0",textSec:"#8ba4ba",textMuted:"#5e7a95"};
   const S=[
-    ["1. Responsable del tratamiento","ENARA Consulting S.A.S., sociedad legalmente constituida en Colombia, con domicilio en Barranquilla, Atlántico, actúa como responsable del tratamiento de los datos personales recopilados a través de la plataforma VIGÍA.\n\nContacto:\n- Correo: jrestrepo@enaraconsulting.com.co\n- Teléfonos: +57 314 330 4008 / +57 320 277 3972\n- Web: www.enaraconsulting.com.co"],
+    ["1. Responsable del tratamiento","ENARA Consulting S.A.S., sociedad legalmente constituida en Colombia, con domicilio en Barranquilla, Atlántico, actúa como responsable del tratamiento de los datos personales recopilados a través de la plataforma VIGÍA.\n\nContacto:\n- Correo: info@enaraconsulting.com.co\n- Teléfonos: +57 314 330 4008 / +57 320 277 3972\n- Web: www.enaraconsulting.com.co"],
     ["2. Marco legal","Esta política se rige por:\n- Ley 1581 de 2012 — Protección de Datos Personales (Habeas Data)\n- Decreto 1377 de 2013 — Reglamentación parcial de la Ley 1581\n- Decreto 1074 de 2015 (compilatorio)\n- Circular Única de la SIC"],
     ["3. Datos personales tratados","La Plataforma recopila:\n- Datos de identificación: nombre, número de identificación (cédula o NIT), cargo.\n- Datos de contacto: correo electrónico, teléfono, dirección.\n- Datos de uso: consultas al motor de inteligencia regulatoria, documentos subidos, fecha y hora de acceso.\n- Datos de la organización: razón social, sector, ubicación, instrumentos ambientales.\n\nNo recopilamos datos sensibles (Art. 5, Ley 1581/2012)."],
     ["4. Finalidades del tratamiento","Los datos son tratados para:\n- Prestar el servicio de inteligencia regulatoria ambiental.\n- Gestionar la relación comercial con la organización suscriptora.\n- Enviar notificaciones sobre vencimientos y actualizaciones normativas.\n- Generar informes de cumplimiento.\n- Cumplir obligaciones legales y contractuales.\n- Mejorar la Plataforma mediante análisis agregado y anonimizado."],
     ["5. Transferencias internacionales","ENARA Consulting S.A.S. transfiere datos a:\n- Supabase Inc. (EE.UU./Brasil) — Almacenamiento y autenticación\n- Anthropic PBC (EE.UU.) — Procesamiento de lenguaje natural\n- Vercel Inc. (EE.UU.) — Hospedaje de la aplicación\n- Resend Inc. (EE.UU.) — Envío de correos electrónicos\n\nEstas transferencias cumplen con el Art. 26 de la Ley 1581 de 2012. El titular consiente expresamente al aceptar los términos de uso."],
-    ["6. Derechos del titular","Conforme al Art. 8, Ley 1581/2012:\n- Conocer, actualizar y rectificar sus datos personales.\n- Solicitar prueba de la autorización otorgada.\n- Ser informado sobre el uso dado a sus datos.\n- Presentar quejas ante la SIC.\n- Revocar la autorización y/o solicitar la supresión.\n- Acceder gratuitamente a sus datos.\n\nContacto: jrestrepo@enaraconsulting.com.co\nPlazos: 10 días hábiles (consultas) · 15 días hábiles (reclamos)."],
+    ["6. Derechos del titular","Conforme al Art. 8, Ley 1581/2012:\n- Conocer, actualizar y rectificar sus datos personales.\n- Solicitar prueba de la autorización otorgada.\n- Ser informado sobre el uso dado a sus datos.\n- Presentar quejas ante la SIC.\n- Revocar la autorización y/o solicitar la supresión.\n- Acceder gratuitamente a sus datos.\n\nContacto: info@enaraconsulting.com.co\nPlazos: 10 días hábiles (consultas) · 15 días hábiles (reclamos)."],
     ["7. Conservación de los datos","Los datos se conservan durante la vigencia de la relación contractual y el período adicional exigido por ley. Después, se eliminan o anonimizan en máximo 90 días calendario."],
     ["8. Seguridad de la información","Medidas implementadas:\n- Cifrado en tránsito (HTTPS/TLS) y en reposo (AES-256).\n- Control de acceso basado en roles (RBAC) con aislamiento por organización.\n- Autenticación mediante tokens JWT con expiración automática.\n- Registro de auditoría de accesos y operaciones críticas.\n- Row Level Security (RLS) para aislamiento entre organizaciones."],
     ["9. Cookies y tecnologías similares","La Plataforma utiliza localStorage exclusivamente para la sesión del usuario. No utilizamos cookies de rastreo ni tecnologías de seguimiento publicitario."],
@@ -2666,7 +2697,7 @@ function PoliticaPrivacidad() {
     <div style={{maxWidth:780,margin:"0 auto",padding:"48px 32px 80px"}}>
       <div style={{marginBottom:40}}><h1 style={{fontSize:28,fontWeight:700,margin:"0 0 8px",letterSpacing:"-0.02em"}}>Política de Tratamiento de Datos Personales</h1><p style={{fontSize:13,color:L.textMuted,margin:0}}>VIGÍA by ENARA Consulting S.A.S. · Versión 1.0 · Vigente desde abril de 2026</p></div>
       {S.map(([t,c])=><div key={t} style={{marginBottom:32}}><h2 style={{fontSize:15,fontWeight:700,color:L.primary,marginBottom:12,paddingBottom:8,borderBottom:`1px solid ${L.border}`}}>{t}</h2><div style={{fontSize:13,color:L.textSec,lineHeight:1.9,whiteSpace:"pre-line"}}>{c}</div></div>)}
-      <div style={{marginTop:48,paddingTop:24,borderTop:`1px solid ${L.border}`,fontSize:11,color:L.textMuted,textAlign:"center",lineHeight:1.8}}>ENARA Consulting S.A.S. · Barranquilla, Atlántico, Colombia<br/>jrestrepo@enaraconsulting.com.co · +57 314 330 4008 / +57 320 277 3972<br/>www.enaraconsulting.com.co</div>
+      <div style={{marginTop:48,paddingTop:24,borderTop:`1px solid ${L.border}`,fontSize:11,color:L.textMuted,textAlign:"center",lineHeight:1.8}}>ENARA Consulting S.A.S. · Barranquilla, Atlántico, Colombia<br/>info@enaraconsulting.com.co · +57 314 330 4008 / +57 320 277 3972<br/>www.enaraconsulting.com.co</div>
     </div>
   </div>;
 }
@@ -4009,7 +4040,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.42</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.43</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
