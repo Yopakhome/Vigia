@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.45";
+const EXPORT_VIGIA_VERSION = "v3.9.46";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2757,8 +2757,25 @@ const DEMO_DATA = {
 const SUPPORT_TREE={"Acceso y autenticación":{icon:"🔐",desc:"Problemas para entrar",subs:["No puedo iniciar sesión","Olvidé mi contraseña","Mi cuenta fue bloqueada","No recibí email de activación","Otro problema de acceso"]},"Expedientes (EDIs)":{icon:"📁",desc:"Problemas con expedientes",subs:["No puedo crear un EDI","Un EDI desapareció","Estado del EDI incorrecto","No puedo subir documentos","Análisis del documento falló","Obligaciones no detectadas","Otro problema con EDIs"]},"Motor de consulta":{icon:"💬",desc:"Problemas con el bot",subs:["El bot no responde","Respuesta incorrecta","Cita norma derogada","Límite de consultas","Respuesta muy lenta","Otro problema con bot"]},"Datos y organización":{icon:"🏢",desc:"Datos de tu organización",subs:["Datos incorrectos","Usuario no puede acceder","No puedo agregar usuarios","Fechas incorrectas","Información duplicada","Otro problema con datos"]},"Alertas":{icon:"🔔",desc:"Emails y notificaciones",subs:["No recibo alertas","Alertas incorrectas","Email bienvenida no llegó","Otro"]},"Rendimiento":{icon:"⚡",desc:"Lentitud o errores",subs:["Plataforma lenta","Página no carga","Errores constantes","INTAKE muy lento","Otro"]},"Plan y suscripción":{icon:"💳",desc:"Planes y facturación",subs:["Quiero escalar mi plan","Pregunta sobre factura","Límite de EDIs","Límite de usuarios","Otro"]},"Otro":{icon:"❓",desc:"Cualquier otro tema",subs:["Sugerencia de mejora","Error en datos normativos","Necesito capacitación","Otro"]}};
 const PRIORIDADES=[{v:"baja",l:"Baja",d:"Puedo seguir trabajando",c:"#64748b"},{v:"media",l:"Media",d:"Me afecta parcialmente",c:"#eab308"},{v:"alta",l:"Alta",d:"Bloquea parte de mi trabajo",c:"#f97316"},{v:"critica",l:"Crítica",d:"No puedo usar la plataforma",c:"#ef4444"}];
 
+const VIGIA_HELP_SYSTEM=`Eres el asistente de ayuda de VIGÍA, plataforma de inteligencia regulatoria ambiental colombiana de ENARA Consulting. Tu nombre es "Asistente VIGÍA". Tono: español colombiano, profesional pero cálido. Directo: di exactamente dónde hacer click. Máximo 4 párrafos o lista clara. Listas numeradas para instrucciones.
+
+MÓDULOS: Dashboard (métricas cumplimiento, 3 vistas: Resumen/Timeline/Histórico, botón PDF), Mis EDIs (lista expedientes, filtros, búsqueda, se crean SOLO via INTAKE), INTAKE (sube PDF/imagen max 10MB, IA analiza 20-60s, confirmar y guardar), Consultar (bot RAG 365 normas + 147 sentencias, 5 capas toggleables, límite 20/hora, copiar/exportar respuestas), Normativa (catálogo 365 normas artículo por artículo), Oversight (inspecciones autoridades), Mi Organización (perfil + plan: Gratuito $0/5EDIs/2users, Profesional $3MM/25EDIs/5users, Enterprise $6MM/ilimitados, upgrade via mailto), Mi Equipo (solo admin: ver/gestionar usuarios, roles viewer/editor/admin).
+
+ERRORES COMUNES: Login falla → verificar email exacto, Bloq Mayus, usar "¿Olvidaste tu contraseña?" (link 24h). INTAKE falla → solo PDF/imagen, sin contraseña, no dañado, intentar Chrome. Dashboard vacío → recargar F5 si acabas de crear EDI, verificar "Confirmar y guardar" en INTAKE. Bot no responde → límite 20/hora, esperar próxima hora o recargar. No recibo alertas → verificar email en Mi organización, revisar spam. No puedo agregar usuarios → solo ENARA crea nuevos, contactar info@enaraconsulting.com.co.
+
+FAQ: Celular=sí responsive. Navegadores=Chrome recomendado. PDF=Dashboard→botón PDF arriba derecha. Bot confiable=citas verificables pero para decisiones jurídicas consultar ENARA. Contraseña=Login→¿Olvidaste? Plan=Mi organización→Plan y suscripción.
+
+Contacto ENARA: info@enaraconsulting.com.co, +57 314 330 4008 / +57 320 277 3972, L-V 8am-6pm COT. Cuando el problema requiere humano, sugerir crear ticket en pestaña "Mis tickets".`;
+
+const QUICK_QUESTIONS=["¿Cómo subo un documento al INTAKE?","¿Qué es un EDI y cómo se crea?","¿Cómo hago una consulta normativa?","¿Por qué no veo mis obligaciones?","¿Qué hago si el INTAKE falla?","¿Cómo descargo el informe PDF?","¿Cómo agrego un usuario a mi equipo?","¿Cuántas consultas puedo hacer por hora?","¿Cómo cambio mi contraseña?","¿Cuál es mi plan actual?"];
+
 function SupportModule({clientOrg, session}) {
   const A=C;
+  const [supportTab,setSupportTab]=React.useState("bot");
+  const [helpMessages,setHelpMessages]=React.useState([{role:"assistant",text:`¡Hola${clientOrg?.name?`, equipo de ${clientOrg.name}`:""}! 👋\n\nSoy el asistente de VIGÍA. Puedo ayudarte con cualquier duda sobre la plataforma.\n\nElige una pregunta frecuente o escribe la tuya.`}]);
+  const [helpInput,setHelpInput]=React.useState("");
+  const [helpLoading,setHelpLoading]=React.useState(false);
+  const helpEndRef=React.useRef(null);
   const [tickets,setTickets]=React.useState([]);
   const [loading,setLoading]=React.useState(false);
   const [msg,setMsg]=React.useState(null);
@@ -2768,6 +2785,21 @@ function SupportModule({clientOrg, session}) {
   const [desc,setDesc]=React.useState("");
   const [saving,setSaving]=React.useState(false);
   const [expanded,setExpanded]=React.useState(null);
+
+  React.useEffect(()=>{helpEndRef.current?.scrollIntoView({behavior:"smooth"});},[helpMessages]);
+
+  const sendHelpMessage=async()=>{
+    if(!helpInput.trim()||helpLoading)return;
+    const userMsg={role:"user",text:helpInput.trim()};
+    setHelpMessages(p=>[...p,userMsg]);setHelpInput("");setHelpLoading(true);
+    try{
+      const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session?.access_token||SB_KEY}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt:VIGIA_HELP_SYSTEM,userMessage:userMsg.text,previousMessages:helpMessages.filter(m=>m.role!=="system").slice(-6).map(m=>({role:m.role,content:m.text})),use_rag:false})});
+      const data=await res.json();
+      const reply=data?.reply||"Lo siento, tuve un problema. Intenta de nuevo o crea un ticket.";
+      setHelpMessages(p=>[...p,{role:"assistant",text:reply}]);
+    }catch{setHelpMessages(p=>[...p,{role:"assistant",text:"Tuve un problema de conexión. Intenta de nuevo."}]);}
+    setHelpLoading(false);
+  };
 
   const loadTickets=async()=>{
     if(!session?.access_token) return;
@@ -2798,8 +2830,42 @@ function SupportModule({clientOrg, session}) {
   const prioBadge=(p)=>p==="critica"?{c:"#ef4444"}:p==="alta"?{c:"#f97316"}:p==="media"?{c:"#eab308"}:{c:"#64748b"};
   const step=!cat?1:!sub?2:3;
 
-  return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
-    <div style={{marginBottom:20}}><h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>Soporte</h1><p style={{fontSize:13,color:A.textSec,margin:"4px 0 0"}}>¿Necesitas ayuda? Crea un ticket y ENARA te responderá.</p></div>
+  return <div style={{padding:28,overflowY:"auto",height:"100%",maxWidth:860}}>
+    <div style={{marginBottom:20}}><h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>Soporte</h1><p style={{fontSize:13,color:A.textSec,margin:"4px 0 0"}}>Pregunta al asistente o crea un ticket para ENARA</p></div>
+
+    {/* Tabs */}
+    <div style={{display:"flex",gap:2,padding:4,background:A.surfaceEl,borderRadius:10,marginBottom:20,width:"fit-content"}}>
+      {[{k:"bot",l:"\ud83e\udd16 Asistente VIG\u00cdA"},{k:"tickets",l:"\ud83c\udfab Mis tickets"}].map(t=><button key={t.k} onClick={()=>setSupportTab(t.k)} style={{padding:"8px 18px",borderRadius:8,border:"none",background:supportTab===t.k?A.surface:"transparent",color:supportTab===t.k?A.text:A.textSec,fontSize:12,fontWeight:supportTab===t.k?700:400,cursor:"pointer",fontFamily:FONT,boxShadow:supportTab===t.k?"0 1px 4px rgba(0,0,0,0.2)":"none",transition:"all 0.15s"}}>{t.l}</button>)}
+    </div>
+
+    {/* Tab: Asistente */}
+    {supportTab==="bot"&&<div>
+      <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,marginBottom:12,overflow:"hidden"}}>
+        <div style={{height:380,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>
+          {helpMessages.map((m,i)=><div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",gap:8,alignItems:"flex-start"}}>
+            {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:8,flexShrink:0,background:"linear-gradient(135deg,#00c9a7,#0a9e82)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#060c14",marginTop:2}}>V</div>}
+            <div style={{maxWidth:"78%",background:m.role==="user"?`${A.primary}18`:A.surfaceEl,border:`1px solid ${m.role==="user"?A.primary+"44":A.border}`,borderRadius:m.role==="user"?"12px 12px 4px 12px":"12px 12px 12px 4px",padding:"10px 14px",fontSize:12,color:A.text,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{m.text}</div>
+          </div>)}
+          {helpLoading&&<div style={{display:"flex",gap:8,alignItems:"center"}}><div style={{width:28,height:28,borderRadius:8,flexShrink:0,background:"linear-gradient(135deg,#00c9a7,#0a9e82)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#060c14"}}>V</div><div style={{background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:"12px 12px 12px 4px",padding:"10px 14px",display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:A.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div></div>}
+          <div ref={helpEndRef}/>
+        </div>
+        {helpMessages.length<=1&&<div style={{padding:"0 18px 12px",borderTop:`1px solid ${A.border}`}}>
+          <div style={{fontSize:10,color:A.textMuted,margin:"10px 0 6px",textTransform:"uppercase",letterSpacing:"0.06em"}}>Preguntas frecuentes</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{QUICK_QUESTIONS.map(q=><button key={q} onClick={()=>{setHelpInput(q);}} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:20,padding:"4px 12px",fontSize:11,color:A.textSec,cursor:"pointer",fontFamily:FONT}} onMouseEnter={e=>{e.currentTarget.style.borderColor=A.primary+"66";e.currentTarget.style.color=A.primary;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=A.border;e.currentTarget.style.color=A.textSec;}}>{q}</button>)}</div>
+        </div>}
+        <div style={{padding:"12px 18px",borderTop:`1px solid ${A.border}`,display:"flex",gap:8,alignItems:"flex-end"}}>
+          <textarea value={helpInput} onChange={e=>setHelpInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendHelpMessage();}}} placeholder="Escribe tu pregunta sobre VIGÍA..." rows={2} style={{flex:1,background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,fontFamily:FONT,outline:"none",resize:"none",lineHeight:1.5}}/>
+          <button onClick={sendHelpMessage} disabled={!helpInput.trim()||helpLoading} style={{background:helpInput.trim()&&!helpLoading?A.primary:A.surfaceEl,border:"none",borderRadius:8,padding:"9px 14px",color:helpInput.trim()&&!helpLoading?"#060c14":A.textMuted,fontSize:12,fontWeight:700,cursor:helpInput.trim()&&!helpLoading?"pointer":"not-allowed",fontFamily:FONT,flexShrink:0}}>Enviar</button>
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <button onClick={()=>setHelpMessages([{role:"assistant",text:`¡Hola${clientOrg?.name?`, equipo de ${clientOrg.name}`:""}! 👋 ¿En qué puedo ayudarte?`}])} style={{background:"transparent",border:"none",fontSize:10,color:A.textMuted,cursor:"pointer",fontFamily:FONT}}>Nueva conversación</button>
+        <div style={{fontSize:11,color:A.textMuted}}>¿Problema complejo? <button onClick={()=>setSupportTab("tickets")} style={{background:"none",border:"none",color:A.primary,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:FONT,textDecoration:"underline"}}>Crea un ticket</button></div>
+      </div>
+    </div>}
+
+    {/* Tab: Tickets */}
+    {supportTab==="tickets"&&<div>
     {msg&&<div style={{padding:"10px 14px",borderRadius:8,marginBottom:16,background:msg.t==="error"?A.redDim:A.greenDim,color:msg.t==="error"?A.red:A.green,fontSize:12}}>{msg.m}</div>}
 
     {/* Progress */}
@@ -2866,6 +2932,7 @@ function SupportModule({clientOrg, session}) {
         </div>}
       </div>;})}
     </div>
+    </div>}
   </div>;
 }
 
@@ -4270,7 +4337,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.45</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.46</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
