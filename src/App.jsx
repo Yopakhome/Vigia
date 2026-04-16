@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.44";
+const EXPORT_VIGIA_VERSION = "v3.9.45";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1330,6 +1330,13 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [normCatArticles, setNormCatArticles] = React.useState({});
   const [catalogSearch, setCatalogSearch] = React.useState("");
   const [auditLog, setAuditLog] = React.useState([]);
+  const [supportTickets, setSupportTickets] = React.useState([]);
+  const [supportFilter, setSupportFilter] = React.useState("all");
+  const [supportSelected, setSupportSelected] = React.useState(null);
+  const [supportReply, setSupportReply] = React.useState("");
+  const [supportStatus, setSupportStatus] = React.useState("");
+  const estadoBadge=(s)=>s==="abierto"?{c:A.yellow,bg:A.yellowDim}:s==="en_proceso"?{c:A.primary,bg:A.primaryDim}:s==="resuelto"?{c:A.green,bg:A.greenDim}:{c:A.textMuted,bg:A.surfaceEl};
+  const prioBadge=(p)=>p==="critica"?{c:"#ef4444"}:p==="alta"?{c:"#f97316"}:p==="media"?{c:"#eab308"}:{c:"#64748b"};
   const [editingOrg, setEditingOrg] = React.useState(null);
   const [editOrgData, setEditOrgData] = React.useState({});
   const [editOrgSaving, setEditOrgSaving] = React.useState(false);
@@ -1387,7 +1394,34 @@ function SuperAdminModule({reviewerId, sessionToken}) {
     setLoading(false);
   };
 
-  React.useEffect(function() { load(); loadRequests(); loadAudit(); }, []);
+  React.useEffect(function() { load(); loadRequests(); loadAudit(); loadSupport(); }, []);
+
+  const loadSupport = async () => {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/support_tickets?select=*&order=created_at.desc&limit=100`,
+        { headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}` } });
+      const d = await r.json();
+      setSupportTickets(Array.isArray(d) ? d : []);
+    } catch { setSupportTickets([]); }
+  };
+
+  const saveTicketResponse = async () => {
+    if(!supportSelected) return;
+    try {
+      const body = {};
+      if(supportReply.trim()) { body.respuesta_enara = supportReply.trim(); body.respondido_por = reviewerId; body.respondido_at = new Date().toISOString(); }
+      if(supportStatus && supportStatus !== supportSelected.estado) body.estado = supportStatus;
+      if(Object.keys(body).length === 0) return;
+      body.updated_at = new Date().toISOString();
+      await fetch(`${SB_URL}/rest/v1/support_tickets?id=eq.${supportSelected.id}`, {
+        method: "PATCH", headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify(body)
+      });
+      setMsg({t:"success",m:"Ticket actualizado"});
+      setSupportSelected(null); setSupportReply(""); setSupportStatus("");
+      await loadSupport();
+    } catch(e) { setMsg({t:"error",m:e.message}); }
+  };
 
   const loadAudit = async () => {
     try {
@@ -1627,7 +1661,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
       setReviewingId(null);
     }
 
-    var tabs = [{k:"overview",l:"Overview"},{k:"requests",l:"Solicitudes"+(pendingCount>0?" ("+pendingCount+")":"")},{k:"curacion",l:"Curación normativa"+(pendingNormCount>0?" ("+pendingNormCount+")":"")},{k:"catalogo",l:"Catálogo normativo"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"audit",l:"Auditoría"}];
+    var tabs = [{k:"overview",l:"Overview"},{k:"requests",l:"Solicitudes"+(pendingCount>0?" ("+pendingCount+")":"")},{k:"curacion",l:"Curación normativa"+(pendingNormCount>0?" ("+pendingNormCount+")":"")},{k:"catalogo",l:"Catálogo normativo"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"audit",l:"Auditoría"},{k:"support",l:`Soporte${supportTickets.filter(t=>t.estado==="abierto").length>0?" ("+supportTickets.filter(t=>t.estado==="abierto").length+")":""}`}];
 
   return (
     <div style={{padding:28,color:A.text}}>
@@ -2016,6 +2050,56 @@ function SuperAdminModule({reviewerId, sessionToken}) {
             </div>
           </div>
           <button onClick={createUser} disabled={loading} style={{width:"100%",background:loading?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer"}}>{loading?"Creando...":"Crear usuario"}</button>
+        </div>
+      )}
+
+      {tab==="support"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+            {[["Abiertos",supportTickets.filter(t=>t.estado==="abierto").length,A.yellow,A.yellowDim],["En proceso",supportTickets.filter(t=>t.estado==="en_proceso").length,A.primary,A.primaryDim],["Resueltos",supportTickets.filter(t=>t.estado==="resuelto").length,A.green,A.greenDim],["Cerrados",supportTickets.filter(t=>t.estado==="cerrado").length,A.textMuted,A.surfaceEl]].map(([l,v,c,bg])=><div key={l} style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:10,padding:"12px 16px",textAlign:"center"}}><div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div><div style={{fontSize:10,color:A.textSec,marginTop:2}}>{l}</div></div>)}
+          </div>
+          <div style={{display:"flex",gap:6,marginBottom:12}}>
+            {["all","abierto","en_proceso","resuelto"].map(f=><button key={f} onClick={()=>setSupportFilter(f)} style={{background:supportFilter===f?A.primaryDim:"transparent",border:`1px solid ${supportFilter===f?A.primary+"66":A.border}`,borderRadius:6,padding:"4px 12px",color:supportFilter===f?A.primary:A.textSec,fontSize:11,fontWeight:supportFilter===f?700:500,cursor:"pointer",fontFamily:FONT}}>{f==="all"?"Todos":f.replace(/_/g," ")}</button>)}
+          </div>
+          {supportSelected ? (
+            <div style={{background:A.surface,border:`1px solid ${A.primary}44`,borderRadius:12,padding:24}}>
+              <button onClick={()=>{setSupportSelected(null);setSupportReply("");setSupportStatus("");}} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:6,padding:"4px 10px",color:A.textSec,fontSize:10,cursor:"pointer",marginBottom:14}}>← Volver a la lista</button>
+              <div style={{fontSize:14,fontWeight:700,color:A.text,marginBottom:4}}>{supportSelected.titulo_auto}</div>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:4}}>{supportSelected.org_name||"—"} · {supportSelected.user_email||"—"} · {new Date(supportSelected.created_at).toLocaleString("es-CO")}</div>
+              <div style={{display:"flex",gap:6,marginBottom:12}}>
+                <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:4,background:estadoBadge(supportSelected.estado).bg,color:estadoBadge(supportSelected.estado).c,textTransform:"uppercase"}}>{supportSelected.estado?.replace(/_/g," ")}</span>
+                <span style={{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:4,border:`1px solid ${prioBadge(supportSelected.prioridad).c}44`,color:prioBadge(supportSelected.prioridad).c}}>{supportSelected.prioridad}</span>
+              </div>
+              <div style={{background:A.surfaceEl,borderRadius:8,padding:"12px 14px",marginBottom:16,fontSize:12,color:A.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{supportSelected.descripcion}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                <div>
+                  <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Cambiar estado</div>
+                  <select value={supportStatus||supportSelected.estado} onChange={e=>setSupportStatus(e.target.value)} style={{width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                    {["abierto","en_proceso","resuelto","cerrado"].map(s=><option key={s} value={s}>{s.replace(/_/g," ")}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Respuesta para el cliente</div>
+              <textarea value={supportReply} onChange={e=>setSupportReply(e.target.value)} placeholder="Escribe la respuesta..." style={{width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"10px 12px",color:A.text,fontSize:12,fontFamily:FONT,resize:"vertical",minHeight:80,outline:"none",lineHeight:1.5,boxSizing:"border-box",marginBottom:12}}/>
+              {supportSelected.respuesta_enara&&<div style={{background:A.primaryDim,border:`1px solid ${A.primary}33`,borderRadius:8,padding:"10px 14px",marginBottom:12}}><div style={{fontSize:10,fontWeight:700,color:A.primary,marginBottom:4}}>Respuesta anterior</div><div style={{fontSize:11,color:A.text,whiteSpace:"pre-wrap"}}>{supportSelected.respuesta_enara}</div></div>}
+              <div style={{display:"flex",justifyContent:"flex-end"}}><button onClick={saveTicketResponse} style={{background:A.primary,border:"none",borderRadius:8,padding:"10px 20px",color:"#060c14",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Guardar respuesta</button></div>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {(()=>{const eb=(s)=>s==="abierto"?{c:A.yellow,bg:A.yellowDim}:s==="en_proceso"?{c:A.primary,bg:A.primaryDim}:s==="resuelto"?{c:A.green,bg:A.greenDim}:{c:A.textMuted,bg:A.surfaceEl};
+                const pb=(p)=>p==="critica"?{c:"#ef4444"}:p==="alta"?{c:"#f97316"}:p==="media"?{c:"#eab308"}:{c:"#64748b"};
+                const filtered=supportTickets.filter(t=>supportFilter==="all"||t.estado===supportFilter);
+                if(filtered.length===0) return <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"24px",textAlign:"center",fontSize:12,color:A.textMuted}}>Sin tickets en este filtro</div>;
+                return filtered.map(t=>{const b=eb(t.estado);const p=pb(t.prioridad);return <div key={t.id} onClick={()=>{setSupportSelected(t);setSupportStatus(t.estado);setSupportReply("");}} style={{background:A.surfaceEl,borderRadius:8,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                  <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:4,background:b.bg,color:b.c,textTransform:"uppercase"}}>{t.estado?.replace(/_/g," ")}</span>
+                  <span style={{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:4,border:`1px solid ${p.c}44`,color:p.c}}>{t.prioridad}</span>
+                  <span style={{fontSize:11,fontWeight:600,color:A.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.titulo_auto||t.categoria}</span>
+                  <span style={{fontSize:10,color:A.textMuted}}>{t.org_name||"—"}</span>
+                  <span style={{fontSize:10,color:A.textMuted}}>{new Date(t.created_at).toLocaleDateString("es-CO",{day:"numeric",month:"short"})}</span>
+                </div>;});
+              })()}
+            </div>
+          )}
         </div>
       )}
 
@@ -2670,6 +2754,121 @@ const DEMO_DATA = {
   alerts: []
 };
 
+const SUPPORT_TREE={"Acceso y autenticación":{icon:"🔐",desc:"Problemas para entrar",subs:["No puedo iniciar sesión","Olvidé mi contraseña","Mi cuenta fue bloqueada","No recibí email de activación","Otro problema de acceso"]},"Expedientes (EDIs)":{icon:"📁",desc:"Problemas con expedientes",subs:["No puedo crear un EDI","Un EDI desapareció","Estado del EDI incorrecto","No puedo subir documentos","Análisis del documento falló","Obligaciones no detectadas","Otro problema con EDIs"]},"Motor de consulta":{icon:"💬",desc:"Problemas con el bot",subs:["El bot no responde","Respuesta incorrecta","Cita norma derogada","Límite de consultas","Respuesta muy lenta","Otro problema con bot"]},"Datos y organización":{icon:"🏢",desc:"Datos de tu organización",subs:["Datos incorrectos","Usuario no puede acceder","No puedo agregar usuarios","Fechas incorrectas","Información duplicada","Otro problema con datos"]},"Alertas":{icon:"🔔",desc:"Emails y notificaciones",subs:["No recibo alertas","Alertas incorrectas","Email bienvenida no llegó","Otro"]},"Rendimiento":{icon:"⚡",desc:"Lentitud o errores",subs:["Plataforma lenta","Página no carga","Errores constantes","INTAKE muy lento","Otro"]},"Plan y suscripción":{icon:"💳",desc:"Planes y facturación",subs:["Quiero escalar mi plan","Pregunta sobre factura","Límite de EDIs","Límite de usuarios","Otro"]},"Otro":{icon:"❓",desc:"Cualquier otro tema",subs:["Sugerencia de mejora","Error en datos normativos","Necesito capacitación","Otro"]}};
+const PRIORIDADES=[{v:"baja",l:"Baja",d:"Puedo seguir trabajando",c:"#64748b"},{v:"media",l:"Media",d:"Me afecta parcialmente",c:"#eab308"},{v:"alta",l:"Alta",d:"Bloquea parte de mi trabajo",c:"#f97316"},{v:"critica",l:"Crítica",d:"No puedo usar la plataforma",c:"#ef4444"}];
+
+function SupportModule({clientOrg, session}) {
+  const A=C;
+  const [tickets,setTickets]=React.useState([]);
+  const [loading,setLoading]=React.useState(false);
+  const [msg,setMsg]=React.useState(null);
+  const [cat,setCat]=React.useState(null);
+  const [sub,setSub]=React.useState(null);
+  const [prio,setPrio]=React.useState("media");
+  const [desc,setDesc]=React.useState("");
+  const [saving,setSaving]=React.useState(false);
+  const [expanded,setExpanded]=React.useState(null);
+
+  const loadTickets=async()=>{
+    if(!session?.access_token) return;
+    setLoading(true);
+    try {
+      const r=await fetch(`${SB_URL}/rest/v1/support_tickets?select=*&order=created_at.desc&limit=30`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`}});
+      const d=await r.json();
+      setTickets(Array.isArray(d)?d:[]);
+    } catch{setTickets([]);}
+    setLoading(false);
+  };
+  React.useEffect(()=>{loadTickets();},[]);
+
+  const submitTicket=async()=>{
+    if(!cat||!sub){setMsg({t:"error",m:"Selecciona categoría y subcategoría"});return;}
+    setSaving(true);setMsg(null);
+    try {
+      const body={org_id:clientOrg?.id||null,user_id:session?.user?.id||null,user_email:session?.user?.email||null,org_name:clientOrg?.name||null,categoria:cat,subcategoria:sub,titulo_auto:`${cat} — ${sub}`,descripcion:desc.trim()||"(sin descripción adicional)",prioridad:prio};
+      const r=await fetch(`${SB_URL}/rest/v1/support_tickets`,{method:"POST",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(r.ok){setMsg({t:"success",m:"Ticket enviado. ENARA responderá pronto."});setCat(null);setSub(null);setPrio("media");setDesc("");await loadTickets();}
+      else{setMsg({t:"error",m:d?.message||d?.error||"Error al enviar"});}
+    }catch(e){setMsg({t:"error",m:e.message});}
+    setSaving(false);
+  };
+
+  const estadoBadge=(s)=>s==="abierto"?{c:A.yellow,bg:A.yellowDim}:s==="en_proceso"?{c:A.primary,bg:A.primaryDim}:s==="resuelto"?{c:A.green,bg:A.greenDim}:{c:A.textMuted,bg:A.surfaceEl};
+  const prioBadge=(p)=>p==="critica"?{c:"#ef4444"}:p==="alta"?{c:"#f97316"}:p==="media"?{c:"#eab308"}:{c:"#64748b"};
+  const step=!cat?1:!sub?2:3;
+
+  return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+    <div style={{marginBottom:20}}><h1 style={{fontSize:22,fontWeight:700,color:A.text,margin:0}}>Soporte</h1><p style={{fontSize:13,color:A.textSec,margin:"4px 0 0"}}>¿Necesitas ayuda? Crea un ticket y ENARA te responderá.</p></div>
+    {msg&&<div style={{padding:"10px 14px",borderRadius:8,marginBottom:16,background:msg.t==="error"?A.redDim:A.greenDim,color:msg.t==="error"?A.red:A.green,fontSize:12}}>{msg.m}</div>}
+
+    {/* Progress */}
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}>
+      {[1,2,3].map(s=><React.Fragment key={s}><div style={{width:24,height:24,borderRadius:"50%",background:step>=s?A.primary:A.surfaceEl,border:`2px solid ${step>=s?A.primary:A.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:step>=s?"#060c14":A.textMuted}}>{s}</div>{s<3&&<div style={{flex:1,height:2,background:step>s?A.primary:A.border,borderRadius:1}}/>}</React.Fragment>)}
+    </div>
+
+    {/* Paso A — Categoría */}
+    <div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"16px 18px",marginBottom:12}}>
+      <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>1. ¿Qué tipo de problema tienes?</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:8}}>
+        {Object.entries(SUPPORT_TREE).map(([k,v])=>{const active=cat===k;return <button key={k} onClick={()=>{setCat(k);setSub(null);}} style={{textAlign:"left",background:active?`${A.primary}12`:A.surfaceEl,border:`1px solid ${active?A.primary+"66":A.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",color:A.text,fontFamily:FONT}}>
+          <div style={{fontSize:14,marginBottom:4}}>{v.icon}</div>
+          <div style={{fontSize:12,fontWeight:600,color:active?A.text:A.textSec}}>{k}</div>
+          <div style={{fontSize:10,color:A.textMuted}}>{v.desc}</div>
+        </button>;})}
+      </div>
+    </div>
+
+    {/* Paso B — Subcategoría */}
+    {cat&&<div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"16px 18px",marginBottom:12}}>
+      <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>2. Más específico</div>
+      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+        {SUPPORT_TREE[cat].subs.map(s=>{const active=sub===s;return <button key={s} onClick={()=>setSub(s)} style={{textAlign:"left",background:active?`${A.primary}12`:A.surfaceEl,border:`1px solid ${active?A.primary+"66":A.border}`,borderRadius:6,padding:"8px 12px",cursor:"pointer",fontSize:12,color:active?A.text:A.textSec,fontWeight:active?600:400,fontFamily:FONT}}>{s}</button>;})}
+      </div>
+    </div>}
+
+    {/* Paso C — Prioridad + Descripción */}
+    {sub&&<div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"16px 18px",marginBottom:12}}>
+      <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>3. Prioridad y detalles</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:14}}>
+        {PRIORIDADES.map(p=>{const active=prio===p.v;return <button key={p.v} onClick={()=>setPrio(p.v)} style={{textAlign:"center",background:active?p.c+"18":"transparent",border:`1px solid ${active?p.c+"66":A.border}`,borderRadius:6,padding:"8px 6px",cursor:"pointer",fontFamily:FONT}}>
+          <div style={{fontSize:11,fontWeight:700,color:p.c}}>{p.l}</div>
+          <div style={{fontSize:9,color:A.textMuted,marginTop:2}}>{p.d}</div>
+        </button>;})}
+      </div>
+      <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Cuéntanos más (opcional pero útil)</div>
+      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder={`Describe tu problema con "${sub}"...`} style={{width:"100%",background:A.surfaceEl,border:`1px solid ${A.border}`,borderRadius:8,padding:"10px 12px",color:A.text,fontSize:12,fontFamily:FONT,resize:"vertical",minHeight:80,outline:"none",lineHeight:1.5,boxSizing:"border-box"}}/>
+      <div style={{display:"flex",justifyContent:"flex-end",marginTop:12}}>
+        <button onClick={submitTicket} disabled={saving} style={{background:saving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"10px 20px",color:saving?A.textSec:"#060c14",fontSize:13,fontWeight:700,cursor:saving?"not-allowed":"pointer",fontFamily:FONT}}>{saving?"Enviando...":"Enviar ticket"}</button>
+      </div>
+    </div>}
+
+    {/* Tickets existentes */}
+    <div style={{marginTop:24}}>
+      <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Mis tickets ({tickets.length})</div>
+      {loading&&<div style={{fontSize:12,color:A.textMuted}}>Cargando...</div>}
+      {!loading&&tickets.length===0&&<div style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:12,padding:"32px 20px",textAlign:"center",fontSize:13,color:A.textMuted}}>Todo va bien por ahora. Sin tickets abiertos.</div>}
+      {tickets.map(t=>{const eb=estadoBadge(t.estado);const pb=prioBadge(t.prioridad);const isExp=expanded===t.id;return <div key={t.id} style={{background:A.surface,border:`1px solid ${A.border}`,borderRadius:10,marginBottom:6,overflow:"hidden"}}>
+        <div onClick={()=>setExpanded(isExp?null:t.id)} style={{padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:4,background:eb.bg,color:eb.c,textTransform:"uppercase"}}>{t.estado?.replace(/_/g," ")}</span>
+          <span style={{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:4,border:`1px solid ${pb.c}44`,color:pb.c}}>{t.prioridad}</span>
+          <span style={{fontSize:12,fontWeight:600,color:A.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.titulo_auto||t.categoria}</span>
+          <span style={{fontSize:10,color:A.textMuted,flexShrink:0}}>{new Date(t.created_at).toLocaleDateString("es-CO",{day:"numeric",month:"short"})}</span>
+          <ChevronRight size={14} color={A.textSec} style={{transform:isExp?"rotate(90deg)":"none",transition:"transform 0.15s"}}/>
+        </div>
+        {isExp&&<div style={{padding:"0 16px 14px",borderTop:`1px solid ${A.border}`}}>
+          <div style={{fontSize:11,color:A.textSec,padding:"10px 0",lineHeight:1.6,whiteSpace:"pre-wrap"}}>{t.descripcion}</div>
+          {t.respuesta_enara&&<div style={{background:A.primaryDim,border:`1px solid ${A.primary}33`,borderRadius:8,padding:"10px 14px",marginTop:8}}>
+            <div style={{fontSize:10,fontWeight:700,color:A.primary,marginBottom:4}}>Respuesta ENARA</div>
+            <div style={{fontSize:12,color:A.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{t.respuesta_enara}</div>
+            {t.respondido_at&&<div style={{fontSize:10,color:A.textMuted,marginTop:6}}>{new Date(t.respondido_at).toLocaleString("es-CO")}</div>}
+          </div>}
+        </div>}
+      </div>;})}
+    </div>
+  </div>;
+}
+
 function PoliticaPrivacidad() {
   const L={bg:"#060c14",surface:"#0c1523",border:"#162236",primary:"#00c9a7",text:"#d8e6f0",textSec:"#8ba4ba",textMuted:"#5e7a95"};
   const S=[
@@ -3216,7 +3415,7 @@ const copyBotResponse = (msgIndex) => {
 };
 
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(!isSuperAdmin?[{key:"soporte",icon:MessageSquare,label:"Soporte"}]:[]),...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(isPrivacidadPage) return <PoliticaPrivacidad/>;
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
@@ -3989,7 +4188,7 @@ const renderConsultorENARA = () => {
   );
 };
 
-const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
+const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="soporte")return <SupportModule clientOrg={clientOrg} session={session}/>; if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden",paddingTop:isDemoMode?32:0}}>
@@ -4071,7 +4270,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.44</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.45</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
