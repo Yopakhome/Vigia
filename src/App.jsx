@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.33";
+const EXPORT_VIGIA_VERSION = "v3.9.34";
 
 function exportTimestamp() {
   const d = new Date();
@@ -585,6 +585,7 @@ const sbPost = async (table, body) => {
 };
 
 const saveToSupabase = async (analysisResult, file) => {
+  if(isDemoMode) return null;
   if(!clientOrg?.id) return null;
   // Ramificación por doc_nature:
   // - norma/jurisprudencia: van a normative_sources + regulatory_alerts vía
@@ -2535,7 +2536,25 @@ function MyTeamModule({orgId, orgName, limiteUsuarios, sessionToken}) {
   );
 }
 
+const DEMO_DATA = {
+  org: { id:"demo-org", name:"Energía Solar del Caribe S.A.S.", sector:"energia", ciudad:"Barranquilla", departamento:"Atlántico", plan:"profesional", client_type:"vigia_subscriber", nit:"901234567-0" },
+  instruments: [
+    { id:"demo-inst-1", org_id:"demo-org", title:"Licencia Ambiental · Parque Solar Caribe I · Barranquilla", instrument_type:"licencia_ambiental", number:"ANLA-786/2022", issue_date:"2022-03-15", expiry_date:"2032-03-15", authority_name:"ANLA", authority_level:"nacional", domain:"energia", edi_status:"activo", completeness_pct:85, location_dept:"Atlántico", location_mun:"Barranquilla", project_name:"Parque Solar Caribe I" },
+    { id:"demo-inst-2", org_id:"demo-org", title:"Permiso de Vertimiento · Canal Mallorquín · Barranquilla", instrument_type:"permiso_vertimiento", number:"CRA-PV-2021-0034", issue_date:"2021-06-01", expiry_date:"2024-06-01", authority_name:"CRA", authority_level:"regional", domain:"agua", edi_status:"vencido", completeness_pct:62, location_dept:"Atlántico", location_mun:"Barranquilla", project_name:"Canal Mallorquín" },
+    { id:"demo-inst-3", org_id:"demo-org", title:"Concesión de Aguas · Río Magdalena · Atlántico", instrument_type:"concesion_aguas", number:"CRA-CA-2020-0012", issue_date:"2020-01-10", expiry_date:"2025-05-20", authority_name:"CRA", authority_level:"regional", domain:"agua", edi_status:"activo", completeness_pct:91, location_dept:"Atlántico", location_mun:"Sabanalarga", project_name:"Río Magdalena" }
+  ],
+  obligations: [
+    { id:"demo-ob-1", org_id:"demo-org", instrument_id:"demo-inst-1", obligation_num:"OBL-01", name:"Informe semestral de cumplimiento ambiental", due_date:"2024-12-31", frequency:"semestral", status:"vencida", obligation_type:"reporte", norma_fundamento:"Resolución ANLA 786/2022" },
+    { id:"demo-ob-2", org_id:"demo-org", instrument_id:"demo-inst-1", obligation_num:"OBL-02", name:"Monitoreo de calidad del aire — PM2.5", due_date:"2026-05-15", frequency:"trimestral", status:"pendiente", obligation_type:"monitoreo", norma_fundamento:"Resolución 2254/2017" },
+    { id:"demo-ob-3", org_id:"demo-org", instrument_id:"demo-inst-1", obligation_num:"OBL-03", name:"Programa de compensación forestal", due_date:"2026-04-30", frequency:"anual", status:"pendiente", obligation_type:"compensacion", norma_fundamento:"Decreto 1076/2015 Art. 2.2.1.3.6" },
+    { id:"demo-ob-4", org_id:"demo-org", instrument_id:"demo-inst-2", obligation_num:"OBL-04", name:"Renovación permiso de vertimiento", due_date:"2024-06-01", frequency:"unica", status:"vencida", obligation_type:"tramite", norma_fundamento:"Decreto 3930/2010" },
+    { id:"demo-ob-5", org_id:"demo-org", instrument_id:"demo-inst-3", obligation_num:"OBL-05", name:"Pago tasa por uso del agua", due_date:"2026-06-30", frequency:"anual", status:"pendiente", obligation_type:"pago", norma_fundamento:"Ley 99/1993 Art. 43" }
+  ],
+  alerts: []
+};
+
 export default function VIGIAApp() {
+const isDemoMode = typeof window !== "undefined" && (window.location.pathname==="/demo" || window.location.search.includes("demo=true"));
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userOrgRole, setUserOrgRole] = useState(null);
@@ -2548,6 +2567,19 @@ const [session, setSession] = useState(null);
   };
 
   useEffect(()=>{
+    if(isDemoMode) {
+      setSession({ access_token:"demo-token", user:{ id:"demo-user", email:"director.ambiental@energiasolar.co" }, expires_at:9999999999, refresh_token:"demo" });
+      setClientOrg(DEMO_DATA.org);
+      setInstruments(DEMO_DATA.instruments);
+      setObligations(DEMO_DATA.obligations);
+      setAlerts(DEMO_DATA.alerts);
+      setNormSources([]);
+      setDbStatus("connected");
+      setUserOrgRole("editor");
+      setAuthLoading(false);
+      setLastSync(new Date());
+      return;
+    }
     sbGetSession().then(async s=>{
       setSession(s);
       setAuthLoading(false);
@@ -2903,6 +2935,13 @@ const sendBot=async()=>{
 if(!botInput.trim()||botLoading)return;
 const userMsg={role:"user",text:botInput};
 setBotMessages(p=>[...p,userMsg]); setBotInput(""); setBotLoading(true);
+if(isDemoMode) {
+  setTimeout(()=>{
+    setBotMessages(p=>[...p,{role:"assistant",text:"**Modo demo activo.** En la versión completa de VIGÍA, esta consulta buscaría en 365 normas, 147 sentencias y los documentos propios de tu organización con búsqueda semántica vectorial.\n\nEl motor RAG analiza tu pregunta, recupera los artículos más relevantes, verifica vigencia, y responde citando fuentes exactas.\n\n---\n\nPara probar el motor de consulta real, solicita acceso a **ENARA Consulting**:\n- info@enaraconsulting.com.co\n- +57 314 330 4008",sources:[]}]);
+    setBotLoading(false);
+  },1200);
+  return;
+}
 const layers=Object.entries(sources).filter(([,v])=>v).map(([k])=>({documentos:"Capa 1",normativa:"Capa 2a - Normativa",jurisprudencia:"Capa 2b - Jurisprudencia",pedagogico:"Capa 2c - Pedagógica",validacion:"Capa 3 - Validacion humana"}[k])).join(", ");
 const obsCtx=obligations.map(o=>`${o.obligation_num||o.num} - ${o.name} (${o.status}, vence ${o.due_date})`).join("; ");
 const normCtx=normSources.map(n=>`${n.norm_type} ${n.norm_number}: ${n.norm_title}`).join("; ");
@@ -3650,14 +3689,21 @@ const renderConsultorENARA = () => {
 const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
-<div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden"}}>
+<div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden",paddingTop:isDemoMode?32:0}}>
+{isDemoMode && <div style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:`linear-gradient(90deg,${C.primary},#0a9e82)`,color:"#060c14",padding:"6px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:11,fontWeight:700,height:32}}>
+  <span>MODO DEMO — Datos sintéticos · No se guardan cambios</span>
+  <div style={{display:"flex",gap:12,alignItems:"center"}}>
+    <span style={{fontWeight:400,opacity:0.8}}>¿Acceso real?</span>
+    <a href="mailto:info@enaraconsulting.com.co" style={{color:"#060c14",fontWeight:700,background:"rgba(0,0,0,0.15)",borderRadius:4,padding:"2px 8px",textDecoration:"none"}}>info@enaraconsulting.com.co</a>
+  </div>
+</div>}
 <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${C.border};border-radius:4px}@keyframes pulse{0%,100%{opacity:0.25}50%{opacity:1}}`}</style>
 {isMobile && sidebarOpen && <div onClick={()=>setSidebarOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:199}}/>}
 <div style={{width:224,flexShrink:0,background:C.surface,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",...(isMobile?{position:"fixed",left:0,top:0,bottom:0,zIndex:200,transform:sidebarOpen?"translateX(0)":"translateX(-100%)",transition:"transform 0.25s ease",boxShadow:sidebarOpen?"4px 0 24px rgba(0,0,0,0.5)":"none"}:{})}}>
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.33</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.34</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
@@ -3672,7 +3718,7 @@ return (
 <div style={{padding:"12px 14px"}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{width:30,height:30,borderRadius:8,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,fontWeight:700,color:C.primary}}>JR</span></div>
-<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>{isSuperAdmin?"ENARA Consulting":(clientOrg?.name||"Sin organización")}</div></div><button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>
+<div style={{flex:1}}><div style={{fontSize:11,fontWeight:600,color:C.text}}>{session?.user?.email?.split("@")[0]||"Usuario"}</div><div style={{fontSize:9,color:C.textSec}}>{isSuperAdmin?"ENARA Consulting":(clientOrg?.name||"Sin organización")}</div></div>{isDemoMode ? <a href="/" style={{fontSize:10,color:C.primary,textDecoration:"none",fontWeight:600}}>← Salir demo</a> : <button onClick={handleLogout} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.textSec,fontSize:10,cursor:"pointer"}}>Salir</button>}
 </div>
 </div>
 </div>
