@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.34";
+const EXPORT_VIGIA_VERSION = "v3.9.35";
 
 function exportTimestamp() {
   const d = new Date();
@@ -602,6 +602,11 @@ const saveToSupabase = async (analysisResult, file) => {
   // 1. Create instrument SOLO para acto_administrativo. Otros tipos: buscar EDI existente por candidate_edi.
   let instrId = null;
   if(isActoAdmin) {
+    const limiteEdis = clientOrg?.limite_edis ?? 999;
+    if(instruments.length >= limiteEdis) {
+      alert(`Límite de ${limiteEdis} EDIs alcanzado para tu plan. Contacta a ENARA para ampliar.`);
+      return null;
+    }
     try {
       const instrPayload = {
         org_id: orgId,
@@ -2613,6 +2618,7 @@ const [globalSearch, setGlobalSearch] = useState("");
 const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 const [copiedMsgIndex, setCopiedMsgIndex] = useState(null);
 const [dashboardView, setDashboardView] = useState("resumen");
+const [demoQueriesLeft, setDemoQueriesLeft] = useState(isDemoMode ? Math.max(0, 3 - parseInt(localStorage.getItem("vigia_demo_queries")||"0")) : 3);
 const [sidebarOpen, setSidebarOpen] = useState(false);
 const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 useEffect(()=>{
@@ -2643,6 +2649,7 @@ const [consultorNotes, setConsultorNotes] = useState([]);
 const [consultorNoteInput, setConsultorNoteInput] = useState("");
 const [consultorNoteLoading, setConsultorNoteLoading] = useState(false);
 const [consultorNoteTags, setConsultorNoteTags] = useState([]);
+const [consultorMetrics, setConsultorMetrics] = useState([]);
 const [exportMenu, setExportMenu] = useState(null); // null | "conv" | messageIndex
 useEffect(() => {
   if (exportMenu === null) return;
@@ -2746,7 +2753,7 @@ const selectConsultorOrg = async (orgId) => {
   if(!orgId) {
     setConsultorOrgId(null); setConsultorOrg(null);
     setConsultorInstruments([]); setConsultorObligations([]); setConsultorDocuments([]);
-    setConsultorNotes([]); setConsultorNoteInput(""); setConsultorNoteTags([]);
+    setConsultorNotes([]); setConsultorNoteInput(""); setConsultorNoteTags([]); setConsultorMetrics([]);
     setConsultorBotMessages([{role:"system",text:"Modo Consultor ENARA. Selecciona un cliente para empezar."}]);
     return;
   }
@@ -2762,6 +2769,12 @@ const selectConsultorOrg = async (orgId) => {
       const notesData = await callEdge("superadmin-api", { op: "list-client-notes", payload: { org_id: orgId } }, session.access_token);
       setConsultorNotes(Array.isArray(notesData?.notes) ? notesData.notes : []);
     } catch(e) { setConsultorNotes([]); console.log("list-client-notes silenced:", e); }
+    try {
+      const mr = await fetch(`${SB_URL}/rest/v1/bot_queries?org_id=eq.${orgId}&select=id,created_at,tokens_used&order=created_at.desc&limit=100`,
+        { headers: { apikey: SB_KEY, Authorization: `Bearer ${session.access_token}` } });
+      const md = await mr.json();
+      setConsultorMetrics(Array.isArray(md) ? md : []);
+    } catch(e) { setConsultorMetrics([]); }
   } catch(e) {
     setConsultorBotMessages([{role:"system",text:"Error cargando contexto del cliente: "+(e.message||e)}]);
   }
@@ -2936,11 +2949,16 @@ if(!botInput.trim()||botLoading)return;
 const userMsg={role:"user",text:botInput};
 setBotMessages(p=>[...p,userMsg]); setBotInput(""); setBotLoading(true);
 if(isDemoMode) {
-  setTimeout(()=>{
-    setBotMessages(p=>[...p,{role:"assistant",text:"**Modo demo activo.** En la versión completa de VIGÍA, esta consulta buscaría en 365 normas, 147 sentencias y los documentos propios de tu organización con búsqueda semántica vectorial.\n\nEl motor RAG analiza tu pregunta, recupera los artículos más relevantes, verifica vigencia, y responde citando fuentes exactas.\n\n---\n\nPara probar el motor de consulta real, solicita acceso a **ENARA Consulting**:\n- info@enaraconsulting.com.co\n- +57 314 330 4008",sources:[]}]);
-    setBotLoading(false);
-  },1200);
-  return;
+  const demoCount = parseInt(localStorage.getItem("vigia_demo_queries")||"0");
+  if(demoCount >= 3) {
+    setTimeout(()=>{
+      setBotMessages(p=>[...p,{role:"assistant",text:"**Has usado tus 3 consultas de demo.**\n\nEn tu sesión de prueba ya pudiste ver el motor RAG de VIGÍA consultando 365 normas y 147 sentencias con trazabilidad jurídica real.\n\n¿Quieres acceso completo para tu organización?\n\n**ENARA Consulting**\n- info@enaraconsulting.com.co\n- +57 314 330 4008 / +57 320 277 3972",sources:[]}]);
+      setBotLoading(false);
+    },600);
+    return;
+  }
+  localStorage.setItem("vigia_demo_queries", String(demoCount+1));
+  setDemoQueriesLeft(Math.max(0, 2-demoCount));
 }
 const layers=Object.entries(sources).filter(([,v])=>v).map(([k])=>({documentos:"Capa 1",normativa:"Capa 2a - Normativa",jurisprudencia:"Capa 2b - Jurisprudencia",pedagogico:"Capa 2c - Pedagógica",validacion:"Capa 3 - Validacion humana"}[k])).join(", ");
 const obsCtx=obligations.map(o=>`${o.obligation_num||o.num} - ${o.name} (${o.status}, vence ${o.due_date})`).join("; ");
@@ -2948,7 +2966,8 @@ const normCtx=normSources.map(n=>`${n.norm_type} ${n.norm_number}: ${n.norm_titl
 const systemPrompt=`Eres VIGÍA, asistente de inteligencia regulatoria ambiental colombiana${clientOrg?.name?` de ${clientOrg.name}`:""}.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en español colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`;
 const previousMessages = botMessages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({role:m.role,content:m.text}));
 try {
-const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session?.access_token||SB_KEY}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages,include_pedagogico:sources.pedagogico})});
+const botToken = isDemoMode ? SB_KEY : (session?.access_token||SB_KEY);
+const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${botToken}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages,include_pedagogico:sources.pedagogico})});
 const data=await res.json();
 if(!res.ok||!data.reply) throw new Error(data.error||`Error ${res.status}`);
 const reply=data.reply;
@@ -3612,6 +3631,23 @@ const renderConsultorENARA = () => {
         </div>
       )}
 
+      {/* Métricas de actividad */}
+      {consultorOrg && consultorMetrics.length > 0 && (()=>{
+        const total = consultorMetrics.length;
+        const tokens = consultorMetrics.reduce((s,q)=>s+(q.tokens_used||0),0);
+        const lastDate = consultorMetrics[0]?.created_at;
+        const now = new Date();
+        const thisMonth = consultorMetrics.filter(q=>{ const d=new Date(q.created_at); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); }).length;
+        return <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 16px"}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Actividad</div>
+          <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+            {[["Consultas totales",total],["Este mes",thisMonth],["Tokens usados",tokens.toLocaleString("es-CO")],["Última actividad",lastDate?new Date(lastDate).toLocaleDateString("es-CO",{day:"numeric",month:"short"}):"—"]].map(([l,v])=>(
+              <div key={l}><div style={{fontSize:16,fontWeight:700,color:C.text}}>{v}</div><div style={{fontSize:10,color:C.textMuted}}>{l}</div></div>
+            ))}
+          </div>
+        </div>;
+      })()}
+
       {/* Zona C — Chat en contexto del cliente */}
       {consultorOrg && (
         <div style={{flex:1,minHeight:340,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -3691,7 +3727,7 @@ const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consul
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden",paddingTop:isDemoMode?32:0}}>
 {isDemoMode && <div style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:`linear-gradient(90deg,${C.primary},#0a9e82)`,color:"#060c14",padding:"6px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:11,fontWeight:700,height:32}}>
-  <span>MODO DEMO — Datos sintéticos · No se guardan cambios</span>
+  <span>MODO DEMO · {demoQueriesLeft > 0 ? `${demoQueriesLeft} consulta${demoQueriesLeft!==1?"s":""} real${demoQueriesLeft!==1?"es":""} restante${demoQueriesLeft!==1?"s":""}` : "Consultas agotadas"}</span>
   <div style={{display:"flex",gap:12,alignItems:"center"}}>
     <span style={{fontWeight:400,opacity:0.8}}>¿Acceso real?</span>
     <a href="mailto:info@enaraconsulting.com.co" style={{color:"#060c14",fontWeight:700,background:"rgba(0,0,0,0.15)",borderRadius:4,padding:"2px 8px",textDecoration:"none"}}>info@enaraconsulting.com.co</a>
@@ -3703,7 +3739,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.34</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.35</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
