@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.30";
+const EXPORT_VIGIA_VERSION = "v3.9.31";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1286,6 +1286,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [onboardingExtracted, setOnboardingExtracted] = React.useState(null);
   const [onboardingFileName, setOnboardingFileName] = React.useState(null);
   const [prefilledFields, setPrefilledFields] = React.useState(new Set());
+  const [newOrgConfirming, setNewOrgConfirming] = React.useState(false);
   const [newOrgMsg, setNewOrgMsg] = React.useState(null);
   const [newOrgSaving, setNewOrgSaving] = React.useState(false);
   const [newOrgCreated, setNewOrgCreated] = React.useState(null);
@@ -1429,7 +1430,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const resetNewOrg = function() {
     setNewOrgCreated(null); setNewOrgMsg(null);
     setNewOrg({client_type:"vigia_subscriber",tipo_persona:"juridica",tipo_identificacion:"NIT",numero_identificacion:"",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
-    setOnboardingExtracted(null); setOnboardingFileName(null); setPrefilledFields(new Set());
+    setOnboardingExtracted(null); setOnboardingFileName(null); setPrefilledFields(new Set()); setNewOrgConfirming(false);
     setOrgUsers([{email:"",password:"Vigia2026!",role:"editor"}]);
     setUsersLog([]);
   };
@@ -2137,10 +2138,46 @@ function SuperAdminModule({reviewerId, sessionToken}) {
               ); })}
             </div>
 
-            {!newOrgCreated && (
-              <button onClick={saveNewOrg} disabled={newOrgSaving} style={{width:"100%",background:newOrgSaving?A.surfaceEl:A.primary,border:"none",borderRadius:8,padding:"13px",color:newOrgSaving?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:newOrgSaving?"not-allowed":"pointer"}}>
-                {newOrgSaving?"Creando organización...":"Crear organización y activar cliente"}
+            {!newOrgCreated && !newOrgConfirming && (
+              <button onClick={()=>{
+                if(!newOrg.name||!newOrg.numero_identificacion||!newOrg.representante_legal||!newOrg.sector||!newOrg.ciudad||!newOrg.contacto_vigia){
+                  setNewOrgMsg({t:"error",m:"Completa los campos obligatorios (*) antes de continuar."});
+                  return;
+                }
+                setNewOrgMsg(null); setNewOrgConfirming(true);
+              }} style={{width:"100%",background:A.primary,border:"none",borderRadius:8,padding:"13px",color:"#060c14",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                Revisar y confirmar →
               </button>
+            )}
+
+            {newOrgConfirming && !newOrgCreated && (
+              <div style={{background:A.surfaceEl,border:`1px solid ${A.primary}44`,borderRadius:12,padding:24,marginTop:0}}>
+                <div style={{fontSize:15,fontWeight:700,color:A.text,marginBottom:4}}>Confirmar creación de cliente</div>
+                <div style={{fontSize:12,color:A.textSec,marginBottom:20}}>Revisá los datos antes de crear. Una vez creado, podés editarlo desde Organizaciones.</div>
+                {newOrgMsg&&<div style={{background:newOrgMsg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(newOrgMsg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:newOrgMsg.t==="success"?A.green:A.red,marginBottom:16}}>{newOrgMsg.m}</div>}
+                {[
+                  {t:"Tipo de cliente",r:[["Tipo",newOrg.client_type==="vigia_subscriber"?"Suscriptor VIGÍA":newOrg.client_type==="enara_consulting"?"Cliente consultoría":"Suscriptor + Consultoría"]]},
+                  {t:"Identificación",r:[["Tipo doc.",newOrg.tipo_identificacion||"NIT"],["Número",newOrg.numero_identificacion||"—"],["Tipo persona",newOrg.tipo_persona==="juridica"?"Jurídica":"Natural"]]},
+                  {t:"Datos básicos",r:[["Razón social",newOrg.name||"—"],["Representante legal",newOrg.representante_legal||"—"],["Email",newOrg.email_corporativo||"—"],["Teléfono",newOrg.telefono||"—"],["CIIU",newOrg.ciiu||"—"],["Sector",newOrg.sector||"—"]]},
+                  {t:"Ubicación",r:[["Departamento",newOrg.departamento||"—"],["Ciudad",newOrg.ciudad||"—"],["Dirección",newOrg.direccion||"—"]]},
+                  {t:"Contacto VIGÍA",r:[["Nombre",newOrg.contacto_vigia||"—"],["Cargo",newOrg.cargo_contacto||"—"]]},
+                  ...(newOrg.client_type!=="enara_consulting"?[{t:"Plan y configuración",r:[["Plan",newOrg.plan||"—"],["Límite EDIs",String(newOrg.limite_edis??5)],["Límite usuarios",String(newOrg.limite_usuarios??4)],["Intake/mes",String(newOrg.limite_intake_mes??100)]]}]:[])
+                ].map(s=>(
+                  <div key={s.t} style={{marginBottom:16}}>
+                    <div style={{fontSize:10,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6,paddingBottom:4,borderBottom:`1px solid ${A.border}`}}>{s.t}</div>
+                    {s.r.map(([l,v])=>(
+                      <div key={l} style={{display:"flex",gap:8,fontSize:12,marginBottom:3}}>
+                        <span style={{color:A.textSec,minWidth:140,flexShrink:0}}>{l}</span>
+                        <span style={{color:A.text,fontWeight:500}}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:12}}>
+                  <button onClick={()=>{setNewOrgConfirming(false);setNewOrgMsg(null);}} disabled={newOrgSaving} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:8,padding:"10px 18px",color:A.textSec,fontSize:12,cursor:"pointer"}}>← Corregir datos</button>
+                  <button onClick={saveNewOrg} disabled={newOrgSaving} style={{background:newOrgSaving?A.surfaceEl:A.green,border:"none",borderRadius:8,padding:"10px 20px",color:newOrgSaving?A.textSec:"#060c14",fontSize:12,fontWeight:700,cursor:newOrgSaving?"not-allowed":"pointer"}}>{newOrgSaving?"Creando…":"✓ Crear cliente"}</button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -2875,7 +2912,7 @@ setBotLoading(false);
 };
 
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs"},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
@@ -3206,7 +3243,7 @@ const renderEDIs = () => {
     if(ediFilter==="moderados" && h!=="moderado") return false;
     if(ediFilter==="al_dia" && h!=="al_dia") return false;
     if(!q) return true;
-    const label = (inst.project_name||inst.projects?.name||"")+" "+(inst.number||"")+" "+(inst.instrument_type||"")+" "+(inst.authority_name||"");
+    const label = (inst.title||"")+" "+(inst.project_name||inst.projects?.name||"")+" "+(inst.number||"")+" "+(inst.instrument_type||"")+" "+(inst.authority_name||"");
     return label.toLowerCase().includes(q);
   });
   const counts = {
@@ -3497,7 +3534,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.30</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.31</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
