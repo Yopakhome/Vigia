@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.46";
+const EXPORT_VIGIA_VERSION = "v3.9.47";
 
 function exportTimestamp() {
   const d = new Date();
@@ -3060,6 +3060,14 @@ useEffect(()=>{
 const [sources, setSources] = useState({documentos:true,normativa:true,jurisprudencia:true,pedagogico:false,validacion:false});
 const [ediSearch, setEdiSearch] = useState("");
 const [ediFilter, setEdiFilter] = useState("todos");
+const [jurisprudencia, setJurisprudencia] = useState([]);
+const [jurisSearch, setJurisSearch] = useState("");
+const [jurisFilter, setJurisFilter] = useState("todos");
+const [jurisSelected, setJurisSelected] = useState(null);
+const [jurisArticles, setJurisArticles] = useState({});
+const [guias, setGuias] = useState([]);
+const [guiasSearch, setGuiasSearch] = useState("");
+const [guiasSelected, setGuiasSelected] = useState(null);
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
 const [normScopeFilter, setNormScopeFilter] = useState("todos");
@@ -3320,6 +3328,25 @@ const fetchBotHistory = async () => {
 
 useEffect(()=>{ if(view==="consultar" && session) fetchBotHistory(); }, [view, session, clientOrg?.id]);
 
+useEffect(()=>{
+  if(view==="jurisprudencia" && jurisprudencia.length===0 && session) {
+    fetch(`${SB_URL}/rest/v1/jurisprudence_sources?select=*&order=fecha_emision_anio.desc.nullslast&limit=200`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session?.access_token||SB_KEY}`}}).then(r=>r.json()).then(d=>setJurisprudencia(Array.isArray(d)?d:[])).catch(()=>{});
+  }
+  if(view==="conceptos" && guias.length===0 && session) {
+    fetch(`${SB_URL}/rest/v1/normative_sources?select=*&or=(corpus_source.eq.pedagogico,norm_type.eq.circular)&order=norm_year.desc.nullslast&limit=100`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session?.access_token||SB_KEY}`}}).then(r=>r.json()).then(d=>setGuias(Array.isArray(d)?d:[])).catch(()=>{});
+  }
+},[view, session]);
+
+const loadJurisArticles=async(jurId)=>{
+  if(!jurId||jurisArticles[jurId]) return;
+  try {
+    const r=await fetch(`${SB_URL}/rest/v1/jurisprudence_articles?jur_id=eq.${jurId}&select=id,section_key,section_label,title,content,order_index&order=order_index.asc`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session?.access_token||SB_KEY}`}});
+    const d=await r.json();
+    setJurisArticles(p=>({...p,[jurId]:Array.isArray(d)?d:[]}));
+  } catch {}
+};
+useEffect(()=>{if(jurisSelected) loadJurisArticles(jurisSelected);},[jurisSelected]);
+
 useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
 
 useEffect(()=>{
@@ -3482,7 +3509,7 @@ const copyBotResponse = (msgIndex) => {
 };
 
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
-  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(!isSuperAdmin?[{key:"soporte",icon:MessageSquare,label:"Soporte"}]:[]),...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
+  const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"jurisprudencia",icon:Scale,label:"Jurisprudencia"},{key:"conceptos",icon:BookMarked,label:"Conceptos & Guías"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(!isSuperAdmin?[{key:"soporte",icon:MessageSquare,label:"Soporte"}]:[]),...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
   if(isPrivacidadPage) return <PoliticaPrivacidad/>;
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
@@ -3932,6 +3959,131 @@ const renderNormativa=()=>{
   );
 };
 
+const renderJurisprudencia=()=>{
+  const CORTE_COLORS={"Corte Constitucional":C.purple||C.primary,"Consejo de Estado":C.blue,"Corte Suprema de Justicia":C.yellow,"Tribunal":C.textSec};
+  const q=jurisSearch.trim().toLowerCase();
+  const filtered=jurisprudencia.filter(s=>{
+    if(jurisFilter!=="todos"&&s.corte!==jurisFilter) return false;
+    if(!q) return true;
+    return [s.radicado,s.title,s.magistrado_ponente,s.corte,s.category].filter(Boolean).join(" ").toLowerCase().includes(q);
+  });
+  const detail=jurisSelected?jurisprudencia.find(s=>s.id===jurisSelected):null;
+  const detailArts=jurisSelected?(jurisArticles[jurisSelected]||[]):[];
+  const cortes=[...new Set(jurisprudencia.map(s=>s.corte).filter(Boolean))];
+  return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+    <div style={{marginBottom:16}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Jurisprudencia</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{jurisprudencia.length} sentencias y decisiones judiciales en el corpus</p></div>
+    <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+      <input value={jurisSearch} onChange={e=>setJurisSearch(e.target.value)} placeholder="Buscar por radicado, magistrado, tema..." style={{flex:"1 1 260px",background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"9px 14px",color:C.text,fontSize:12,fontFamily:FONT,outline:"none"}}/>
+      {["todos",...cortes].map(f=><button key={f} onClick={()=>setJurisFilter(f)} style={{background:jurisFilter===f?`${C.purple||C.primary}22`:C.surfaceEl,border:`1px solid ${jurisFilter===f?(C.purple||C.primary)+"66":C.border}`,borderRadius:6,padding:"5px 12px",color:jurisFilter===f?(C.purple||C.primary):C.textSec,fontSize:10,fontWeight:jurisFilter===f?700:500,cursor:"pointer",fontFamily:FONT}}>{f==="todos"?`Todos (${jurisprudencia.length})`:f}</button>)}
+    </div>
+    {detail&&<div style={{background:C.surface,border:`1px solid ${(C.purple||C.primary)}44`,borderRadius:12,padding:"18px 22px",marginBottom:20}}>
+      <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
+        <div style={{width:36,height:36,borderRadius:8,background:`${CORTE_COLORS[detail.corte]||C.primary}22`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Scale size={16} color={CORTE_COLORS[detail.corte]||C.primary}/></div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:4,lineHeight:1.3}}>{detail.title||detail.radicado}</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+            <Badge label={detail.corte||"—"} color={CORTE_COLORS[detail.corte]||C.primary} bg={`${CORTE_COLORS[detail.corte]||C.primary}22`}/>
+            {detail.tipo_providencia&&<Badge label={detail.tipo_providencia} color={C.textSec} bg={C.surfaceEl}/>}
+            {detail.fecha_emision_anio&&<Badge label={String(detail.fecha_emision_anio)} color={C.textSec} bg={C.surfaceEl}/>}
+            {detail.category&&<Badge label={detail.category} color={C.blue} bg={`${C.blue}22`}/>}
+          </div>
+          {detail.radicado&&<div style={{fontSize:11,color:C.textSec,marginBottom:2}}>Radicado: {detail.radicado}</div>}
+          {detail.magistrado_ponente&&<div style={{fontSize:11,color:C.textSec}}>M.P.: {detail.magistrado_ponente}</div>}
+          {detail.primary_source_url&&<a href={detail.primary_source_url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:C.primary,marginTop:6,display:"inline-block",textDecoration:"none"}}>↗ Ver fuente oficial</a>}
+        </div>
+        <button onClick={()=>setJurisSelected(null)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",color:C.textSec,fontSize:11,cursor:"pointer"}}>Cerrar ×</button>
+      </div>
+      <div style={{marginTop:14}}>
+        <div style={{fontSize:11,fontWeight:700,color:C.purple||C.primary,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Secciones ({detailArts.length})</div>
+        {detailArts.length===0?<div style={{fontSize:12,color:C.textMuted,fontStyle:"italic"}}>Cargando…</div>:
+          <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:400,overflowY:"auto"}}>
+            {detailArts.slice(0,15).map(a=><div key={a.id} style={{background:C.surfaceEl,borderLeft:`3px solid ${(C.purple||C.primary)}44`,borderRadius:4,padding:"8px 12px"}}>
+              <div style={{fontSize:11,fontWeight:700,color:C.purple||C.primary,marginBottom:3}}>{a.section_label||a.title||`Sección ${a.order_index}`}</div>
+              <div style={{fontSize:11,color:C.text,lineHeight:1.5,whiteSpace:"pre-wrap"}}>{(a.content||"").slice(0,500)}{(a.content||"").length>500?"…":""}</div>
+            </div>)}
+            {detailArts.length>15&&<div style={{fontSize:11,color:C.textMuted,textAlign:"center",padding:8}}>Mostrando 15 de {detailArts.length} secciones</div>}
+          </div>}
+      </div>
+    </div>}
+    {jurisprudencia.length===0?<div style={{color:C.textMuted,fontSize:12,padding:40,textAlign:"center"}}>El corpus de jurisprudencia está cargando…</div>:
+    filtered.length===0?<div style={{color:C.textMuted,fontSize:12,padding:40,textAlign:"center"}}>Sin sentencias que coincidan con la búsqueda.</div>:
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {filtered.map(s=><div key={s.id} onClick={()=>setJurisSelected(s.id)} style={{background:C.surface,border:`1px solid ${jurisSelected===s.id?(C.purple||C.primary)+"66":C.border}`,borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",transition:"border-color 0.15s"}}>
+        <div style={{width:32,height:32,borderRadius:8,background:`${CORTE_COLORS[s.corte]||C.primary}22`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Scale size={14} color={CORTE_COLORS[s.corte]||C.primary}/></div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.title||s.radicado||"Sin título"}</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:10,color:C.textMuted}}>
+            <span style={{color:CORTE_COLORS[s.corte]||C.primary,fontWeight:600}}>{s.corte}</span>
+            {s.radicado&&<span>{s.radicado}</span>}
+            {s.fecha_emision_anio&&<span>{s.fecha_emision_anio}</span>}
+            {s.category&&<span style={{color:C.blue}}>· {s.category}</span>}
+          </div>
+        </div>
+        <ChevronRight size={14} color={C.textSec}/>
+      </div>)}
+    </div>}
+  </div>;
+};
+
+const renderConceptosGuias=()=>{
+  const q=guiasSearch.trim().toLowerCase();
+  const filtered=guias.filter(n=>{
+    if(!q) return true;
+    return [n.norm_title,n.norm_number,n.issuing_body,n.norm_type].filter(Boolean).join(" ").toLowerCase().includes(q);
+  });
+  const detail=guiasSelected?guias.find(n=>n.id===guiasSelected):null;
+  const detailArts=guiasSelected?(normArticles[guiasSelected]||[]):[];
+  return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
+    <div style={{marginBottom:16}}><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Conceptos & Guías</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{guias.length} documentos de apoyo no vinculante · circulares, guías técnicas y conceptos</p></div>
+    <div style={{background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:8,padding:"8px 14px",marginBottom:16,fontSize:11,color:C.yellow}}>Estos documentos son orientación técnica del regulador, NO norma vinculante. Verifique siempre la normativa vigente.</div>
+    <div style={{marginBottom:16}}>
+      <input value={guiasSearch} onChange={e=>setGuiasSearch(e.target.value)} placeholder="Buscar por título, número, autoridad..." style={{width:"100%",maxWidth:400,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"9px 14px",color:C.text,fontSize:12,fontFamily:FONT,outline:"none"}}/>
+    </div>
+    {detail&&<div style={{background:C.surface,border:`1px solid ${C.yellow}44`,borderRadius:12,padding:"18px 22px",marginBottom:20}}>
+      <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
+        <div style={{width:36,height:36,borderRadius:8,background:C.yellowDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><BookMarked size={16} color={C.yellow}/></div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:4}}>{detail.norm_title}</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+            <Badge label={detail.norm_type||"guía"} color={C.yellow} bg={C.yellowDim}/>
+            {detail.norm_number&&<Badge label={`N. ${detail.norm_number}/${detail.norm_year||""}`} color={C.textSec} bg={C.surfaceEl}/>}
+            <Badge label="No vinculante" color={C.yellow} bg={C.yellowDim}/>
+          </div>
+          {detail.issuing_body&&<div style={{fontSize:11,color:C.textSec,marginBottom:4}}>{detail.issuing_body}</div>}
+          {detail.summary&&<div style={{fontSize:12,color:C.text,lineHeight:1.5,marginTop:8,padding:"8px 12px",background:C.surfaceEl,borderRadius:6}}>{detail.summary}</div>}
+          {detail.source_url&&<a href={detail.source_url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:C.primary,marginTop:6,display:"inline-block",textDecoration:"none"}}>↗ PDF oficial</a>}
+        </div>
+        <button onClick={()=>setGuiasSelected(null)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",color:C.textSec,fontSize:11,cursor:"pointer"}}>Cerrar ×</button>
+      </div>
+      {detailArts.length>0&&<div style={{marginTop:14}}>
+        <div style={{fontSize:11,fontWeight:700,color:C.yellow,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Artículos ({detailArts.length})</div>
+        <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:400,overflowY:"auto"}}>
+          {detailArts.slice(0,10).map(a=><div key={a.id} style={{background:C.surfaceEl,borderLeft:`3px solid ${C.yellow}44`,borderRadius:4,padding:"6px 10px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.yellow,marginBottom:2}}>{a.article_label||`Art. ${a.article_number}`}</div>
+            <div style={{fontSize:11,color:C.text,lineHeight:1.4,whiteSpace:"pre-wrap"}}>{(a.content||"").slice(0,300)}{(a.content||"").length>300?"…":""}</div>
+          </div>)}
+        </div>
+      </div>}
+    </div>}
+    {guias.length===0?<div style={{color:C.textMuted,fontSize:12,padding:40,textAlign:"center"}}>Cargando material de apoyo…</div>:
+    filtered.length===0?<div style={{color:C.textMuted,fontSize:12,padding:40,textAlign:"center"}}>Sin documentos que coincidan.</div>:
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {filtered.map(n=><div key={n.id} onClick={()=>{setGuiasSelected(n.id);loadNormArticles(n.id);}} style={{background:C.surface,border:`1px solid ${guiasSelected===n.id?C.yellow+"66":C.border}`,borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}>
+        <div style={{width:32,height:32,borderRadius:8,background:C.yellowDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><BookMarked size={14} color={C.yellow}/></div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.norm_title}</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:10,color:C.textMuted}}>
+            <span style={{color:C.yellow,fontWeight:600,textTransform:"uppercase"}}>{n.norm_type||"guía"}</span>
+            {n.norm_number&&<span>{n.norm_number}/{n.norm_year||""}</span>}
+            {n.issuing_body&&<><span>·</span><span>{n.issuing_body.slice(0,50)}</span></>}
+          </div>
+        </div>
+        <ChevronRight size={14} color={C.textSec}/>
+      </div>)}
+    </div>}
+  </div>;
+};
+
 const renderOversight=()=><div style={{padding:28}}>
 <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 6px"}}>Oversight legal automatico</h1>
 <p style={{fontSize:13,color:C.textSec,margin:"0 0 24px"}}>Anomalias detectadas - {oversight.length} activas</p>
@@ -4255,7 +4407,7 @@ const renderConsultorENARA = () => {
   );
 };
 
-const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="oversight")return renderOversight(); if(view==="soporte")return <SupportModule clientOrg={clientOrg} session={session}/>; if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
+const renderView=()=>{ const intakeOrg = (isSuperAdmin && consultorOrg) ? consultorOrg : clientOrg; const intakeInstruments = (isSuperAdmin && consultorOrg) ? consultorInstruments : instruments; const intakeObligations = (isSuperAdmin && consultorOrg) ? consultorObligations : obligations; if(view==="superadmin")return <SuperAdminModule reviewerId={session?.user?.id} sessionToken={session?.access_token}/>; if(view==="myteam")return <MyTeamModule orgId={clientOrg?.id} orgName={clientOrg?.name} limiteUsuarios={clientOrg?.limite_usuarios} sessionToken={session?.access_token}/>; if(view==="orgprofile")return <OrgProfileModule clientOrg={clientOrg} sessionToken={session?.access_token} userId={session?.user?.id}/>; if(view==="intake")return <IntakeModule onNewAlert={handleNewAlert} onNewNorm={handleNewNorm} clientOrg={intakeOrg} sessionToken={session?.access_token} instruments={intakeInstruments} obligations={intakeObligations} onNewInstrument={inst=>{ if(isSuperAdmin && consultorOrg) { setConsultorInstruments(p=>[inst,...p]); } else { setInstruments(p=>[inst,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onNewObligation={obs=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>[...obs,...p]); } else { setObligations(p=>[...obs,...p]); setLastSync(new Date()); refreshDashboardData(); } }} onObligationUpdate={ob=>{ if(isSuperAdmin && consultorOrg) { setConsultorObligations(p=>p.map(o=>o.id===ob.id?ob:o)); } else { setObligations(p=>p.map(o=>o.id===ob.id?ob:o)); setLastSync(new Date()); } }}/>; if(view==="edis")return renderEDIs(); if(view==="edi-detail")return renderEDIDetail(); if(view==="inteligencia")return renderInteligencia(); if(view==="consultar")return renderConsultar(); if(view==="normativa")return renderNormativa(); if(view==="jurisprudencia")return renderJurisprudencia(); if(view==="conceptos")return renderConceptosGuias(); if(view==="oversight")return renderOversight(); if(view==="soporte")return <SupportModule clientOrg={clientOrg} session={session}/>; if(view==="consultor-enara") return renderConsultorENARA(); return renderDashboard(); };
 
 return (
 <div style={{display:"flex",height:"100vh",background:C.bg,fontFamily:FONT,color:C.text,overflow:"hidden",paddingTop:isDemoMode?32:0}}>
@@ -4337,7 +4489,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.46</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.47</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
