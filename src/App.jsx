@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.41";
+const EXPORT_VIGIA_VERSION = "v3.9.42";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1208,6 +1208,9 @@ function LoginScreen({ onLogin }) {
           </div>
           <div style={{textAlign:"center",marginTop:16}}>
             <a href="/demo" style={{fontSize:11,color:L.primary,textDecoration:"none",fontWeight:600}}>Probar demo sin login →</a>
+          </div>
+          <div style={{textAlign:"center",marginTop:8}}>
+            <a href="/privacidad" target="_blank" style={{fontSize:10,color:L.textMuted,textDecoration:"none"}}>Política de privacidad · Ley 1581/2012</a>
           </div>
         </>}
 
@@ -2209,7 +2212,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
             {/* SECCIÓN 5: Términos */}
             <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Términos y consentimiento</div>
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
-              {[["acepta_terminos","Acepta términos y condiciones de VIGÍA"],["consentimiento_datos","Autoriza tratamiento de datos personales (Ley 1581/2012)"]].map(function(f){ return (
+              {[["acepta_terminos",<>Acepta <a href="/privacidad" target="_blank" style={{color:A.primary,textDecoration:"none"}}>términos y condiciones</a> de VIGÍA</>],["consentimiento_datos",<>Autoriza <a href="/privacidad" target="_blank" style={{color:A.primary,textDecoration:"none"}}>tratamiento de datos personales</a> (Ley 1581/2012)</>]].map(function(f){ return (
                 <label key={f[0]} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
                   <div onClick={function(){setNewOrg(function(p){return Object.assign({},p,{[f[0]]:!p[f[0]]});});}} style={{width:18,height:18,borderRadius:4,border:"2px solid "+(newOrg[f[0]]?A.primary:A.border),background:newOrg[f[0]]?A.primary:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                     {newOrg[f[0]]&&<svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" fill="none" stroke="#060c14" strokeWidth="2"/></svg>}
@@ -2636,8 +2639,41 @@ const DEMO_DATA = {
   alerts: []
 };
 
+function PoliticaPrivacidad() {
+  const L={bg:"#060c14",surface:"#0c1523",border:"#162236",primary:"#00c9a7",text:"#d8e6f0",textSec:"#8ba4ba",textMuted:"#5e7a95"};
+  const S=[
+    ["1. Responsable del tratamiento","ENARA Consulting S.A.S., sociedad legalmente constituida en Colombia, con domicilio en Barranquilla, Atlántico, actúa como responsable del tratamiento de los datos personales recopilados a través de la plataforma VIGÍA.\n\nContacto:\n- Correo: jrestrepo@enaraconsulting.com.co\n- Teléfonos: +57 314 330 4008 / +57 320 277 3972\n- Web: www.enaraconsulting.com.co"],
+    ["2. Marco legal","Esta política se rige por:\n- Ley 1581 de 2012 — Protección de Datos Personales (Habeas Data)\n- Decreto 1377 de 2013 — Reglamentación parcial de la Ley 1581\n- Decreto 1074 de 2015 (compilatorio)\n- Circular Única de la SIC"],
+    ["3. Datos personales tratados","La Plataforma recopila:\n- Datos de identificación: nombre, número de identificación (cédula o NIT), cargo.\n- Datos de contacto: correo electrónico, teléfono, dirección.\n- Datos de uso: consultas al motor de inteligencia regulatoria, documentos subidos, fecha y hora de acceso.\n- Datos de la organización: razón social, sector, ubicación, instrumentos ambientales.\n\nNo recopilamos datos sensibles (Art. 5, Ley 1581/2012)."],
+    ["4. Finalidades del tratamiento","Los datos son tratados para:\n- Prestar el servicio de inteligencia regulatoria ambiental.\n- Gestionar la relación comercial con la organización suscriptora.\n- Enviar notificaciones sobre vencimientos y actualizaciones normativas.\n- Generar informes de cumplimiento.\n- Cumplir obligaciones legales y contractuales.\n- Mejorar la Plataforma mediante análisis agregado y anonimizado."],
+    ["5. Transferencias internacionales","ENARA Consulting S.A.S. transfiere datos a:\n- Supabase Inc. (EE.UU./Brasil) — Almacenamiento y autenticación\n- Anthropic PBC (EE.UU.) — Procesamiento de lenguaje natural\n- Vercel Inc. (EE.UU.) — Hospedaje de la aplicación\n- Resend Inc. (EE.UU.) — Envío de correos electrónicos\n\nEstas transferencias cumplen con el Art. 26 de la Ley 1581 de 2012. El titular consiente expresamente al aceptar los términos de uso."],
+    ["6. Derechos del titular","Conforme al Art. 8, Ley 1581/2012:\n- Conocer, actualizar y rectificar sus datos personales.\n- Solicitar prueba de la autorización otorgada.\n- Ser informado sobre el uso dado a sus datos.\n- Presentar quejas ante la SIC.\n- Revocar la autorización y/o solicitar la supresión.\n- Acceder gratuitamente a sus datos.\n\nContacto: jrestrepo@enaraconsulting.com.co\nPlazos: 10 días hábiles (consultas) · 15 días hábiles (reclamos)."],
+    ["7. Conservación de los datos","Los datos se conservan durante la vigencia de la relación contractual y el período adicional exigido por ley. Después, se eliminan o anonimizan en máximo 90 días calendario."],
+    ["8. Seguridad de la información","Medidas implementadas:\n- Cifrado en tránsito (HTTPS/TLS) y en reposo (AES-256).\n- Control de acceso basado en roles (RBAC) con aislamiento por organización.\n- Autenticación mediante tokens JWT con expiración automática.\n- Registro de auditoría de accesos y operaciones críticas.\n- Row Level Security (RLS) para aislamiento entre organizaciones."],
+    ["9. Cookies y tecnologías similares","La Plataforma utiliza localStorage exclusivamente para la sesión del usuario. No utilizamos cookies de rastreo ni tecnologías de seguimiento publicitario."],
+    ["10. Modificaciones","ENARA Consulting S.A.S. se reserva el derecho de modificar esta política. Las modificaciones serán notificadas con al menos 15 días de anticipación. El uso continuado constituye aceptación."],
+    ["11. Autoridad de supervisión","Superintendencia de Industria y Comercio (SIC)\nCarrera 13 No. 27-00, Bogotá D.C.\nwww.sic.gov.co · Línea: 601 587 0000"]
+  ];
+  return <div style={{minHeight:"100vh",background:L.bg,fontFamily:"'Poppins','Segoe UI',sans-serif",color:L.text}}>
+    <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box}`}</style>
+    <div style={{borderBottom:`1px solid ${L.border}`,padding:"16px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:L.bg,zIndex:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:32,height:32,borderRadius:8,background:"linear-gradient(135deg,#00c9a7,#0a9e82)",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#060c14",fontWeight:800,fontSize:14}}>V</span></div>
+        <div><div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.03em"}}>VIGÍA</div><div style={{fontSize:9,color:L.textMuted,textTransform:"uppercase",letterSpacing:"0.1em"}}>ENARA Consulting</div></div>
+      </div>
+      <a href="/" style={{fontSize:12,color:L.primary,textDecoration:"none",fontWeight:600}}>← Volver al inicio</a>
+    </div>
+    <div style={{maxWidth:780,margin:"0 auto",padding:"48px 32px 80px"}}>
+      <div style={{marginBottom:40}}><h1 style={{fontSize:28,fontWeight:700,margin:"0 0 8px",letterSpacing:"-0.02em"}}>Política de Tratamiento de Datos Personales</h1><p style={{fontSize:13,color:L.textMuted,margin:0}}>VIGÍA by ENARA Consulting S.A.S. · Versión 1.0 · Vigente desde abril de 2026</p></div>
+      {S.map(([t,c])=><div key={t} style={{marginBottom:32}}><h2 style={{fontSize:15,fontWeight:700,color:L.primary,marginBottom:12,paddingBottom:8,borderBottom:`1px solid ${L.border}`}}>{t}</h2><div style={{fontSize:13,color:L.textSec,lineHeight:1.9,whiteSpace:"pre-line"}}>{c}</div></div>)}
+      <div style={{marginTop:48,paddingTop:24,borderTop:`1px solid ${L.border}`,fontSize:11,color:L.textMuted,textAlign:"center",lineHeight:1.8}}>ENARA Consulting S.A.S. · Barranquilla, Atlántico, Colombia<br/>jrestrepo@enaraconsulting.com.co · +57 314 330 4008 / +57 320 277 3972<br/>www.enaraconsulting.com.co</div>
+    </div>
+  </div>;
+}
+
 export default function VIGIAApp() {
 const isDemoMode = typeof window !== "undefined" && (window.location.pathname==="/demo" || window.location.search.includes("demo=true"));
+const isPrivacidadPage = typeof window !== "undefined" && window.location.pathname==="/privacidad";
 const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userOrgRole, setUserOrgRole] = useState(null);
@@ -3123,6 +3159,7 @@ const copyBotResponse = (msgIndex) => {
   const isOrgAdmin = userOrgRole === "admin" && !isSuperAdmin;
   const navItems=[{key:"dashboard",icon:BarChart2,label:"Dashboard"},{key:"edis",icon:Layers,label:"Mis EDIs",badge:obligations.filter(o=>derivedStatus(o)==="vencido"||derivedStatus(o)==="proximo").length||0},{key:"inteligencia",icon:TrendingUp,label:"Inteligencia",badge:unreadAlerts},{key:"consultar",icon:MessageSquare,label:"Consultar"},{key:"normativa",icon:BookOpen,label:"Normativa"},{key:"oversight",icon:Shield,label:"Oversight"},{key:"intake",icon:Upload,label:"INTAKE"},...(isOrgAdmin?[{key:"myteam",icon:Users,label:"Mi equipo"},{key:"orgprofile",icon:FileText,label:"Mi organización"}]:[]),...(isSuperAdmin?[{key:"consultor-enara",icon:Scale,label:"Consultor ENARA",sub:consultorOrg?.name||null},{key:"superadmin",icon:Shield,label:"SuperAdmin"}]:[])];
 
+  if(isPrivacidadPage) return <PoliticaPrivacidad/>;
   if(authLoading) return <div style={{height:"100vh",background:"#060c14",display:"flex",alignItems:"center",justifyContent:"center",color:"#00c9a7",fontSize:14}}>Cargando VIGIA...</div>;
   if(!session) return <LoginScreen onLogin={async s => {
     setSession(s);
@@ -3972,7 +4009,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.41</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.42</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
