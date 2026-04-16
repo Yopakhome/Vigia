@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.36";
+const EXPORT_VIGIA_VERSION = "v3.9.37";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1616,6 +1616,9 @@ function SuperAdminModule({reviewerId, sessionToken}) {
               {[["Supabase","itkbujkqjesuntgdkubt"],["GitHub","Yopakhome/Vigia"],["URL","vigia-five.vercel.app"],["Modelo IA","claude-sonnet-4-20250514"],["Stack","React + Vite + Supabase"],["Auth","Supabase Auth + RLS"]].map(function(item){ return <div key={item[0]} style={{background:A.surfaceEl,borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:A.textMuted,marginBottom:2,textTransform:"uppercase"}}>{item[0]}</div><div style={{fontSize:11,color:A.text,fontWeight:500}}>{item[1]}</div></div>; })}
             </div>
           </div>
+          <div style={{marginTop:12,textAlign:"right"}}>
+            <button onClick={()=>{localStorage.removeItem("vigia_onboarded");setMsg({t:"success",m:"Onboarding reseteado. El próximo usuario sin EDIs verá el wizard."});}} style={{background:"transparent",border:`1px solid ${A.border}`,borderRadius:6,padding:"4px 10px",color:A.textMuted,fontSize:10,cursor:"pointer"}}>Resetear onboarding</button>
+          </div>
         </div>
       )}
 
@@ -2630,6 +2633,8 @@ const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 const [copiedMsgIndex, setCopiedMsgIndex] = useState(null);
 const [dashboardView, setDashboardView] = useState("resumen");
 const [demoQueriesLeft, setDemoQueriesLeft] = useState(isDemoMode ? Math.max(0, 3 - parseInt(localStorage.getItem("vigia_demo_queries")||"0")) : 3);
+const [showOnboarding, setShowOnboarding] = useState(false);
+const [onboardingStep, setOnboardingStep] = useState(1);
 const [sidebarOpen, setSidebarOpen] = useState(false);
 const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 useEffect(()=>{
@@ -2718,6 +2723,9 @@ const [inst,obs,alrt,norms,ovs]=await Promise.all([sb("instruments","select=*&or
           }
           setDbStatus("connected");
           setLastSync(new Date());
+          if(!isDemoMode && !localStorage.getItem("vigia_onboarded") && (!Array.isArray(inst) || inst.length===0)) {
+            setShowOnboarding(true);
+          }
           // Fetch client org via edge function (no service_role en browser)
           if(session?.access_token) {
             const ctx = await fetchOrgContext(session.access_token);
@@ -3745,12 +3753,77 @@ return (
   </div>
 </div>}
 <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${C.border};border-radius:4px}@keyframes pulse{0%,100%{opacity:0.25}50%{opacity:1}}`}</style>
+{showOnboarding && !isSuperAdmin && (
+<div style={{position:"fixed",inset:0,zIndex:500,background:"rgba(6,12,20,0.85)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+<div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:16,padding:32,maxWidth:520,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}>
+  <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}>
+    <button onClick={()=>{setShowOnboarding(false);localStorage.setItem("vigia_onboarded","1");}} style={{background:"transparent",border:"none",color:C.textMuted,fontSize:11,cursor:"pointer"}}>Saltar por ahora</button>
+  </div>
+  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:24}}>
+    {[1,2,3].map(s=>(
+      <React.Fragment key={s}>
+        <div style={{width:28,height:28,borderRadius:"50%",background:onboardingStep>=s?C.primary:C.surfaceEl,border:`2px solid ${onboardingStep>=s?C.primary:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:onboardingStep>=s?"#060c14":C.textMuted}}>{s}</div>
+        {s<3&&<div style={{flex:1,height:2,background:onboardingStep>s?C.primary:C.border,borderRadius:1}}/>}
+      </React.Fragment>
+    ))}
+  </div>
+
+  {onboardingStep===1 && <>
+    <div style={{width:48,height:48,borderRadius:12,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><Shield size={24} color={C.primary}/></div>
+    <div style={{fontSize:20,fontWeight:700,color:C.text,marginBottom:8}}>Bienvenido a VIGÍA</div>
+    <div style={{fontSize:13,color:C.textSec,marginBottom:20,lineHeight:1.6}}>Tu plataforma de inteligencia regulatoria ambiental. En 3 pasos vas a tener todo configurado.</div>
+    <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+      {[
+        ["Gestionar tus Expedientes Digitales Inteligentes (EDIs)"],
+        ["Monitorear obligaciones ambientales en tiempo real"],
+        ["Consultar 365 normas y 147 sentencias con IA"],
+        ["Recibir alertas antes de que venzan tus obligaciones"]
+      ].map(([t],i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",gap:10,fontSize:12,color:C.text}}>
+          <CheckCircle size={14} color={C.green}/> {t}
+        </div>
+      ))}
+    </div>
+    <button onClick={()=>setOnboardingStep(2)} style={{width:"100%",background:C.primary,border:"none",borderRadius:8,padding:"12px",color:"#060c14",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Empezar →</button>
+  </>}
+
+  {onboardingStep===2 && <>
+    <div style={{width:48,height:48,borderRadius:12,background:C.blueDim||C.surfaceEl,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><Upload size={24} color={C.blue}/></div>
+    <div style={{fontSize:20,fontWeight:700,color:C.text,marginBottom:8}}>Tu primer Expediente Digital</div>
+    <div style={{fontSize:13,color:C.textSec,marginBottom:16,lineHeight:1.6}}>VIGÍA gestiona tus instrumentos ambientales: licencias, permisos, concesiones y resoluciones.</div>
+    <div style={{background:C.surfaceEl,borderRadius:10,padding:"14px 16px",marginBottom:20}}>
+      <div style={{fontSize:11,fontWeight:700,color:C.primary,textTransform:"uppercase",marginBottom:8}}>INTAKE analiza con IA y extrae:</div>
+      {["Tipo de instrumento y número de radicado","Autoridad emisora y fechas","Obligaciones y plazos detectados"].map((t,i)=>(
+        <div key={i} style={{fontSize:12,color:C.text,marginBottom:4,paddingLeft:12,borderLeft:`2px solid ${C.primary}44`}}>{t}</div>
+      ))}
+    </div>
+    <div style={{display:"flex",gap:10}}>
+      <button onClick={()=>{setShowOnboarding(false);setView("intake");localStorage.setItem("vigia_onboarded","1");}} style={{flex:1,background:C.primary,border:"none",borderRadius:8,padding:"12px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Ir a INTAKE →</button>
+      <button onClick={()=>setOnboardingStep(3)} style={{flex:1,background:"transparent",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px",color:C.textSec,fontSize:13,cursor:"pointer",fontFamily:FONT}}>Lo hago después</button>
+    </div>
+  </>}
+
+  {onboardingStep===3 && <>
+    <div style={{width:48,height:48,borderRadius:12,background:C.primaryDim,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><MessageSquare size={24} color={C.primary}/></div>
+    <div style={{fontSize:20,fontWeight:700,color:C.text,marginBottom:8}}>Consulta el corpus normativo</div>
+    <div style={{fontSize:13,color:C.textSec,marginBottom:16,lineHeight:1.6}}>El motor de consulta de VIGÍA tiene acceso a 365 normas ambientales colombianas, 147 sentencias y tus propios documentos.</div>
+    <div style={{background:C.surfaceEl,borderRadius:10,padding:"14px 16px",marginBottom:20,fontStyle:"italic",fontSize:13,color:C.text,lineHeight:1.5,borderLeft:`3px solid ${C.primary}`}}>
+      "¿Cuáles son las obligaciones de monitoreo de una licencia ambiental de energía solar?"
+    </div>
+    <div style={{display:"flex",gap:10}}>
+      <button onClick={()=>{setShowOnboarding(false);setView("consultar");setBotInput("¿Cuáles son mis obligaciones de monitoreo ambiental?");localStorage.setItem("vigia_onboarded","1");}} style={{flex:1,background:C.primary,border:"none",borderRadius:8,padding:"12px",color:"#060c14",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Ir a Consultar →</button>
+      <button onClick={()=>{setShowOnboarding(false);localStorage.setItem("vigia_onboarded","1");}} style={{flex:1,background:"transparent",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px",color:C.textSec,fontSize:13,cursor:"pointer",fontFamily:FONT}}>Lo hago después</button>
+    </div>
+  </>}
+</div>
+</div>
+)}
 {isMobile && sidebarOpen && <div onClick={()=>setSidebarOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:199}}/>}
 <div style={{width:224,flexShrink:0,background:C.surface,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",...(isMobile?{position:"fixed",left:0,top:0,bottom:0,zIndex:200,transform:sidebarOpen?"translateX(0)":"translateX(-100%)",transition:"transform 0.25s ease",boxShadow:sidebarOpen?"4px 0 24px rgba(0,0,0,0.5)":"none"}:{})}}>
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.36</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.37</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
