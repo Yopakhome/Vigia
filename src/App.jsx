@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.11.0";
+const EXPORT_VIGIA_VERSION = "v3.12.0";
 
 function exportTimestamp() {
   const d = new Date();
@@ -585,6 +585,9 @@ const [analysisResult, setAnalysisResult] = React.useState(null);
 const [dragOver, setDragOver] = React.useState(false);
 const [filterNature, setFilterNature] = React.useState("todos");
 const [confirmAnswers, setConfirmAnswers] = React.useState({});
+const [docRole, setDocRole] = React.useState("otro");
+const [docDate, setDocDate] = React.useState("");
+const [linkedOblId, setLinkedOblId] = React.useState("");
 const [analysisStep, setAnalysisStep] = React.useState(0);
 const [pendingChanges, setPendingChanges] = React.useState([]);
 const fileRef = React.useRef();
@@ -674,7 +677,11 @@ const saveToSupabase = async (analysisResult, file) => {
     format_type: file.type || null,
     processed_method: analysisResult.extraction_method || (analysisResult.ocr_used ? "ocr_vision" : "direct_text"),
     raw_text_length: (analysisResult.raw_text || "").length,
-    doc_type_detected: analysisResult.doc_nature || null
+    doc_type_detected: analysisResult.doc_nature || null,
+    document_role: docRole || "otro",
+    document_date: docDate || null,
+    linked_obligation_id: linkedOblId || null,
+    role_confidence: null
   };
   let savedDoc = null;
   try {
@@ -1064,9 +1071,44 @@ return (
         </div>
       )}
 
+      {/* Clasificación estructurada del documento */}
+      <div style={{background:I.surfaceEl,border:`1px solid ${I.border}`,borderRadius:10,padding:14,marginBottom:12}}>
+        <div style={{fontSize:11,fontWeight:700,color:I.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Clasificación del documento</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div>
+            <div style={{fontSize:10,color:I.textMuted,marginBottom:4}}>Rol del documento</div>
+            <select value={docRole} onChange={e=>setDocRole(e.target.value)} style={{width:"100%",background:I.surface,border:`1px solid ${I.border}`,borderRadius:6,padding:"6px 10px",color:I.text,fontSize:11,outline:"none"}}>
+              <option value="instrumento_original">Instrumento original</option>
+              <option value="acto_modificatorio">Acto modificatorio</option>
+              <option value="evidencia_cumplimiento">Evidencia de cumplimiento</option>
+              <option value="comunicacion_autoridad_entrante">Comunicación autoridad (entrante)</option>
+              <option value="comunicacion_autoridad_saliente">Comunicación a autoridad (saliente)</option>
+              <option value="informe_tecnico">Informe técnico</option>
+              <option value="estudio_ambiental">Estudio ambiental (EIA/PMA)</option>
+              <option value="acta_visita">Acta de visita</option>
+              <option value="foto_campo">Foto de campo</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:10,color:I.textMuted,marginBottom:4}}>Fecha del documento</div>
+            <input type="date" value={docDate} onChange={e=>setDocDate(e.target.value)} style={{width:"100%",background:I.surface,border:`1px solid ${I.border}`,borderRadius:6,padding:"5px 10px",color:I.text,fontSize:11,outline:"none"}}/>
+          </div>
+        </div>
+        {docRole==="evidencia_cumplimiento"&&obligations.length>0&&(
+          <div style={{marginTop:10}}>
+            <div style={{fontSize:10,color:I.textMuted,marginBottom:4}}>¿Evidencia de qué obligación? (opcional)</div>
+            <select value={linkedOblId} onChange={e=>setLinkedOblId(e.target.value)} style={{width:"100%",background:I.surface,border:`1px solid ${I.border}`,borderRadius:6,padding:"6px 10px",color:I.text,fontSize:11,outline:"none"}}>
+              <option value="">No vinculada a obligación específica</option>
+              {obligations.map(ob=><option key={ob.id} value={ob.id}>{(ob.name||ob.obligation_num||"").slice(0,80)}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+
       <div style={{display:"flex",gap:10}}>
         <button onClick={processAndLink} style={{flex:1,background:analysisResult.is_norma?I.purple:I.primary,border:"none",borderRadius:8,padding:"11px",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          <CheckCircle size={14}/> {analysisResult.is_norma?"Agregar a normativa y generar alertas":analysisResult.doc_nature==="acto_administrativo"?"Crear EDI y vincular obligaciones":"Registrar en lista local (sin persistir)"}
+          <CheckCircle size={14}/> {analysisResult.is_norma?"Agregar a normativa y generar alertas":analysisResult.doc_nature==="acto_administrativo"?"Crear EDI y vincular obligaciones":"Confirmar y guardar"}
         </button>
         <button onClick={()=>{setUploadState("idle");setAnalysisResult(null);}} style={{background:I.surfaceEl,border:`1px solid ${I.border}`,borderRadius:8,padding:"11px 18px",color:I.textSec,fontSize:13,cursor:"pointer"}}>Cancelar</button>
       </div>
@@ -3203,6 +3245,9 @@ const [oblHistory, setOblHistory] = useState([]);
 const [oblNewComment, setOblNewComment] = useState("");
 const [oblSaving, setOblSaving] = useState(false);
 const [orgUsers, setOrgUsers] = useState([]);
+const [ediTab, setEdiTab] = useState("general");
+const [dossier, setDossier] = useState(null);
+const [dossierLoading, setDossierLoading] = useState(false);
 const [notifications, setNotifications] = useState([]);
 const [unreadNotif, setUnreadNotif] = useState(0);
 const [notifPanelOpen, setNotifPanelOpen] = useState(false);
@@ -3485,6 +3530,15 @@ const loadJurisArticles=async(jurId)=>{
   } catch {}
 };
 useEffect(()=>{if(jurisSelected) loadJurisArticles(jurisSelected);},[jurisSelected]);
+
+const loadDossier=async(instId)=>{
+  if(!instId||!session?.access_token) return;
+  setDossierLoading(true);
+  try{const d=await sb("edi_dossier",`select=*&instrument_id=eq.${instId}`,session.access_token);setDossier(Array.isArray(d)&&d[0]?d[0]:null);}
+  catch{setDossier(null);}
+  setDossierLoading(false);
+};
+useEffect(()=>{if(ediTab==="expediente"&&selectedEDI?.id)loadDossier(selectedEDI.id);},[ediTab,selectedEDI?.id]);
 
 // Notification polling (30s)
 useEffect(()=>{
@@ -3952,10 +4006,38 @@ return <div style={{padding:28}}>
 <div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>{inst.project_name || inst.projects?.name || `${(inst.instrument_type||"Instrumento").replace(/_/g," ")} ${inst.number||""}`}</h2><StatusDot status={h} size={10}/></div><div style={{fontSize:12,color:C.textSec,marginBottom:10}}>Instrumento N. {inst.number} - {inst.authority_name||"Autoridad no definida"}</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Badge label={inst.domain||"ambiental"} color={C.primary} bg={C.primaryDim}/><Badge label={inst.instrument_type?.replace(/_/g," ")||""} color={C.textSec} bg={C.surfaceEl}/><Badge label={`${inst.completeness_pct}% completitud`} color={inst.completeness_pct<80?C.yellow:C.green} bg={inst.completeness_pct<80?C.yellowDim:C.greenDim}/></div></div>
 <button onClick={()=>setView("consultar")} style={{background:C.primaryDim,border:`1px solid ${C.primary}44`,color:C.primary,borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><MessageSquare size={13}/>Consultar</button>
 </div>
+<div style={{display:"flex",gap:4,marginTop:16,borderBottom:`1px solid ${C.border}`}}>
+  {[{k:"general",l:"Vista general"},{k:"expediente",l:"Expediente completo"}].map(t=><button key={t.k} onClick={()=>{setEdiTab(t.k);setDossier(null);}} style={{background:"transparent",border:"none",borderBottom:ediTab===t.k?`2px solid ${C.primary}`:"2px solid transparent",color:ediTab===t.k?C.primary:C.textSec,padding:"8px 16px",fontSize:12,fontWeight:ediTab===t.k?700:500,cursor:"pointer",fontFamily:FONT}}>{t.l}</button>)}
+</div>
+{ediTab==="expediente"?(()=>{
+  const ROLE_LABELS={instrumento_original:"Instrumento original",acto_modificatorio:"Actos modificatorios",evidencia_cumplimiento:"Evidencias de cumplimiento",comunicacion_autoridad_entrante:"Comunicaciones de autoridad",comunicacion_autoridad_saliente:"Comunicaciones a autoridad",informe_tecnico:"Informes técnicos",estudio_ambiental:"Estudios ambientales",acta_visita:"Actas de visita",foto_campo:"Fotos de campo",otro:"Otros documentos"};
+  const ROLE_ORDER=["instrumento_original","acto_modificatorio","comunicacion_autoridad_entrante","comunicacion_autoridad_saliente","estudio_ambiental","informe_tecnico","evidencia_cumplimiento","acta_visita","foto_campo","otro"];
+  if(dossierLoading) return <div style={{padding:40,textAlign:"center",color:C.textMuted}}>Cargando expediente...</div>;
+  if(!dossier) return <div style={{padding:40,textAlign:"center",color:C.textMuted}}>Sin datos de expediente</div>;
+  const dbr=dossier.documents_by_role||{};
+  return <div style={{padding:"20px 0"}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
+      {[["Obligaciones",dossier.total_obligations||0,C.primary],["Cumplidas",dossier.completed_count||0,C.green],["Vencidas",dossier.overdue_count||0,C.red],["Documentos",dossier.total_documents||0,C.blue||C.primary],["Días a vencer",dossier.days_until_expiry!==null?dossier.days_until_expiry:"\u2014",dossier.days_until_expiry<90?C.yellow:C.green]].map(([l,v,c],i)=><div key={i} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:c}}>{v}</div><div style={{fontSize:9,color:C.textMuted,marginTop:2}}>{l}</div></div>)}
+    </div>
+    {ROLE_ORDER.filter(r=>dbr[r]&&dbr[r].length>0).map(role=><div key={role} style={{marginBottom:16}}>
+      <div style={{fontSize:11,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>{ROLE_LABELS[role]||role} ({dbr[role].length})</div>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,overflow:"hidden"}}>
+        {dbr[role].map((doc,idx)=><div key={doc.id} style={{padding:"10px 14px",borderBottom:idx<dbr[role].length-1?`1px solid ${C.border}`:"none",display:"flex",alignItems:"center",gap:12}}>
+          <FileText size={14} color={C.textMuted}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:12,color:C.text,fontWeight:500}}>{doc.filename}</div>
+            <div style={{fontSize:10,color:C.textMuted,marginTop:2}}>{doc.document_date&&<span>{doc.document_date}</span>}{doc.authority_reference&&<span style={{marginLeft:8}}>{doc.authority_reference}</span>}{doc.size_kb&&<span style={{marginLeft:8}}>{doc.size_kb} KB</span>}</div>
+          </div>
+        </div>)}
+      </div>
+    </div>)}
+    {Object.keys(dbr).length===0&&<div style={{color:C.textMuted,fontSize:12,textAlign:"center",padding:24}}>Sin documentos clasificados. Suba documentos vía INTAKE.</div>}
+    <div style={{marginTop:20,textAlign:"center"}}><button onClick={generateCompliancePDF} style={{background:C.primary,border:"none",color:"#060c14",padding:"10px 20px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:FONT}}><Download size={12} style={{display:"inline",marginRight:6,verticalAlign:"middle"}}/>Exportar expediente (PDF)</button></div>
+  </div>;
+})():(<div>
 <div style={{marginTop:16}}>
 <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:11,color:C.textSec}}>Cumplimiento general</span><span style={{fontSize:11,fontWeight:600,color:sc}}>{obs.length>0?Math.round((obs.filter(o=>derivedStatus(o)==="al_dia").length/obs.length)*100):0}%</span></div>
 <div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>derivedStatus(o)==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
-</div>
 </div>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
 <div style={{fontSize:13,fontWeight:600,color:C.text}}>Obligaciones del expediente ({obs.length})</div>
@@ -4071,6 +4153,7 @@ return <div key={ob.id}>
 </div>;
 })}
 </div>
+</div>)}
 </div>;
 };
 
@@ -4111,8 +4194,9 @@ return <div key={alert.id} style={{background:C.surface,border:`1px solid ${!ale
 </div>;
 })}
 </div>
-
-  </div>;
+</div>)}
+</div>;
+};
 
 const renderNormativa=()=>{
   // UI-4: tabs dinámicos por categoría real. Fallback: si no hay category, usar scope.
@@ -4789,7 +4873,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.11.0</div></div>
+<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.12.0</div></div>
 <div style={{position:"relative"}}><button onClick={()=>setNotifPanelOpen(p=>!p)} style={{background:"transparent",border:"none",cursor:"pointer",color:C.textSec,padding:4,position:"relative"}}><Bell size={16}/>{unreadNotif>0&&<span style={{position:"absolute",top:0,right:0,background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 4px",borderRadius:8,minWidth:14,textAlign:"center"}}>{unreadNotif>99?"99+":unreadNotif}</span>}</button>
 {notifPanelOpen&&<div style={{position:"absolute",top:"calc(100% + 8px)",right:0,width:320,maxHeight:400,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",zIndex:300,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:`1px solid ${C.border}`}}>

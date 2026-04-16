@@ -31,10 +31,16 @@ async function verifyUser(auth: string | null) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  const user = await verifyUser(req.headers.get("Authorization"));
-  if (!user) return json({ error: "No autorizado" }, 401);
-  const email = (user.email || "").toLowerCase();
-  if (!SUPERADMIN_EMAILS.includes(email)) return json({ error: "Requiere SuperAdmin" }, 403);
+  // Auth dual: x-cron-secret (pg_cron) OR superadmin JWT (manual)
+  const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
+  const cronHeader = req.headers.get("x-cron-secret");
+  let authorized = false;
+  if (CRON_SECRET && cronHeader === CRON_SECRET) { authorized = true; }
+  else {
+    const user = await verifyUser(req.headers.get("Authorization"));
+    if (user) { const email = (user.email || "").toLowerCase(); if (SUPERADMIN_EMAILS.includes(email)) authorized = true; }
+  }
+  if (!authorized) return json({ error: "No autorizado" }, 401);
 
   try {
     const thresholds = [
