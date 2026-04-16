@@ -110,7 +110,7 @@ Responde SOLO en JSON con exactamente estos campos (usa null si no encuentras el
 {
   "tipo_persona": "juridica|natural",
   "tipo_identificacion": "NIT|CC|CE|PASAPORTE",
-  "numero_identificacion": "número exacto incluyendo dígito verificador si aplica",
+  "numero_identificacion": "número exacto. Para NIT: incluir SIEMPRE el dígito verificador después del guión (ej: 890115406-0). El DV aparece en el campo 6 del formulario RUT, separado por un guión del NIT principal. Nunca omitirlo.",
   "razon_social": "nombre de la empresa o persona",
   "representante_legal": "nombre completo del representante",
   "direccion": "dirección completa",
@@ -130,7 +130,9 @@ Documentos típicos:
 - Certificado de Existencia y Representación Legal: razón social, rep. legal, domicilio
 - Cédula/Pasaporte: nombre, número, tipo de documento
 
-Extrae solo lo que está explícitamente en el documento. No inventes datos. No uses markdown ni backticks, solo el objeto JSON.`;
+Extrae solo lo que está explícitamente en el documento. No inventes datos. No uses markdown ni backticks, solo el objeto JSON.
+
+IMPORTANTE sobre la dirección: transcribe exactamente los caracteres tal como aparecen en el documento. Si hay duda entre dos dígitos similares (ej: 0 vs 6, 1 vs 7), prefiere el valor más legible en contexto.`;
 
       const mediaType = file_type || "application/pdf";
       const isImage = typeof mediaType === "string" && mediaType.startsWith("image/");
