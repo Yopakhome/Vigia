@@ -78,10 +78,34 @@ Deno.serve(async (req: Request) => {
     if (op === "create-user") {
       const { email: ueEmail, password, org_id, role } = payload || {};
       if (!ueEmail || !password) return jsonResponse({ error: "Faltan email y password" }, 400);
+      const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRx.test(ueEmail)) return jsonResponse({ error: "Email inv\u00e1lido" }, 400);
       const created = await adminReq("/auth/v1/admin/users", "POST", { email: ueEmail, password, email_confirm: true }) as any;
       if (!created?.id) return jsonResponse({ error: "No se pudo crear usuario", detail: created }, 500);
       if (org_id && role && role !== "superadmin") {
         await adminReq("/rest/v1/user_org_map", "POST", { user_id: created.id, org_id, role }, "resolution=merge-duplicates,return=minimal");
+      }
+      // Welcome email via Resend (non-blocking)
+      if (ANTHROPIC_API_KEY) { // reuse presence check — RESEND_API_KEY is separate
+        const RESEND_KEY = Deno.env.get("RESEND_API_KEY") || "";
+        if (RESEND_KEY) {
+          try {
+            const linkRes = await adminReq("/auth/v1/admin/generate_link", "POST", { type: "recovery", email: ueEmail }) as any;
+            const setupLink = linkRes?.action_link || linkRes?.properties?.action_link || "";
+            if (setupLink) {
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  from: "VIG\u00cdA \u00b7 ENARA Consulting <onboarding@resend.dev>",
+                  to: ueEmail,
+                  subject: "Tu acceso a VIG\u00cdA est\u00e1 listo \u2014 configura tu contrase\u00f1a",
+                  html: `<!DOCTYPE html><html><body style="margin:0;padding:32px;background:#060c14;font-family:'Helvetica Neue',Arial,sans-serif"><div style="max-width:520px;margin:0 auto"><div style="background:linear-gradient(135deg,#00c9a7,#0a9e82);border-radius:10px 10px 0 0;padding:24px 28px"><div style="font-size:22px;font-weight:800;color:#060c14">VIG\u00cdA</div><div style="font-size:11px;color:#065f46;text-transform:uppercase;letter-spacing:0.1em">Inteligencia Regulatoria \u00b7 ENARA Consulting</div></div><div style="background:#0f172a;border:1px solid #1e293b;border-top:none;border-radius:0 0 10px 10px;padding:28px"><div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">Tu acceso a VIG\u00cdA est\u00e1 listo</div><div style="font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:24px">ENARA Consulting habilit\u00f3 tu cuenta en VIG\u00cdA.<br><br>Configura tu contrase\u00f1a para comenzar:</div><div style="text-align:center;margin-bottom:24px"><a href="${setupLink}" style="display:inline-block;background:#00c9a7;color:#060c14;font-weight:700;font-size:14px;padding:14px 32px;border-radius:8px;text-decoration:none">Configurar mi contrase\u00f1a \u2192</a></div><div style="font-size:11px;color:#475569;line-height:1.6">Este link expira en 24 horas.<br><br><strong style="color:#64748b">VIG\u00cdA by ENARA Consulting</strong></div></div></div></body></html>`
+                })
+              });
+            }
+          } catch { /* non-blocking */ }
+        }
       }
       return jsonResponse({ user: created });
     }

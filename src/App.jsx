@@ -73,6 +73,17 @@ const sbLogout = () => {
   localStorage.removeItem("vigia_session");
 };
 
+const sbForgotPassword = async (email) => {
+  try {
+    const r = await fetch(`${SB_URL}/auth/v1/recover`, {
+      method: "POST",
+      headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    return r.ok;
+  } catch { return false; }
+};
+
 const sbWithAuth = async (table, params, token) => {
   const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
     headers: {
@@ -253,7 +264,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.38";
+const EXPORT_VIGIA_VERSION = "v3.9.39";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1140,24 +1151,24 @@ return (
 
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
-  const [email, setEmail] = React.useState("admin@enara.co");
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [showForgot, setShowForgot] = React.useState(false);
+  const [forgotEmail, setForgotEmail] = React.useState("");
+  const [forgotSent, setForgotSent] = React.useState(false);
+  const [forgotLoading, setForgotLoading] = React.useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) { setError("Completa todos los campos"); return; }
     setLoading(true); setError("");
     const result = await sbLogin(email, password);
-    if (result.ok) {
-      onLogin(result.session);
-    } else {
-      setError(result.error);
-    }
+    if (result.ok) { onLogin(result.session); } else { setError(result.error); }
     setLoading(false);
   };
 
-  const L = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",red:"#ff4d6d" };
+  const L = { bg:"#060c14",surface:"#0c1523",surfaceEl:"#101d30",border:"#162236",primary:"#00c9a7",primaryDim:"rgba(0,201,167,0.10)",text:"#d8e6f0",textSec:"#5e7a95",green:"#22c55e",greenDim:"rgba(34,197,94,0.10)",red:"#ff4d6d" };
 
   return (
     <div style={{height:"100vh",background:L.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Poppins','Segoe UI',sans-serif"}}>
@@ -1173,42 +1184,43 @@ function LoginScreen({ onLogin }) {
           </div>
         </div>
 
-        <div style={{marginBottom:16}}>
-          <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Correo electrónico</div>
-          <input
-            type="email"
-            value={email}
-            onChange={e=>setEmail(e.target.value)}
-            placeholder="correo@empresa.co"
-            style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none"}}
-          />
-        </div>
+        {!showForgot && !forgotSent && <>
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Correo electrónico</div>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@empresa.co" style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
+          </div>
+          <div style={{marginBottom:24}}>
+            <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Contraseña</div>
+            <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="••••••••" style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
+          </div>
+          {error&&<div style={{background:"rgba(255,77,109,0.10)",border:"1px solid rgba(255,77,109,0.3)",borderRadius:8,padding:"10px 14px",fontSize:12,color:L.red,marginBottom:16}}>{error}</div>}
+          <button onClick={handleLogin} disabled={loading} style={{width:"100%",background:loading?L.surfaceEl:L.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:"inherit"}}>{loading?"Verificando...":"Iniciar sesión"}</button>
+          <div style={{textAlign:"center",marginTop:12}}>
+            <button onClick={()=>{setShowForgot(true);setForgotEmail(email);}} style={{background:"transparent",border:"none",color:L.textSec,fontSize:11,cursor:"pointer",textDecoration:"underline"}}>¿Olvidaste tu contraseña?</button>
+          </div>
+          <div style={{textAlign:"center",marginTop:16}}>
+            <a href="/demo" style={{fontSize:11,color:L.primary,textDecoration:"none",fontWeight:600}}>Probar demo sin login →</a>
+          </div>
+        </>}
 
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:11,color:L.textSec,marginBottom:6,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Contraseña</div>
-          <input
-            type="password"
-            value={password}
-            onChange={e=>setPassword(e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&handleLogin()}
-            placeholder="••••••••"
-            style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,fontFamily:"inherit",outline:"none"}}
-          />
-        </div>
+        {showForgot && !forgotSent && (
+          <div>
+            <div style={{fontSize:14,fontWeight:600,color:L.text,marginBottom:8}}>Recuperar contraseña</div>
+            <div style={{fontSize:12,color:L.textSec,marginBottom:14,lineHeight:1.5}}>Te enviaremos instrucciones para restablecer tu contraseña.</div>
+            <input type="email" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="tu@empresa.com" style={{width:"100%",background:L.surfaceEl,border:`1px solid ${L.border}`,borderRadius:8,padding:"10px 14px",color:L.text,fontSize:13,outline:"none",boxSizing:"border-box",marginBottom:12,fontFamily:"inherit"}}/>
+            <button onClick={async()=>{if(!forgotEmail.trim())return;setForgotLoading(true);await sbForgotPassword(forgotEmail.trim());setForgotSent(true);setForgotLoading(false);}} disabled={forgotLoading||!forgotEmail.trim()} style={{width:"100%",background:forgotLoading?L.surfaceEl:L.primary,border:"none",borderRadius:8,padding:"10px",color:forgotLoading?"#5e7a95":"#060c14",fontSize:13,fontWeight:700,cursor:forgotLoading?"not-allowed":"pointer",fontFamily:"inherit"}}>{forgotLoading?"Enviando...":"Enviar instrucciones"}</button>
+            <button onClick={()=>{setShowForgot(false);setForgotEmail("");}} style={{width:"100%",background:"transparent",border:"none",marginTop:8,color:L.textSec,fontSize:11,cursor:"pointer"}}>← Volver al login</button>
+          </div>
+        )}
 
-        {error&&<div style={{background:"rgba(255,77,109,0.10)",border:"1px solid rgba(255,77,109,0.3)",borderRadius:8,padding:"10px 14px",fontSize:12,color:L.red,marginBottom:16}}>{error}</div>}
-
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          style={{width:"100%",background:loading?L.surfaceEl:L.primary,border:"none",borderRadius:8,padding:"12px",color:loading?"#5e7a95":"#060c14",fontSize:14,fontWeight:700,cursor:loading?"not-allowed":"pointer",fontFamily:"inherit"}}
-        >
-          {loading?"Verificando...":"Iniciar sesión"}
-        </button>
-
-        <div style={{marginTop:20,padding:"12px 14px",background:L.primaryDim,borderRadius:8,fontSize:11,color:L.primary}}>
-          SuperAdmin: admin@enara.co / Vigia2026!
-        </div>
+        {forgotSent && (
+          <div style={{textAlign:"center",padding:"8px 0"}}>
+            <div style={{width:40,height:40,borderRadius:10,background:L.greenDim,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:12}}><CheckCircle size={20} color={L.green}/></div>
+            <div style={{fontSize:14,color:L.green,fontWeight:600,marginBottom:6}}>Email enviado</div>
+            <div style={{fontSize:12,color:L.textSec,lineHeight:1.5,marginBottom:16}}>Si ese email existe en VIGÍA, recibirás las instrucciones. Revisa también la carpeta de spam.</div>
+            <button onClick={()=>{setShowForgot(false);setForgotSent(false);setForgotEmail("");}} style={{background:"transparent",border:"none",color:L.primary,fontSize:12,cursor:"pointer",fontWeight:600}}>← Volver al login</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1398,6 +1410,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
 
   const createUser = async function() {
     if(!newUser.email||!newUser.password||!newUser.org_id){ setMsg({t:"error",m:"Completa todos los campos"}); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())){ setMsg({t:"error",m:"Email inválido (ej: nombre@empresa.com.co)"}); return; }
     setLoading(true); setMsg(null);
     try {
       await saCall("create-user", newUser);
@@ -2479,6 +2492,7 @@ function MyTeamModule({orgId, orgName, limiteUsuarios, sessionToken}) {
 
   const createUser = async () => {
     if(!newUser.email || !newUser.password) { setMsg({t:"error",m:"Email y password requeridos"}); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())) { setMsg({t:"error",m:"Email inválido (ej: nombre@empresa.com.co)"}); return; }
     if(limiteUsuarios && users.length >= limiteUsuarios) { setMsg({t:"error",m:`Límite de ${limiteUsuarios} usuarios alcanzado para este plan.`}); return; }
     setLoading(true); setMsg(null);
     try {
@@ -3832,7 +3846,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.38</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.39</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
