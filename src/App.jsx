@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.48";
+const EXPORT_VIGIA_VERSION = "v3.10.0";
 
 function exportTimestamp() {
   const d = new Date();
@@ -3095,6 +3095,59 @@ const [session, setSession] = useState(null);
 
   const handleLogout = () => { logAudit("logout",null,null,{}); sbLogout(); setSession(null); };
 
+  const loadOblDetail = async (oblId) => {
+    if(!oblId||!session?.access_token) return;
+    setSelectedObligation(oblId);
+    try {
+      const t=session.access_token;
+      const [com,hist]=await Promise.all([
+        sb("obligation_comments",`select=*&obligation_id=eq.${oblId}&order=created_at.asc`,t),
+        sb("obligation_history",`select=*&obligation_id=eq.${oblId}&order=created_at.desc&limit=30`,t)
+      ]);
+      setOblComments(Array.isArray(com)?com:[]);
+      setOblHistory(Array.isArray(hist)?hist:[]);
+      if(orgUsers.length===0&&clientOrg?.id){
+        try{const u=await callEdge("orgadmin-users",{op:"list",orgId:clientOrg.id},t);setOrgUsers(Array.isArray(u?.users)?u.users:[]);}catch{}
+      }
+    } catch{}
+  };
+
+  const updateOblWorkStatus = async (oblId, newStatus) => {
+    if(!session?.access_token) return;
+    setOblSaving(true);
+    try {
+      const patch={work_status:newStatus};
+      if(newStatus==="en_progreso"){patch.started_at=new Date().toISOString();}
+      if(newStatus==="cumplida"){patch.completed_at=new Date().toISOString();patch.completed_by=session.user.id;}
+      await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${oblId}`,{method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(patch)});
+      setObligations(p=>p.map(o=>o.id===oblId?{...o,...patch}:o));
+      const hist=await sb("obligation_history",`select=*&obligation_id=eq.${oblId}&order=created_at.desc&limit=30`,session.access_token);
+      setOblHistory(Array.isArray(hist)?hist:[]);
+    } catch(e){console.log("updateOblWorkStatus error",e);}
+    setOblSaving(false);
+  };
+
+  const assignObligation = async (oblId, userId) => {
+    if(!session?.access_token) return;
+    try {
+      await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${oblId}`,{method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({assigned_to:userId||null,assigned_at:userId?new Date().toISOString():null,assigned_by:userId?session.user.id:null})});
+      setObligations(p=>p.map(o=>o.id===oblId?{...o,assigned_to:userId||null}:o));
+      const hist=await sb("obligation_history",`select=*&obligation_id=eq.${oblId}&order=created_at.desc&limit=30`,session.access_token);
+      setOblHistory(Array.isArray(hist)?hist:[]);
+    } catch{}
+  };
+
+  const addOblComment = async (oblId) => {
+    if(!oblNewComment.trim()||!session?.access_token) return;
+    const ob=obligations.find(o=>o.id===oblId);
+    try {
+      await fetch(`${SB_URL}/rest/v1/obligation_comments`,{method:"POST",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({obligation_id:oblId,org_id:ob?.org_id||clientOrg?.id,author_id:session.user.id,content:oblNewComment.trim()})});
+      setOblNewComment("");
+      const com=await sb("obligation_comments",`select=*&obligation_id=eq.${oblId}&order=created_at.asc`,session.access_token);
+      setOblComments(Array.isArray(com)?com:[]);
+    } catch(e){console.log("addOblComment error",e);}
+  };
+
   const logAudit = async (action, entityType, entityId, details={}) => {
     if(isDemoMode || !session?.access_token) return;
     try {
@@ -3144,6 +3197,12 @@ const [jurisArticles, setJurisArticles] = useState({});
 const [guias, setGuias] = useState([]);
 const [guiasSearch, setGuiasSearch] = useState("");
 const [guiasSelected, setGuiasSelected] = useState(null);
+const [selectedObligation, setSelectedObligation] = useState(null);
+const [oblComments, setOblComments] = useState([]);
+const [oblHistory, setOblHistory] = useState([]);
+const [oblNewComment, setOblNewComment] = useState("");
+const [oblSaving, setOblSaving] = useState(false);
+const [orgUsers, setOrgUsers] = useState([]);
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
 const [normScopeFilter, setNormScopeFilter] = useState("todos");
@@ -3851,14 +3910,23 @@ return <div style={{padding:28}}>
 <div style={{background:C.surfaceEl,borderRadius:4,height:8,overflow:"hidden"}}><div style={{width:`${obs.length>0?(obs.filter(o=>derivedStatus(o)==="al_dia").length/obs.length)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${sc},${sc}88)`,borderRadius:4}}/></div>
 </div>
 </div>
-<div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Obligaciones del expediente</div>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+<div style={{fontSize:13,fontWeight:600,color:C.text}}>Obligaciones del expediente ({obs.length})</div>
+<div style={{display:"flex",gap:6,fontSize:10,color:C.textMuted}}>
+  {[["pendiente","Pendientes",C.textMuted],["en_progreso","En progreso",C.blue],["cumplida","Cumplidas",C.green]].map(([ws,l,c])=>{const cnt=obs.filter(o=>o.work_status===ws).length;return cnt>0?<span key={ws} style={{color:c}}>{cnt} {l.toLowerCase()}</span>:null;})}
+</div>
+</div>
 <div style={{display:"flex",flexDirection:"column",gap:8}}>
 {obs.map(ob=>{
 const ds=derivedStatus(ob);
 const color=ds==="vencido"?C.red:ds==="proximo"?C.yellow:C.green;
 const bg=ds==="vencido"?C.redDim:ds==="proximo"?C.yellowDim:C.greenDim;
 const days=ob.due_date?Math.ceil((new Date(ob.due_date)-new Date())/86400000):null;
-return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ds==="vencido"?C.red+"55":C.border}`,borderRadius:10,padding:"14px 18px"}}>
+const ws=ob.work_status||"pendiente";
+const wsColor=ws==="cumplida"?C.green:ws==="en_progreso"?C.blue:ws==="en_revision"?C.yellow:C.textMuted;
+const isDetail=selectedObligation===ob.id;
+return <div key={ob.id}>
+<div onClick={()=>isDetail?setSelectedObligation(null):loadOblDetail(ob.id)} style={{background:C.surface,border:`1px solid ${isDetail?C.primary+"66":ds==="vencido"?C.red+"55":C.border}`,borderRadius:isDetail?"10px 10px 0 0":"10px",padding:"14px 18px",cursor:"pointer",transition:"border-color 0.15s"}}>
 <div style={{display:"grid",gridTemplateColumns:"auto 1fr auto",alignItems:"start",gap:14}}>
 <div style={{width:38,height:38,borderRadius:8,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
 {ds==="vencido"?<AlertTriangle size={16} color={color}/>:ds==="proximo"?<Clock size={16} color={color}/>:<CheckCircle size={16} color={color}/>}
@@ -3867,21 +3935,13 @@ return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ds==="v
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
 <span style={{fontSize:13,fontWeight:600,color:C.text}}>{ob.name}</span>
 <span style={{fontSize:10,color:C.textMuted,fontFamily:"monospace"}}>{ob.obligation_num||ob.num}</span>
+<span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,background:`${wsColor}22`,color:wsColor,textTransform:"uppercase"}}>{ws.replace(/_/g," ")}</span>
 </div>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:ob.fuente?8:0}}>
-<Badge label={ob.obligation_type?.replace(/_/g," ")||ob.frequency||""} color={C.textSec} bg={C.surfaceEl}/>
-<Badge label={ob.frequency||""} color={C.blue} bg={C.blueDim}/>
-{ob.confidence_level&&<Badge label={`${ob.confidence_level} confianza`} color={ob.confidence_level==="alta"?C.green:ob.confidence_level==="media"?C.yellow:C.red} bg={ob.confidence_level==="alta"?C.greenDim:ob.confidence_level==="media"?C.yellowDim:C.redDim}/>}
+<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+<Badge label={ob.frequency||""} color={C.blue} bg={C.blueDim||C.surfaceEl}/>
+{ob.assigned_to&&<span style={{fontSize:10,color:C.primary}}>asignada</span>}
+{ob.norma_fundamento&&<Badge label={ob.norma_fundamento.slice(0,30)} color={C.textSec} bg={C.surfaceEl}/>}
 </div>
-{ob.fuente&&(
-<div>
-<div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} >
-<FuenteBadge fuente={ob.fuente}/>
-<span style={{fontSize:10,color:C.textMuted}}>Trazabilidad de fuente</span>
-</div>
-<FuenteDetail fuente={ob.fuente}/>
-</div>
-)}
 </div>
 <div style={{textAlign:"right",flexShrink:0}}>
 <div style={{fontSize:20,fontWeight:700,color,lineHeight:1}}>{days!==null?Math.abs(days):"-"}</div>
@@ -3889,6 +3949,78 @@ return <div key={ob.id} style={{background:C.surface,border:`1px solid ${ds==="v
 <div style={{fontSize:11,color:C.textSec,marginTop:2}}>{ob.due_date}</div>
 </div>
 </div>
+</div>
+
+{/* Detail panel */}
+{isDetail&&<div style={{background:C.surface,border:`1px solid ${C.primary}66`,borderTop:"none",borderRadius:"0 0 10px 10px",padding:"16px 18px"}}>
+  {/* Actions row */}
+  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+    <div>
+      <div style={{fontSize:10,color:C.textSec,marginBottom:4,fontWeight:600}}>Estado de trabajo</div>
+      <select value={ws} onChange={e=>updateOblWorkStatus(ob.id,e.target.value)} disabled={oblSaving} style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 10px",color:C.text,fontSize:11,outline:"none"}}>
+        <option value="pendiente">Pendiente</option>
+        <option value="en_progreso">En progreso</option>
+        <option value="en_revision">En revisión</option>
+        <option value="cumplida">Cumplida</option>
+        <option value="no_aplica">No aplica</option>
+      </select>
+    </div>
+    <div>
+      <div style={{fontSize:10,color:C.textSec,marginBottom:4,fontWeight:600}}>Responsable</div>
+      <select value={ob.assigned_to||""} onChange={e=>assignObligation(ob.id,e.target.value||null)} style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 10px",color:C.text,fontSize:11,outline:"none",maxWidth:200}}>
+        <option value="">Sin asignar</option>
+        {orgUsers.map(u=><option key={u.user_id} value={u.user_id}>{u.email||u.user_id.slice(0,8)}</option>)}
+      </select>
+    </div>
+    <div>
+      <div style={{fontSize:10,color:C.textSec,marginBottom:4,fontWeight:600}}>Prioridad interna</div>
+      <select value={ob.internal_priority||"media"} onChange={async e=>{try{await fetch(`${SB_URL}/rest/v1/obligations?id=eq.${ob.id}`,{method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({internal_priority:e.target.value})});setObligations(p=>p.map(o=>o.id===ob.id?{...o,internal_priority:e.target.value}:o));}catch{}}} style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 10px",color:C.text,fontSize:11,outline:"none"}}>
+        <option value="baja">Baja</option>
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+        <option value="critica">Crítica</option>
+      </select>
+    </div>
+  </div>
+
+  {/* Comments + History */}
+  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+    {/* Comments */}
+    <div>
+      <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Comentarios ({oblComments.length})</div>
+      <div style={{maxHeight:200,overflowY:"auto",marginBottom:8,display:"flex",flexDirection:"column",gap:4}}>
+        {oblComments.map(c=><div key={c.id} style={{background:C.surfaceEl,borderRadius:6,padding:"6px 10px"}}>
+          <div style={{fontSize:10,color:C.textMuted,marginBottom:2}}>{c.author_id===session?.user?.id?"Tú":(c.author_id||"").slice(0,8)} · {new Date(c.created_at).toLocaleString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
+          <div style={{fontSize:11,color:C.text,lineHeight:1.5,whiteSpace:"pre-wrap"}}>{c.content}</div>
+        </div>)}
+        {oblComments.length===0&&<div style={{fontSize:11,color:C.textMuted,fontStyle:"italic"}}>Sin comentarios aún</div>}
+      </div>
+      <div style={{display:"flex",gap:6}}>
+        <input value={oblNewComment} onChange={e=>setOblNewComment(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();addOblComment(ob.id);}}} placeholder="Escribe un comentario..." style={{flex:1,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 10px",color:C.text,fontSize:11,outline:"none",fontFamily:FONT}}/>
+        <button onClick={()=>addOblComment(ob.id)} disabled={!oblNewComment.trim()} style={{background:oblNewComment.trim()?C.primary:C.surfaceEl,border:"none",borderRadius:6,padding:"6px 12px",color:oblNewComment.trim()?"#060c14":C.textMuted,fontSize:10,fontWeight:700,cursor:oblNewComment.trim()?"pointer":"not-allowed"}}>Enviar</button>
+      </div>
+    </div>
+    {/* History */}
+    <div>
+      <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Historial ({oblHistory.length})</div>
+      <div style={{maxHeight:240,overflowY:"auto",display:"flex",flexDirection:"column",gap:4}}>
+        {oblHistory.map(h=>{
+          const actionLabel=h.action_type==="status_changed"?"Cambió estado":h.action_type==="assigned"?"Asignó":h.action_type==="priority_changed"?"Cambió prioridad":h.action_type==="completed"?"Completó":h.action_type==="created"?"Creó":"Acción";
+          const actionColor=h.action_type==="completed"?C.green:h.action_type==="status_changed"?C.blue:h.action_type==="assigned"?C.primary:C.textMuted;
+          return <div key={h.id} style={{display:"flex",gap:8,alignItems:"flex-start",fontSize:10}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:actionColor,marginTop:4,flexShrink:0}}/>
+            <div>
+              <span style={{color:actionColor,fontWeight:600}}>{actionLabel}</span>
+              {h.new_value&&<span style={{color:C.textSec}}> → {JSON.stringify(h.new_value).slice(0,60)}</span>}
+              <div style={{color:C.textMuted}}>{new Date(h.created_at).toLocaleString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
+            </div>
+          </div>;
+        })}
+        {oblHistory.length===0&&<div style={{fontSize:11,color:C.textMuted,fontStyle:"italic"}}>Sin historial aún</div>}
+      </div>
+    </div>
+  </div>
+</div>}
 </div>;
 })}
 </div>
@@ -4565,7 +4697,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.48</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.10.0</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
