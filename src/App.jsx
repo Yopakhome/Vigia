@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.43";
+const EXPORT_VIGIA_VERSION = "v3.9.44";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2823,6 +2823,34 @@ useEffect(() => {
   return () => document.removeEventListener("click", close);
 }, [exportMenu]);
 
+const generateCompliancePDF = () => {
+  const now=new Date();
+  const fecha=now.toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"});
+  const hora=now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+  const total=obligations.length;
+  const vencidas=obligations.filter(o=>derivedStatus(o)==="vencido").length;
+  const proximas=obligations.filter(o=>derivedStatus(o)==="proximo").length;
+  const alDia=obligations.filter(o=>derivedStatus(o)==="al_dia").length;
+  const cumpl=total>0?Math.round((alDia/total)*100):100;
+  const cColor=cumpl>=80?"#22c55e":cumpl>=50?"#f97316":"#ef4444";
+  const edisRows=instruments.map(i=>`<tr><td>${i.title||i.number||"\u2014"}</td><td>${(i.instrument_type||"").replace(/_/g," ")}</td><td>${i.authority_name||"\u2014"}</td><td>${i.edi_status||"\u2014"}</td><td>${i.expiry_date?new Date(i.expiry_date).toLocaleDateString("es-CO"):"\u2014"}</td></tr>`).join("");
+  const obsRows=[...obligations].sort((a,b)=>new Date(a.due_date||0)-new Date(b.due_date||0)).map(ob=>{
+    const ds=derivedStatus(ob);const days=ob.due_date?Math.ceil((new Date(ob.due_date)-now)/86400000):null;
+    const sl=ds==="vencido"?`VENCIDA hace ${Math.abs(days)}d`:ds==="proximo"?`${days}d restantes`:ds==="al_dia"?"Al d\u00eda":ds||"\u2014";
+    const sc=ds==="vencido"?"#ef4444":ds==="proximo"?"#f97316":ds==="al_dia"?"#22c55e":"#94a3b8";
+    const edi=instruments.find(i=>i.id===ob.instrument_id);
+    return `<tr><td>${ob.obligation_num||"\u2014"}</td><td>${ob.name||"\u2014"}</td><td>${edi?.title||edi?.number||"\u2014"}</td><td>${ob.due_date?new Date(ob.due_date).toLocaleDateString("es-CO"):"\u2014"}</td><td style="color:${sc};font-weight:600">${sl}</td></tr>`;
+  }).join("");
+  const orgName=clientOrg?.name||"Organizaci\u00f3n";
+  const sector=clientOrg?.sector?clientOrg.sector.charAt(0).toUpperCase()+clientOrg.sector.slice(1):"";
+  const ubicacion=[clientOrg?.ciudad,clientOrg?.departamento].filter(Boolean).join(", ");
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Informe de Cumplimiento \u2014 ${orgName}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1e293b;font-size:11px;line-height:1.5}.header{background:#060c14;color:white;padding:24px 32px;display:flex;align-items:center;justify-content:space-between}.logo{font-size:22px;font-weight:800;letter-spacing:-0.03em;color:#00c9a7}.logo-sub{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.1em}.hr{text-align:right;font-size:10px;color:#94a3b8}.content{padding:28px 32px}.title{font-size:18px;font-weight:700;margin-bottom:4px}.subtitle{font-size:11px;color:#64748b;margin-bottom:24px}.metrics{display:flex;gap:12px;margin-bottom:24px}.metric{flex:1;padding:14px 16px;border:1px solid #e2e8f0;border-radius:8px;text-align:center}.mv{font-size:26px;font-weight:800}.ml{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}.green{color:#22c55e}.red{color:#ef4444}.yellow{color:#f97316}.primary{color:#00c9a7}.st{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:12px;margin-top:24px}table{width:100%;border-collapse:collapse;font-size:10px}th{background:#f8fafc;padding:7px 10px;text-align:left;font-weight:700;color:#475569;font-size:9px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #e2e8f0}td{padding:7px 10px;border-bottom:1px solid #f1f5f9;color:#334155}.bbg{height:8px;background:#f1f5f9;border-radius:4px;margin:8px 0;overflow:hidden}.bfill{height:100%;background:${cColor};border-radius:4px;width:${cumpl}%}.disc{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;line-height:1.6}.footer{background:#f8fafc;padding:12px 32px;display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.nb{page-break-inside:avoid}}</style></head><body><div class="header"><div><div class="logo">VIG\u00cdA</div><div class="logo-sub">Inteligencia Regulatoria Ambiental \u00b7 ENARA Consulting</div></div><div class="hr"><div style="font-weight:700;color:#fff;font-size:12px">Informe de Cumplimiento</div><div>${fecha} \u00b7 ${hora}</div></div></div><div class="content"><div class="title">${orgName}</div><div class="subtitle">${sector}${ubicacion?` \u00b7 ${ubicacion}`:""}</div><div class="metrics nb"><div class="metric"><div class="mv primary">${instruments.length}</div><div class="ml">EDIs activos</div></div><div class="metric"><div class="mv">${total}</div><div class="ml">Obligaciones</div></div><div class="metric"><div class="mv red">${vencidas}</div><div class="ml">Vencidas</div></div><div class="metric"><div class="mv yellow">${proximas}</div><div class="ml">Pr\u00f3ximas</div></div><div class="metric"><div class="mv green">${alDia}</div><div class="ml">Al d\u00eda</div></div><div class="metric"><div class="mv" style="color:${cColor}">${cumpl}%</div><div class="ml">Cumplimiento</div></div></div><div class="nb" style="margin-bottom:20px"><div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:4px"><span>Tasa de cumplimiento</span><span style="font-weight:700;color:${cColor}">${cumpl}%</span></div><div class="bbg"><div class="bfill"></div></div></div><div class="st">Expedientes Digitales Inteligentes (EDIs)</div><table><thead><tr><th>EDI</th><th>Tipo</th><th>Autoridad</th><th>Estado</th><th>Vencimiento</th></tr></thead><tbody>${edisRows||'<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">Sin EDIs</td></tr>'}</tbody></table><div class="st">Obligaciones ambientales</div><table><thead><tr><th>C\u00f3digo</th><th>Obligaci\u00f3n</th><th>EDI</th><th>Fecha l\u00edmite</th><th>Estado</th></tr></thead><tbody>${obsRows||'<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">Sin obligaciones</td></tr>'}</tbody></table><div class="disc">Este informe fue generado autom\u00e1ticamente por VIG\u00cdA \u00b7 ENARA Consulting S.A.S. La informaci\u00f3n refleja el estado registrado a la fecha de generaci\u00f3n. No constituye certificaci\u00f3n oficial.<br><br>info@enaraconsulting.com.co \u00b7 +57 314 330 4008 \u00b7 www.enaraconsulting.com.co</div></div><div class="footer"><span>VIG\u00cdA \u00b7 ENARA Consulting</span><span>${orgName} \u00b7 ${fecha}</span></div></body></html>`;
+  const win=window.open("","_blank","width=900,height=700");
+  if(!win){alert("Permite ventanas emergentes para generar el PDF.");return;}
+  win.document.write(html);win.document.close();
+  win.onload=()=>setTimeout(()=>{win.focus();win.print();},500);
+};
+
 const runExport = (format, singleMessageIndex = null) => {
   const items = buildExportItems(botMessages, singleMessageIndex);
   if (items.length === 0) { alert("No hay respuestas para exportar todavía."); return; }
@@ -3205,7 +3233,7 @@ const hB=(h)=>h==="critico"?C.redDim:h==="moderado"?C.yellowDim:C.greenDim;
 
 const renderDashboard=()=>(
 <div style={{padding:28}}>
-<div style={{marginBottom:24,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:clientOrg ? clientOrg.name : "Panel de cumplimiento"}</p></div><div style={{display:"flex",gap:6}}>{[{k:"resumen",l:"Resumen"},{k:"timeline",l:"Línea de tiempo"},{k:"historico",l:"Histórico"}].map(t=><button key={t.k} onClick={()=>setDashboardView(t.k)} style={{background:dashboardView===t.k?C.primaryDim:"transparent",border:`1px solid ${dashboardView===t.k?C.primary+"66":C.border}`,borderRadius:6,padding:"4px 12px",color:dashboardView===t.k?C.primary:C.textSec,fontSize:11,fontWeight:dashboardView===t.k?700:500,cursor:"pointer",fontFamily:FONT}}>{t.l}</button>)}</div></div>
+<div style={{marginBottom:24,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Panel de cumplimiento</h1><p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>{dbStatus==="connected"?`Sincronizado con Supabase - ${lastSync?.toLocaleTimeString("es-CO")}`:clientOrg ? clientOrg.name : "Panel de cumplimiento"}</p></div><div style={{display:"flex",gap:6,alignItems:"center"}}>{[{k:"resumen",l:"Resumen"},{k:"timeline",l:"Línea de tiempo"},{k:"historico",l:"Histórico"}].map(t=><button key={t.k} onClick={()=>setDashboardView(t.k)} style={{background:dashboardView===t.k?C.primaryDim:"transparent",border:`1px solid ${dashboardView===t.k?C.primary+"66":C.border}`,borderRadius:6,padding:"4px 12px",color:dashboardView===t.k?C.primary:C.textSec,fontSize:11,fontWeight:dashboardView===t.k?700:500,cursor:"pointer",fontFamily:FONT}}>{t.l}</button>)}{(instruments.length>0||obligations.length>0)&&<button onClick={generateCompliancePDF} title="Descargar informe PDF" style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",color:C.textSec,fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:4,fontFamily:FONT}} onMouseEnter={e=>{e.currentTarget.style.borderColor=C.primary+"66";e.currentTarget.style.color=C.primary;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.textSec;}}><Download size={11}/>PDF</button>}</div></div>
 {dashboardView==="resumen" && <><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
 <StatCard icon={Layers} label="EDIs activos" value={instruments.length} color={C.primary}/>
 <StatCard icon={AlertTriangle} label="Obligaciones vencidas" value={overdue} color={C.red} sub={overdue>0?"Requiere accion inmediata":"Sin vencimientos"}/>
@@ -3669,9 +3697,12 @@ const renderEDIs = () => {
     al_dia: instruments.filter(i=>ediHealth(i)==="al_dia").length,
   };
   return <div style={{padding:28,overflowY:"auto",height:"100%"}}>
-    <div style={{marginBottom:20}}>
-      <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Mis EDIs</h1>
-      <p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>Expedientes Digitales Inteligentes de {clientOrg?.name||"tu organización"} — {instruments.length} en total</p>
+    <div style={{marginBottom:20,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
+      <div>
+        <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0}}>Mis EDIs</h1>
+        <p style={{fontSize:13,color:C.textSec,margin:"4px 0 0"}}>Expedientes Digitales Inteligentes de {clientOrg?.name||"tu organización"} — {instruments.length} en total</p>
+      </div>
+      {instruments.length>0&&<button onClick={generateCompliancePDF} title="Descargar informe PDF" style={{background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",color:C.textSec,fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:4,fontFamily:FONT,flexShrink:0}} onMouseEnter={e=>{e.currentTarget.style.borderColor=C.primary+"66";e.currentTarget.style.color=C.primary;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.textSec;}}><Download size={11}/>PDF</button>}
     </div>
     <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
       <input value={ediSearch} onChange={e=>setEdiSearch(e.target.value)} placeholder="Buscar por nombre, radicado, autoridad..." style={{flex:"1 1 280px",minWidth:220,background:C.surfaceEl,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",color:C.text,fontSize:13,fontFamily:FONT,outline:"none"}}/>
@@ -4040,7 +4071,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.43</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.44</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
