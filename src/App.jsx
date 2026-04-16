@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.35";
+const EXPORT_VIGIA_VERSION = "v3.9.36";
 
 function exportTimestamp() {
   const d = new Date();
@@ -2571,18 +2571,29 @@ const [session, setSession] = useState(null);
     if(typeof superFlag === "boolean") setIsSuperAdmin(superFlag);
   };
 
+  const applyDemoState = (sess) => {
+    setSession(sess);
+    setClientOrg(DEMO_DATA.org);
+    setInstruments(DEMO_DATA.instruments);
+    setObligations(DEMO_DATA.obligations);
+    setAlerts(DEMO_DATA.alerts);
+    setNormSources([]);
+    setDbStatus("connected");
+    setUserOrgRole("editor");
+    setAuthLoading(false);
+    setLastSync(new Date());
+  };
+  const DEMO_FALLBACK_SESSION = { access_token:SB_KEY, user:{id:"demo-user",email:"demo@vigia.co"}, expires_at:9999999999, refresh_token:"demo" };
+
   useEffect(()=>{
     if(isDemoMode) {
-      setSession({ access_token:"demo-token", user:{ id:"demo-user", email:"director.ambiental@energiasolar.co" }, expires_at:9999999999, refresh_token:"demo" });
-      setClientOrg(DEMO_DATA.org);
-      setInstruments(DEMO_DATA.instruments);
-      setObligations(DEMO_DATA.obligations);
-      setAlerts(DEMO_DATA.alerts);
-      setNormSources([]);
-      setDbStatus("connected");
-      setUserOrgRole("editor");
-      setAuthLoading(false);
-      setLastSync(new Date());
+      sbLogin("demo@vigia.co","Vigia2026!").then(result => {
+        if(result?.ok && result.session?.access_token) {
+          applyDemoState(result.session);
+        } else {
+          applyDemoState(DEMO_FALLBACK_SESSION);
+        }
+      }).catch(() => applyDemoState(DEMO_FALLBACK_SESSION));
       return;
     }
     sbGetSession().then(async s=>{
@@ -2683,6 +2694,7 @@ const loadNormArticles = async (norm_id) => {
 useEffect(() => { if (selectedNorm) loadNormArticles(selectedNorm); }, [selectedNorm]);
 
 useEffect(()=>{
+if(isDemoMode) return;
 const tryConnect = async () => {
 try {
 const t=session?.access_token||SB_KEY;
@@ -2966,8 +2978,7 @@ const normCtx=normSources.map(n=>`${n.norm_type} ${n.norm_number}: ${n.norm_titl
 const systemPrompt=`Eres VIGÍA, asistente de inteligencia regulatoria ambiental colombiana${clientOrg?.name?` de ${clientOrg.name}`:""}.\nFuentes activas: ${layers}.\nObligaciones: ${obsCtx}.\nNormativa: ${normCtx}.\nResponde en español colombiano formal. Cita fuentes con [Fuente: X]. No inventes normas.`;
 const previousMessages = botMessages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({role:m.role,content:m.text}));
 try {
-const botToken = isDemoMode ? SB_KEY : (session?.access_token||SB_KEY);
-const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${botToken}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages,include_pedagogico:sources.pedagogico})});
+const res=await fetch(`${SB_URL}/functions/v1/chat-bot`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session?.access_token||SB_KEY}`,apikey:SB_KEY},body:JSON.stringify({systemPrompt,userMessage:userMsg.text,previousMessages,include_pedagogico:sources.pedagogico})});
 const data=await res.json();
 if(!res.ok||!data.reply) throw new Error(data.error||`Error ${res.status}`);
 const reply=data.reply;
@@ -3739,7 +3750,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.35</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.36</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>
