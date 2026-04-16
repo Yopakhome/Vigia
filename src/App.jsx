@@ -253,7 +253,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.9.28";
+const EXPORT_VIGIA_VERSION = "v3.9.29";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1281,7 +1281,11 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState(null);
   const [newUser, setNewUser] = React.useState({email:"",password:"",org_id:"",role:"viewer"});
-  const [newOrg, setNewOrg] = React.useState({client_type:"vigia_subscriber",tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+  const [newOrg, setNewOrg] = React.useState({client_type:"vigia_subscriber",tipo_persona:"juridica",tipo_identificacion:"NIT",numero_identificacion:"",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+  const [onboardingExtracting, setOnboardingExtracting] = React.useState(false);
+  const [onboardingExtracted, setOnboardingExtracted] = React.useState(null);
+  const [onboardingFileName, setOnboardingFileName] = React.useState(null);
+  const [prefilledFields, setPrefilledFields] = React.useState(new Set());
   const [newOrgMsg, setNewOrgMsg] = React.useState(null);
   const [newOrgSaving, setNewOrgSaving] = React.useState(false);
   const [newOrgCreated, setNewOrgCreated] = React.useState(null);
@@ -1424,13 +1428,14 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   };
   const resetNewOrg = function() {
     setNewOrgCreated(null); setNewOrgMsg(null);
-    setNewOrg({client_type:"vigia_subscriber",tipo_persona:"juridica",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+    setNewOrg({client_type:"vigia_subscriber",tipo_persona:"juridica",tipo_identificacion:"NIT",numero_identificacion:"",plan:"prueba",nivel_confidencialidad:"estandar",acepta_terminos:true,consentimiento_datos:true,limite_edis:5,limite_usuarios:4,limite_intake_mes:100,pais_datos:"Colombia"});
+    setOnboardingExtracted(null); setOnboardingFileName(null); setPrefilledFields(new Set());
     setOrgUsers([{email:"",password:"Vigia2026!",role:"editor"}]);
     setUsersLog([]);
   };
 
   const saveNewOrg = async function() {
-    if(!newOrg.name||!newOrg.nit||!newOrg.representante_legal||!newOrg.sector||!newOrg.ciudad||!newOrg.contacto_vigia){
+    if(!newOrg.name||!newOrg.numero_identificacion||!newOrg.representante_legal||!newOrg.sector||!newOrg.ciudad||!newOrg.contacto_vigia){
       setNewOrgMsg({t:"error",m:"Completa los campos obligatorios (*)"});
       return;
     }
@@ -1439,7 +1444,9 @@ function SuperAdminModule({reviewerId, sessionToken}) {
       return;
     }
     setNewOrgSaving(true); setNewOrgMsg(null);
+    // Mapear: nit sólo se llena si tipo_identificacion es NIT (backward compat)
     var payload = Object.assign({},newOrg,{
+      nit: newOrg.tipo_identificacion === "NIT" ? newOrg.numero_identificacion : null,
       tier:"free", risk_profile:"estándar",
       country:"CO", city:newOrg.ciudad,
       plan_estado:"activo",
@@ -1457,10 +1464,75 @@ function SuperAdminModule({reviewerId, sessionToken}) {
       }
     } catch(e) {
       var errMsg = e.message || String(e);
-      if(errMsg.includes("nit_key")||errMsg.includes("unique")) errMsg = "Ya existe una organización con ese NIT. Verifícalo.";
+      if(errMsg.includes("409")||errMsg.includes("Ya existe un cliente")||errMsg.includes("numero_identificacion")||errMsg.includes("nit_key")||errMsg.includes("duplicate")||errMsg.includes("unique")) {
+        errMsg = "Ya existe un cliente con este número de identificación. Verifícalo.";
+      }
       setNewOrgMsg({t:"error",m:errMsg});
     }
     setNewOrgSaving(false);
+  };
+
+  // Onboarding: upload de documento + extracción via Claude
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = reader.result;
+      const b64 = typeof res === "string" ? res.split(",")[1] : "";
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const handleOnboardingUpload = async function(file) {
+    if(!file) return;
+    if(file.size > 10*1024*1024) { setNewOrgMsg({t:"error",m:"El archivo supera 10 MB."}); return; }
+    setOnboardingExtracting(true); setOnboardingExtracted(null); setNewOrgMsg(null);
+    setOnboardingFileName(file.name);
+    try {
+      const b64 = await fileToBase64(file);
+      const { extracted } = await saCall("extract-org-identity", {
+        file_base64: b64,
+        file_type: file.type || "application/pdf",
+        file_name: file.name
+      });
+      setOnboardingExtracted(extracted || {});
+      if(extracted && !extracted.error) {
+        const map = {
+          razon_social: "name",
+          representante_legal: "representante_legal",
+          direccion: "direccion",
+          ciudad: "ciudad",
+          departamento: "departamento",
+          telefono: "telefono",
+          email_corporativo: "email_corporativo",
+          ciiu: "ciiu",
+          sector: "sector",
+          fecha_constitucion: "fecha_constitucion",
+          tipo_persona: "tipo_persona",
+          tipo_identificacion: "tipo_identificacion",
+          numero_identificacion: "numero_identificacion"
+        };
+        const updates = {};
+        const filled = new Set();
+        for(const [ek, nk] of Object.entries(map)) {
+          const val = extracted[ek];
+          if(val !== null && val !== undefined && val !== "") { updates[nk] = val; filled.add(nk); }
+        }
+        if(Object.keys(updates).length > 0) {
+          setNewOrg(p => Object.assign({}, p, updates));
+          setPrefilledFields(filled);
+          setNewOrgMsg({t:"success",m:`Se pre-llenaron ${filled.size} campos desde ${file.name}. Revisá y completá los que falten.`});
+        } else {
+          setNewOrgMsg({t:"error",m:"No se pudo extraer información útil del documento. Llená los campos manualmente."});
+        }
+      } else {
+        setNewOrgMsg({t:"error",m:"Error procesando documento: "+(extracted?.error||"desconocido")});
+      }
+    } catch(e) {
+      setNewOrgMsg({t:"error",m:"Error subiendo documento: "+(e.message||e)});
+    }
+    setOnboardingExtracting(false);
   };
 
     var pendingCount = requests.filter(function(r){ return r.status==="pending"; }).length;
@@ -1891,6 +1963,34 @@ function SuperAdminModule({reviewerId, sessionToken}) {
 
             {newOrgMsg&&<div style={{background:newOrgMsg.t==="success"?A.greenDim:A.redDim,border:"1px solid "+(newOrgMsg.t==="success"?A.green:A.red)+"44",borderRadius:8,padding:"10px 14px",fontSize:12,color:newOrgMsg.t==="success"?A.green:A.red,marginBottom:16}}>{newOrgMsg.m}</div>}
 
+            {/* Onboarding por documento (opcional) */}
+            <div style={{background:A.surfaceEl,border:`1px dashed ${A.primary}66`,borderRadius:10,padding:"14px 18px",marginBottom:22}}>
+              <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Documentos de onboarding (opcional pero recomendado)</div>
+              <div style={{fontSize:12,color:A.textSec,marginBottom:10,lineHeight:1.5}}>
+                Subí RUT, Cámara de Comercio o documento de identidad y VIGÍA pre-llenará el formulario automáticamente.
+              </div>
+              {onboardingExtracting ? (
+                <div style={{fontSize:12,color:A.primary,padding:"10px 0",display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{display:"flex",gap:4}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:A.primary,animation:"pulse 1.2s infinite",animationDelay:`${i*0.25}s`}}/>)}</div>
+                  <span>Extrayendo información de {onboardingFileName || "documento"}…</span>
+                </div>
+              ) : (
+                <label style={{display:"inline-flex",alignItems:"center",gap:8,background:A.primary,color:"#060c14",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  <Upload size={14}/>
+                  {onboardingFileName ? "Subir otro documento" : "Subir documento"}
+                  <input type="file" accept=".pdf,image/jpeg,image/jpg,image/png" style={{display:"none"}} onChange={e=>{ const f = e.target.files?.[0]; if(f) handleOnboardingUpload(f); e.target.value=""; }}/>
+                </label>
+              )}
+              <div style={{fontSize:10,color:A.textMuted,marginTop:6}}>Formatos: PDF, JPG, PNG · Máx 10 MB</div>
+              {onboardingExtracted && !onboardingExtracted.error && (
+                <div style={{marginTop:10,fontSize:10,color:A.green,display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                  <CheckCircle size={12}/> <span>Confianza: {onboardingExtracted.confianza ?? "—"}%</span>
+                  {onboardingExtracted.tipo_persona && <span>· {onboardingExtracted.tipo_persona}</span>}
+                  {onboardingExtracted.tipo_identificacion && <span>· {onboardingExtracted.tipo_identificacion}</span>}
+                </div>
+              )}
+            </div>
+
             {/* Tipo de cliente — PRIMERO */}
             <div style={{marginBottom:22}}>
               <div style={{fontSize:11,fontWeight:700,color:A.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Tipo de cliente</div>
@@ -1916,11 +2016,34 @@ function SuperAdminModule({reviewerId, sessionToken}) {
 
             {/* SECCIÓN 1: Datos básicos */}
             <div style={{fontSize:11,fontWeight:700,color:A.primary,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,paddingBottom:6,borderBottom:"1px solid "+A.border}}>Datos básicos</div>
+
+            {/* Identificación: depende de tipo_persona */}
+            <div style={{display:"grid",gridTemplateColumns:"160px 1fr",gap:14,marginBottom:16}}>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Tipo de documento *</div>
+                <select value={newOrg.tipo_identificacion||"NIT"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{tipo_identificacion:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+(prefilledFields.has("tipo_identificacion")?A.green+"66":A.border),borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                  {newOrg.tipo_persona==="natural" ? (
+                    <>
+                      <option value="CC">Cédula de Ciudadanía</option>
+                      <option value="CE">Cédula de Extranjería</option>
+                      <option value="PASAPORTE">Pasaporte</option>
+                    </>
+                  ) : (
+                    <option value="NIT">NIT</option>
+                  )}
+                </select>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Número de identificación *{newOrg.tipo_identificacion==="NIT"?" (con dígito verificador)":""}</div>
+                <input type="text" value={newOrg.numero_identificacion||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{numero_identificacion:v});});}} placeholder={newOrg.tipo_identificacion==="NIT"?"900123456-7":"1234567890"} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+(prefilledFields.has("numero_identificacion")?A.green+"66":A.border),borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+              </div>
+            </div>
+
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-              {[["Razón social / Nombre *","name","text"],["NIT *","nit","text"],["Representante legal *","representante_legal","text"],["Email corporativo","email_corporativo","email"],["Teléfono","telefono","text"],["CIIU","ciiu","text"]].map(function(f){ return (
+              {[["Razón social / Nombre *","name","text"],["Representante legal *","representante_legal","text"],["Email corporativo","email_corporativo","email"],["Teléfono","telefono","text"],["CIIU","ciiu","text"]].map(function(f){ return (
                 <div key={f[1]}>
                   <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>{f[0]}</div>
-                  <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+                  <input type={f[2]} value={newOrg[f[1]]||""} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{[f[1]]:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+(prefilledFields.has(f[1])?A.green+"66":A.border),borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none",boxSizing:"border-box"}}/>
                 </div>
               ); })}
             </div>
@@ -1928,7 +2051,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
               <div>
                 <div style={{fontSize:11,color:A.textSec,marginBottom:5,fontWeight:600}}>Tipo persona *</div>
-                <select value={newOrg.tipo_persona||"juridica"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{tipo_persona:v});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
+                <select value={newOrg.tipo_persona||"juridica"} onChange={function(e){var v=e.target.value;setNewOrg(function(p){return Object.assign({},p,{tipo_persona:v, tipo_identificacion: v==="natural" ? (["CC","CE","PASAPORTE"].includes(p.tipo_identificacion) ? p.tipo_identificacion : "CC") : "NIT"});});}} style={{width:"100%",background:A.surfaceEl,border:"1px solid "+A.border,borderRadius:8,padding:"9px 12px",color:A.text,fontSize:12,outline:"none"}}>
                   <option value="juridica">Jurídica</option>
                   <option value="natural">Natural</option>
                 </select>
@@ -3356,7 +3479,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.28</div></div>
+<div><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.9.29</div></div>
 </div>
 </div>
 <nav style={{flex:1,padding:"10px 8px"}}>

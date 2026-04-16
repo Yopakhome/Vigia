@@ -4,6 +4,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPERADMIN_EMAILS = (Deno.env.get("SUPERADMIN_EMAILS") || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const ANTHROPIC_MODEL = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-5";
 
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 function jsonResponse(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
@@ -84,9 +86,96 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ user: created });
     }
     if (op === "create-org") {
-      const saved = await adminReq("/rest/v1/organizations", "POST", payload || {}, "resolution=merge-duplicates,return=representation") as any[];
-      const row = Array.isArray(saved) ? saved[0] : saved;
-      return jsonResponse({ org: row });
+      try {
+        const saved = await adminReq("/rest/v1/organizations", "POST", payload || {}, "resolution=merge-duplicates,return=representation") as any[];
+        const row = Array.isArray(saved) ? saved[0] : saved;
+        return jsonResponse({ org: row });
+      } catch(e) {
+        const msg = (e as Error).message || "";
+        if (msg.includes("idx_org_numero_identificacion") || msg.includes("organizations_nit_key") || msg.includes("duplicate key")) {
+          return jsonResponse({ error: "Ya existe un cliente con este número de identificación." }, 409);
+        }
+        throw e;
+      }
+    }
+    if (op === "extract-org-identity") {
+      const { file_base64, file_type, file_name } = payload || {};
+      if (!file_base64) return jsonResponse({ error: "Falta file_base64" }, 400);
+      if (!ANTHROPIC_API_KEY) return jsonResponse({ error: "ANTHROPIC_API_KEY no configurada" }, 500);
+
+      const extractPrompt = `Eres un extractor de información para onboarding de clientes en Colombia.
+Analiza este documento y extrae la siguiente información si está disponible.
+Responde SOLO en JSON con exactamente estos campos (usa null si no encuentras el dato):
+
+{
+  "tipo_persona": "juridica|natural",
+  "tipo_identificacion": "NIT|CC|CE|PASAPORTE",
+  "numero_identificacion": "número exacto incluyendo dígito verificador si aplica",
+  "razon_social": "nombre de la empresa o persona",
+  "representante_legal": "nombre completo del representante",
+  "direccion": "dirección completa",
+  "ciudad": "ciudad",
+  "departamento": "departamento",
+  "telefono": "teléfono",
+  "email_corporativo": "email",
+  "ciiu": "código CIIU o actividad económica principal",
+  "sector": "energia|mineria|manufactura|construccion|agro|logistica|servicios|otro",
+  "objeto_social": "descripción breve del objeto social",
+  "fecha_constitucion": "YYYY-MM-DD si aplica",
+  "confianza": 0-100
+}
+
+Documentos típicos:
+- RUT: contiene NIT, razón social, actividad CIIU, dirección
+- Certificado de Existencia y Representación Legal: razón social, rep. legal, domicilio
+- Cédula/Pasaporte: nombre, número, tipo de documento
+
+Extrae solo lo que está explícitamente en el documento. No inventes datos. No uses markdown ni backticks, solo el objeto JSON.`;
+
+      const mediaType = file_type || "application/pdf";
+      const isImage = typeof mediaType === "string" && mediaType.startsWith("image/");
+
+      const content = isImage
+        ? [{ type: "image", source: { type: "base64", media_type: mediaType, data: file_base64 } },
+           { type: "text", text: extractPrompt }]
+        : [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: file_base64 } },
+           { type: "text", text: extractPrompt }];
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: 1024,
+          messages: [{ role: "user", content }]
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        return jsonResponse({ error: `Anthropic ${res.status}: ${errText.slice(0,200)}` }, 502);
+      }
+      const data = await res.json();
+      const text = data?.content?.[0]?.text || "{}";
+      let extracted: any = {};
+      try {
+        const clean = text.replace(/```json|```/g, "").trim();
+        extracted = JSON.parse(clean);
+      } catch {
+        const first = text.indexOf("{");
+        const last = text.lastIndexOf("}");
+        if (first >= 0 && last > first) {
+          try { extracted = JSON.parse(text.slice(first, last + 1)); }
+          catch { extracted = { error: "No se pudo parsear JSON", raw: text.slice(0, 300) }; }
+        } else {
+          extracted = { error: "No se pudo parsear JSON", raw: text.slice(0, 300) };
+        }
+      }
+      return jsonResponse({ extracted, file_name: file_name || null });
     }
     if (op === "list-norms") {
       const { status_filter = null, scope_filter = null } = payload || {};
