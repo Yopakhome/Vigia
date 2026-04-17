@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.15.0";
+const EXPORT_VIGIA_VERSION = "v3.15.1";
 
 function exportTimestamp() {
   const d = new Date();
@@ -3704,7 +3704,7 @@ const loadRadarApplicable=async()=>{
   if(!session?.access_token||!clientOrg?.id) return;
   setRadarClientLoading(true);
   try{
-    const r=await fetch(`${SB_URL}/rest/v1/norma_applicability?applies=eq.true&select=*,detected_items(title,excerpt,external_url,source_key,classification)&order=urgency.desc,matched_at.desc&limit=100`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`}});
+    const r=await fetch(`${SB_URL}/rest/v1/norma_applicability?applies=eq.true&select=*,detected_items(title,excerpt,external_url,source_key,classification,raw_payload)&order=urgency.desc,matched_at.desc&limit=100`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`}});
     const d=await r.json();
     setRadarApplicable(Array.isArray(d)?d:[]);
     setRadarBadgeCount((Array.isArray(d)?d:[]).filter(i=>(i.client_status==="nuevo"||i.client_status==="visto")&&i.urgency==="alta").length);
@@ -4979,7 +4979,8 @@ const renderRadar=()=>{
         </div>}
         {cl.reasoning_brief&&<div style={{fontSize:11,color:C.textMuted,marginBottom:10,fontStyle:"italic"}}>{cl.reasoning_brief}</div>}
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginTop:12}}>
-          {d.external_url&&<a href={d.external_url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{background:C.primary,color:"#060c14",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700,textDecoration:"none"}}>Ver norma oficial</a>}
+          <button onClick={e=>{e.stopPropagation();const rp=d.raw_payload||{};const ref=(rp.tipo&&rp.n_mero&&rp.a_o)?`${rp.tipo} ${rp.n_mero} de ${rp.a_o}`:(d.title||"").slice(0,80);navigator.clipboard.writeText(ref);}} style={{background:"transparent",border:`1px solid ${C.border}`,color:C.textSec,padding:"6px 12px",borderRadius:6,fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:FONT}}>Copiar referencia</button>
+          <a href="https://www.suin-juriscol.gov.co/" target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{background:C.primary,color:"#060c14",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700,textDecoration:"none"}}>Ir a SUIN</a>
           {item.client_status!=="requiere_accion"&&<button onClick={e=>{e.stopPropagation();markRadarItemAction(item.id,"requiere_accion");}} style={{background:"transparent",border:`1px solid ${C.border}`,color:C.textSec,padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:FONT}}>Requiere acción</button>}
           {item.client_status!=="no_aplica"&&<button onClick={e=>{e.stopPropagation();markRadarItemAction(item.id,"no_aplica");}} style={{background:"transparent",border:`1px solid ${C.border}`,color:C.textMuted,padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:FONT}}>No aplica</button>}
           {item.client_status!=="nuevo"&&<span style={{fontSize:10,color:C.textMuted,marginLeft:"auto"}}>Estado: {statusLabel[item.client_status]||item.client_status}</span>}
@@ -5071,7 +5072,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.15.0</div></div>
+<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.15.1</div></div>
 <div style={{position:"relative"}}><button onClick={()=>setNotifPanelOpen(p=>!p)} style={{background:"transparent",border:"none",cursor:"pointer",color:C.textSec,padding:4,position:"relative"}}><Bell size={16}/>{unreadNotif>0&&<span style={{position:"absolute",top:0,right:0,background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 4px",borderRadius:8,minWidth:14,textAlign:"center"}}>{unreadNotif>99?"99+":unreadNotif}</span>}</button>
 {notifPanelOpen&&<div style={{position:"absolute",top:"calc(100% + 8px)",right:0,width:320,maxHeight:400,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",zIndex:300,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:`1px solid ${C.border}`}}>
