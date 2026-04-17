@@ -171,7 +171,23 @@ Reglas:
       method: "POST",
       body: JSON.stringify({ p_task_type: "radar.match_item", p_payload: { detected_item_id }, p_priority: 4, p_dedup_key: `match_${detected_item_id}` })
     });
+
+    await srvFetch("/rest/v1/rpc/enqueue_task", {
+      method: "POST",
+      body: JSON.stringify({ p_task_type: "radar.resolve_url", p_payload: { detected_item_id }, p_priority: 5, p_dedup_key: `resolve_${detected_item_id}` })
+    });
   }
+}
+
+// ===== HANDLER: radar.resolve_url =====
+
+async function handleResolveUrl(payload: any): Promise<void> {
+  const resp = await fetch(`${SUPABASE_URL}/functions/v1/resolve-norma-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-cron-secret": CRON_SECRET },
+    body: JSON.stringify({ detected_item_id: payload.detected_item_id })
+  });
+  if (!resp.ok) throw new Error(`resolve-norma-url failed: ${resp.status}`);
 }
 
 // ===== HANDLER: radar.match_item =====
@@ -259,6 +275,7 @@ async function processTask(task: any): Promise<{ ok: boolean; error?: string }> 
       case "email.send": await handleEmailSend(task.payload); break;
       case "radar.classify_item": await handleClassifyItem(task.payload); break;
       case "radar.match_item": await handleMatchItem(task.payload); break;
+      case "radar.resolve_url": await handleResolveUrl(task.payload); break;
       case "radar.notify_applicable": await handleNotifyApplicable(task.payload); break;
       default: throw new Error(`Unknown task_type: ${task.task_type}`);
     }
