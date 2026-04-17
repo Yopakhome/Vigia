@@ -24,21 +24,53 @@ async function verifyUser(auth: string | null) {
   } catch { return null; }
 }
 
-async function tryUrl(url: string): Promise<boolean> {
+async function tryHead(url: string, timeoutMs = 4000): Promise<boolean> {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
-    const r = await fetch(url, { method: "HEAD", signal: controller.signal, redirect: "follow" });
-    clearTimeout(timeout);
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), timeoutMs);
+    const r = await fetch(url, { method: "HEAD", signal: c.signal, redirect: "follow" });
+    clearTimeout(t);
     if (!r.ok) return false;
     const ct = r.headers.get("content-type") || "";
     return ct.includes("text/html") || ct.includes("application/pdf");
   } catch { return false; }
 }
 
+async function tryBtnIRedirect(tipo: string, num: string, year: string): Promise<string | null> {
+  const query = `site:suin-juriscol.gov.co ${tipo} ${num} ${year}`;
+  const btnIUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&btnI=1`;
+  try {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 6000);
+    const r = await fetch(btnIUrl, { redirect: "manual", signal: c.signal });
+    clearTimeout(t);
+
+    const loc = r.headers.get("location") || "";
+    if (loc.includes("google.com/url?q=")) {
+      const match = loc.match(/[?&]q=([^&]+)/);
+      if (match) {
+        const decoded = decodeURIComponent(match[1]);
+        if (decoded.includes("suin-juriscol.gov.co/viewDocument")) {
+          if (await tryHead(decoded)) return decoded;
+        }
+      }
+    }
+
+    if (r.status >= 200 && r.status < 400) {
+      const body = await r.text();
+      const urlMatch = body.match(/suin-juriscol\.gov\.co\/viewDocument\.asp\?[^"'\s<>]+/);
+      if (urlMatch) {
+        const candidate = `https://www.${urlMatch[0]}`;
+        if (await tryHead(candidate)) return candidate;
+      }
+    }
+  } catch {}
+  return null;
+}
+
 type Resolution = { url: string; source: string };
 
-async function resolveUrl(tipo: string, numero: string, ano: string, _authoritySlug: string | null): Promise<Resolution> {
+async function resolveUrl(tipo: string, numero: string, ano: string): Promise<Resolution> {
   const tipoUpper = (tipo || "").toUpperCase().trim();
   const num = (numero || "").replace(/[^0-9]/g, "");
   const year = (ano || "").replace(/[^0-9]/g, "");
@@ -47,32 +79,34 @@ async function resolveUrl(tipo: string, numero: string, ano: string, _authorityS
     return { url: buildGoogleFallback(tipoUpper, num, year), source: "google_suin" };
   }
 
-  // Level 1: Secretaría del Senado (works reliably for LEY and ACTO LEGISLATIVO)
+  // Level 1: Secretaría del Senado (LEY, ACTO LEGISLATIVO — highly reliable)
   if (tipoUpper === "LEY" || tipoUpper === "ACTO LEGISLATIVO") {
     const prefix = tipoUpper === "LEY" ? "ley" : "acto_legislativo";
-    const candidates = [
+    const urls = [
       `http://www.secretariasenado.gov.co/senado/basedoc/${prefix}_${num}_${year}.html`,
       `http://www.secretariasenado.gov.co/senado/basedoc/${prefix}_${num.padStart(4, "0")}_${year}.html`,
     ];
-    for (const url of candidates) {
-      if (await tryUrl(url)) return { url, source: "secretariasenado" };
+    for (const url of urls) {
+      if (await tryHead(url)) return { url, source: "secretariasenado" };
     }
   }
 
-  // Level 2: Secretaría del Senado for DECRETO (inconsistent but worth trying)
+  // Level 2: Secretaría del Senado (DECRETO — inconsistent but worth trying)
   if (tipoUpper === "DECRETO") {
-    const candidates = [
+    const urls = [
       `http://www.secretariasenado.gov.co/senado/basedoc/decreto_${num}_${year}.html`,
       `http://www.secretariasenado.gov.co/senado/basedoc/decreto_${num.padStart(4, "0")}_${year}.html`,
     ];
-    for (const url of candidates) {
-      if (await tryUrl(url)) return { url, source: "secretariasenado" };
+    for (const url of urls) {
+      if (await tryHead(url)) return { url, source: "secretariasenado" };
     }
   }
 
-  // Level 3: SUIN viewDocument (if we had the ID — skip for now, no ID available)
+  // Level 3: Google btnI → extract SUIN viewDocument URL
+  const suinDirect = await tryBtnIRedirect(tipoUpper, num, year);
+  if (suinDirect) return { url: suinDirect, source: "suin_directo" };
 
-  // Level 4: Google scoped to SUIN (universal fallback, always returns 200)
+  // Level 4: Google scoped fallback (always works)
   return { url: buildGoogleFallback(tipoUpper, num, year), source: "google_suin" };
 }
 
@@ -99,7 +133,6 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({}));
     const detectedItemId = body?.detected_item_id;
-
     if (!detectedItemId) return json({ error: "detected_item_id required" }, 400);
 
     const itemRes = await fetch(`${SUPABASE_URL}/rest/v1/detected_items?id=eq.${detectedItemId}&select=id,raw_payload,classification,resolved_official_url`, { headers: srv });
@@ -112,12 +145,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const rp = item.raw_payload || {};
-    const tipo = rp.tipo || "";
-    const numero = rp.n_mero || "";
-    const ano = rp.a_o || "";
-    const authoritySlug = item.classification?.authority_slug || null;
-
-    const result = await resolveUrl(tipo, numero, ano, authoritySlug);
+    const result = await resolveUrl(rp.tipo || "", rp.n_mero || "", rp.a_o || "");
 
     await fetch(`${SUPABASE_URL}/rest/v1/detected_items?id=eq.${detectedItemId}`, {
       method: "PATCH",
