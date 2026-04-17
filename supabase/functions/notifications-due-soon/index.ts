@@ -28,10 +28,61 @@ async function verifyUser(auth: string | null) {
   } catch { return null; }
 }
 
+const severityOrder: Record<string, number> = { info: 0, warning: 1, urgent: 2, critical: 3 };
+
+async function maybeEnqueueEmail(uid: string, orgId: string, title: string, body: string, severity: string, type: string, obligationId: string) {
+  const prefRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/notification_preferences?user_id=eq.${uid}&select=email_enabled,email_severity_threshold`,
+    { headers: srv }
+  );
+  const prefs = await prefRes.json() as any[];
+  const pref = prefs?.[0];
+
+  const shouldEmail = pref?.email_enabled !== false &&
+    ((severityOrder[severity] ?? 0) >= (severityOrder[pref?.email_severity_threshold || "warning"] ?? 1));
+
+  if (!shouldEmail) return;
+
+  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${uid}`, { headers: srv });
+  const user = await userRes.json() as any;
+  if (!user?.email) return;
+
+  const emailHtml = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <h2 style="color:#00c9a7;">VIGÍA — ${title}</h2>
+      <p style="color:#333;font-size:14px;">${body.slice(0, 200)}</p>
+      <a href="https://vigia-five.vercel.app"
+         style="display:inline-block;background:#00c9a7;color:#060c14;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;margin-top:16px;">
+        Abrir en VIGÍA
+      </a>
+      <p style="color:#888;font-size:11px;margin-top:24px;">
+        Puedes ajustar tus preferencias de email en VIGÍA &rarr; Perfil &rarr; Notificaciones
+      </p>
+    </div>
+  `;
+
+  const today = new Date().toISOString().split("T")[0];
+  await fetch(`${SUPABASE_URL}/rest/v1/rpc/enqueue_task`, {
+    method: "POST", headers: srv,
+    body: JSON.stringify({
+      p_task_type: "email.send",
+      p_payload: {
+        to: user.email,
+        subject: `VIGÍA · ${title}: ${body.slice(0, 60)}`,
+        html: emailHtml,
+        org_id: orgId,
+        recipient_user_id: uid,
+        template_key: `obligation_${type}`
+      },
+      p_priority: severity === "urgent" || severity === "critical" ? 2 : 5,
+      p_dedup_key: `email_${type}_${obligationId}_${uid}_${today}`
+    })
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  // Auth dual: x-cron-secret (pg_cron) OR superadmin JWT (manual)
   const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
   const cronHeader = req.headers.get("x-cron-secret");
   let authorized = false;
@@ -51,6 +102,7 @@ Deno.serve(async (req: Request) => {
     ];
 
     let totalCreated = 0;
+    let emailsEnqueued = 0;
 
     for (const t of thresholds) {
       const target = new Date();
@@ -84,11 +136,13 @@ Deno.serve(async (req: Request) => {
             })
           });
           if (r.ok) { const d = await r.json(); if (d) totalCreated++; }
+
+          await maybeEnqueueEmail(uid, o.org_id, t.title, o.name || o.description || "Obligación", t.severity, t.type, o.id);
+          emailsEnqueued++;
         }
       }
     }
 
-    // Vencidas — solo lunes
     if (new Date().getDay() === 1) {
       const todayStr = new Date().toISOString().split("T")[0];
       const overdue = await srvGet(
@@ -112,11 +166,14 @@ Deno.serve(async (req: Request) => {
             })
           });
           if (r.ok) { const d = await r.json(); if (d) totalCreated++; }
+
+          await maybeEnqueueEmail(uid, o.org_id, "Obligación vencida sin cumplir", o.name || o.description || "Obligación", "urgent", "overdue", o.id);
+          emailsEnqueued++;
         }
       }
     }
 
-    return json({ ok: true, created: totalCreated });
+    return json({ ok: true, created: totalCreated, emails_enqueued: emailsEnqueued });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

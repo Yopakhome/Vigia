@@ -271,7 +271,7 @@ function MarkdownText({ text }) {
 // 4 formatos sin dependencias nuevas: Markdown, TXT, PDF (via window.print), Word (.doc HTML-flavored).
 const EXPORT_DISCLAIMER = "Esta consulta fue generada por VIGÍA con base en el corpus normativo ambiental colombiano vigente al momento de la consulta. La información proporcionada es de carácter informativo y no constituye asesoría legal profesional. Las citas a normas y artículos son verificables contra los textos oficiales referenciados. Para decisiones jurídicas vinculantes, consulte con un asesor legal especializado.";
 const EXPORT_PRODUCT_URL = "https://vigia-five.vercel.app";
-const EXPORT_VIGIA_VERSION = "v3.12.0";
+const EXPORT_VIGIA_VERSION = "v3.14.0";
 
 function exportTimestamp() {
   const d = new Date();
@@ -1383,6 +1383,10 @@ function SuperAdminModule({reviewerId, sessionToken}) {
   const [editOrgData, setEditOrgData] = React.useState({});
   const [editOrgSaving, setEditOrgSaving] = React.useState(false);
   const [editOrgMsg, setEditOrgMsg] = React.useState(null);
+  const [radarTab, setRadarTab] = React.useState("sources");
+  const [radarSources, setRadarSources] = React.useState([]);
+  const [radarDetected, setRadarDetected] = React.useState([]);
+  const [radarLoading, setRadarLoading] = React.useState(false);
   const A = C;
 
   const openEditOrg = (o) => {
@@ -1671,6 +1675,37 @@ function SuperAdminModule({reviewerId, sessionToken}) {
     }
 
     React.useEffect(function(){ if (tab==="curacion" || tab==="catalogo") loadNorms(); }, [tab]);
+    React.useEffect(function(){ if (tab==="radar") { loadRadarSources(); loadRadarDetected(); } }, [tab]);
+
+    const loadRadarSources = async () => {
+      setRadarLoading(true);
+      try {
+        const d = await fetch(`${SB_URL}/rest/v1/normative_sources_monitored?order=priority.asc`, {
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+        setRadarSources(Array.isArray(d) ? d : []);
+      } catch {}
+      setRadarLoading(false);
+    };
+
+    const loadRadarDetected = async () => {
+      try {
+        const d = await fetch(`${SB_URL}/rest/v1/detected_items?order=detected_at.desc&limit=50`, {
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+        setRadarDetected(Array.isArray(d) ? d : []);
+      } catch {}
+    };
+
+    const triggerRadarScrape = async (sourceKey) => {
+      try {
+        const payload = sourceKey ? { source_key: sourceKey } : {};
+        const data = await callEdge("radar-scrape", payload, sessionToken);
+        setMsg({t:"success",m:`Radar: ${JSON.stringify(data)}`});
+        loadRadarSources();
+        loadRadarDetected();
+      } catch(e) { setMsg({t:"error",m:`Radar error: ${e.message}`}); }
+    };
 
     async function loadNormCatArticles(nid) {
       if (normCatArticles[nid]) return;
@@ -1703,7 +1738,7 @@ function SuperAdminModule({reviewerId, sessionToken}) {
       setReviewingId(null);
     }
 
-    var tabs = [{k:"overview",l:"Overview"},{k:"requests",l:"Solicitudes"+(pendingCount>0?" ("+pendingCount+")":"")},{k:"curacion",l:"Curación normativa"+(pendingNormCount>0?" ("+pendingNormCount+")":"")},{k:"catalogo",l:"Catálogo normativo"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"audit",l:"Auditoría"},{k:"support",l:`Soporte${supportTickets.filter(t=>t.estado==="abierto").length>0?" ("+supportTickets.filter(t=>t.estado==="abierto").length+")":""}`}];
+    var tabs = [{k:"overview",l:"Overview"},{k:"requests",l:"Solicitudes"+(pendingCount>0?" ("+pendingCount+")":"")},{k:"curacion",l:"Curación normativa"+(pendingNormCount>0?" ("+pendingNormCount+")":"")},{k:"catalogo",l:"Catálogo normativo"},{k:"users",l:"Usuarios"},{k:"orgs",l:"Organizaciones"},{k:"neworg",l:"+ Nueva Org"},{k:"create",l:"Crear usuario"},{k:"audit",l:"Auditoría"},{k:"support",l:`Soporte${supportTickets.filter(t=>t.estado==="abierto").length>0?" ("+supportTickets.filter(t=>t.estado==="abierto").length+")":""}`},{k:"radar",l:"Radar"}];
 
   return (
     <div style={{padding:28,color:A.text}}>
@@ -2445,6 +2480,64 @@ function SuperAdminModule({reviewerId, sessionToken}) {
                 {addingUsers?"Creando usuarios...":"Crear usuarios y finalizar activación"}
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {tab==="radar"&&(
+        <div>
+          <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:`1px solid ${A.border}`,paddingBottom:8,alignItems:"center"}}>
+            {[{k:"sources",l:"Fuentes monitoreadas"},{k:"detected",l:"Items detectados"}].map(t=>
+              <button key={t.k} onClick={()=>setRadarTab(t.k)} style={{background:"transparent",border:"none",borderBottom:radarTab===t.k?`2px solid ${A.primary}`:"2px solid transparent",color:radarTab===t.k?A.primary:A.textSec,padding:"8px 16px",fontSize:12,fontWeight:radarTab===t.k?700:500,cursor:"pointer",fontFamily:FONT}}>{t.l}</button>
+            )}
+            <div style={{flex:1}}/>
+            <button onClick={()=>triggerRadarScrape(null)} style={{background:A.primary,border:"none",color:"#060c14",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700,cursor:"pointer"}}>Ejecutar radar ahora</button>
+          </div>
+
+          {radarTab==="sources"&&(
+            radarLoading?<div style={{color:A.textMuted,padding:20}}>Cargando...</div>:
+            radarSources.map(s=>
+              <div key={s.id} style={{background:A.surface,border:`1px solid ${A.border}`,borderLeft:`3px solid ${s.enabled?A.green:A.textMuted}`,borderRadius:8,padding:"12px 16px",marginBottom:8}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:A.text}}>{s.display_name}</div>
+                    <div style={{fontSize:10,color:A.textMuted,marginTop:2}}>{s.source_key} · {s.scope} · Prioridad {s.priority}</div>
+                  </div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:10,background:s.enabled?A.greenDim:A.surfaceEl,color:s.enabled?A.green:A.textMuted}}>{s.enabled?"ACTIVA":"INACTIVA"}</span>
+                    {s.enabled&&<button onClick={()=>triggerRadarScrape(s.source_key)} style={{background:A.primaryDim,border:`1px solid ${A.primary}44`,color:A.primary,padding:"3px 10px",borderRadius:5,fontSize:10,cursor:"pointer"}}>Scan ahora</button>}
+                  </div>
+                </div>
+                <div style={{fontSize:11,color:A.textSec,marginBottom:4}}>{s.description}</div>
+                {s.last_scan_at&&<div style={{fontSize:10,color:A.textMuted,display:"flex",gap:12,marginTop:6,flexWrap:"wrap"}}>
+                  <span>Ultimo scan: {new Date(s.last_scan_at).toLocaleString("es-CO")}</span>
+                  <span style={{color:s.last_scan_status==="success"?A.green:A.red}}>{s.last_scan_status||"-"}</span>
+                  <span>Detectados: {s.last_scan_items_detected||0}</span>
+                  <span style={{color:A.primary}}>Nuevos: {s.last_scan_items_new||0}</span>
+                </div>}
+                {s.last_scan_error&&<div style={{fontSize:10,color:A.red,marginTop:4}}>! {s.last_scan_error}</div>}
+              </div>
+            )
+          )}
+
+          {radarTab==="detected"&&(
+            radarLoading?<div style={{color:A.textMuted,padding:20}}>Cargando...</div>:
+            radarDetected.length===0?<div style={{color:A.textMuted,padding:20,textAlign:"center",fontSize:12}}>Sin items detectados aun. Ejecuta el radar para iniciar.</div>:
+            radarDetected.map(d=>{
+              const isEnv=d.classification?.is_environmental;
+              const urgency=d.classification?.urgency_signal;
+              const barColor=d.status==="discarded"?A.textMuted:urgency==="alta"?A.red:urgency==="media"?A.yellow:A.primary;
+              return <div key={d.id} style={{background:A.surface,border:`1px solid ${A.border}`,borderLeft:`3px solid ${barColor}`,borderRadius:8,padding:"10px 14px",marginBottom:6}}>
+                <div style={{fontSize:12,fontWeight:600,color:A.text,marginBottom:4}}>{d.title}</div>
+                <div style={{fontSize:10,color:A.textMuted,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                  <span>{d.source_key}</span><span>·</span><span>{d.detected_date}</span><span>·</span>
+                  <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:d.status==="classified"?A.greenDim:d.status==="discarded"?A.surfaceEl:A.yellowDim,color:d.status==="classified"?A.green:d.status==="discarded"?A.textMuted:A.yellow}}>{d.status}</span>
+                  {isEnv&&d.classification?.category&&<><span>·</span><span style={{color:A.primary}}>{d.classification.category}</span></>}
+                  {d.external_url&&<><span style={{flex:1}}/><a href={d.external_url} target="_blank" rel="noopener noreferrer" style={{color:A.primary,textDecoration:"none",fontSize:10}}>Ver fuente</a></>}
+                </div>
+                {d.classification?.reasoning_brief&&<div style={{fontSize:10,color:A.textSec,marginTop:4,fontStyle:"italic"}}>{d.classification.reasoning_brief}</div>}
+              </div>;
+            })
           )}
         </div>
       )}
@@ -3251,6 +3344,7 @@ const [dossierLoading, setDossierLoading] = useState(false);
 const [notifications, setNotifications] = useState([]);
 const [unreadNotif, setUnreadNotif] = useState(0);
 const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+const [notifPrefs, setNotifPrefs] = useState(null);
 const [kanbanFilter, setKanbanFilter] = useState("all");
 const [selectedNorm, setSelectedNorm] = useState(null);
 const [normArticles, setNormArticles] = useState({});
@@ -3581,6 +3675,25 @@ const handleNotifClick=(notif)=>{
     if(inst){setSelectedEDI(inst);setView("edi-detail");if(notif.link_params?.obligation_id)setTimeout(()=>loadOblDetail(notif.link_params.obligation_id),150);}
   }
   setNotifPanelOpen(false);
+};
+
+useEffect(()=>{
+  if(!session?.user?.id) return;
+  fetch(`${SB_URL}/rest/v1/notification_preferences?user_id=eq.${session.user.id}&select=*`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`}})
+    .then(r=>r.ok?r.json():Promise.reject()).then(d=>{
+      setNotifPrefs(Array.isArray(d)&&d[0]?d[0]:{email_enabled:true,email_severity_threshold:"warning"});
+    }).catch(()=>setNotifPrefs({email_enabled:true,email_severity_threshold:"warning"}));
+},[session?.user?.id]);
+
+const updateNotifPref=async(updates)=>{
+  const newPrefs={...notifPrefs,...updates};
+  setNotifPrefs(newPrefs);
+  try{
+    await fetch(`${SB_URL}/rest/v1/notification_preferences?user_id=eq.${session.user.id}`,{
+      method:"PATCH",headers:{apikey:SB_KEY,Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json",Prefer:"return=minimal"},
+      body:JSON.stringify(updates)
+    });
+  }catch{}
 };
 
 useEffect(()=>{ if(view==="orgprofile" && session) refetchClientOrg(); },[view]);
@@ -4873,7 +4986,7 @@ return (
 <div style={{padding:"20px 18px 16px",borderBottom:`1px solid ${C.border}`}}>
 <div style={{display:"flex",alignItems:"center",gap:10}}>
 <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${C.primary},#0a9e82)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Shield size={17} color="#fff"/></div>
-<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.12.0</div></div>
+<div style={{flex:1}}><div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>VIGIA</div><div style={{fontSize:9,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:1}}>Inteligencia Regulatoria</div><div style={{fontSize:9,color:C.primary,fontWeight:700,marginTop:2}}>v3.14.0</div></div>
 <div style={{position:"relative"}}><button onClick={()=>setNotifPanelOpen(p=>!p)} style={{background:"transparent",border:"none",cursor:"pointer",color:C.textSec,padding:4,position:"relative"}}><Bell size={16}/>{unreadNotif>0&&<span style={{position:"absolute",top:0,right:0,background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 4px",borderRadius:8,minWidth:14,textAlign:"center"}}>{unreadNotif>99?"99+":unreadNotif}</span>}</button>
 {notifPanelOpen&&<div style={{position:"absolute",top:"calc(100% + 8px)",right:0,width:320,maxHeight:400,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",zIndex:300,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:`1px solid ${C.border}`}}>
@@ -4893,6 +5006,19 @@ return (
       </div>
     </div>)}
   </div>
+  {notifPrefs&&<div style={{padding:"10px 14px",borderTop:`1px solid ${C.border}`}}>
+    <div style={{fontSize:10,fontWeight:700,color:C.textSec,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Preferencias de email</div>
+    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:11,color:C.text,marginBottom:6,cursor:"pointer"}}>
+      <input type="checkbox" checked={notifPrefs.email_enabled!==false} onChange={e=>updateNotifPref({email_enabled:e.target.checked})}/>
+      Recibir emails de notificaciones
+    </label>
+    <select value={notifPrefs.email_severity_threshold||"warning"} onChange={e=>updateNotifPref({email_severity_threshold:e.target.value})} disabled={!notifPrefs.email_enabled} style={{width:"100%",background:C.surface,border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",color:C.text,fontSize:11,fontFamily:FONT}}>
+      <option value="info">Todas (incluye informativas)</option>
+      <option value="warning">Advertencias y superior</option>
+      <option value="urgent">Solo urgentes y criticas</option>
+      <option value="critical">Solo criticas</option>
+    </select>
+  </div>}
 </div>}
 </div>
 </div>
