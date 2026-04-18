@@ -13,8 +13,8 @@ Sesión ejecutada por Claude Code + Javier en una jornada. 4 tareas principales:
 | Campo | Valor |
 |---|---|
 | Versión | **v3.15.5** |
-| Commit | *(placeholder — se inserta post-commit)* |
-| Build | *(placeholder — se inserta post-`npm run build`)* |
+| Commit | dd33018 |
+| Build | index-418e8970.js · 496.90 KB · gzip 133.75 KB |
 | URL prod | https://vigia-five.vercel.app |
 | Repo | https://github.com/Yopakhome/Vigia (main, push directo) |
 | Supabase | `itkbujkqjesuntgdkubt` (São Paulo) |
@@ -75,7 +75,7 @@ Backfill bajo: el RSS de ANLA sirve **~60 items curados totales** (20 por secci�
   - Renumeración: secciones 14-19 del v1.0 → 16-21 en v1.1
   - Soporte (sección 13) ya estaba en v1.0 — no se duplicó
 - `docs/VIGIA_Manual_Usuario_v1.1_source.md` — source markdown versionable
-- `docs/VIGIA_Manual_Usuario_v1.1_draft.md` — draft inicial (secciones nuevas solas)
+- `docs/archive/VIGIA_Manual_Usuario_v1.0.pdf` — versión previa archivada para referencia de estilo
 - `scripts/generate_manual_pdf.py` — generador ReportLab reusable (~370 líneas)
   - Parser markdown minimal (headings, tablas, listas, callouts, bold)
   - Estilo coherente con v1.0: Helvetica, cajas header por sección (teal/navy/blue/purple/orange/darkslate), cover custom, header+footer con numeración
