@@ -52,26 +52,37 @@ async function lookupInCorpus(tipo: string, numero: string, ano: string): Promis
   } catch { return null; }
 }
 
-// CAPA 1: ANLA Eureka scrape listado
+// CAPA 1: ANLA Eureka RSS feed
+// SA-DEUDA-10 (17 abr 2026): originalmente scrapeaba HTML del listado, pero
+// ANLA renderiza los items client-side (shell Joomla). El feed RSS entrega
+// ~20 items hidratados por sección, suficiente para los casos del Radar.
+// SA-DEUDA-11 (17 abr 2026): ANLA clasifica decretos-ley en /leyes/, no /decretos/.
 async function tryAnlaEureka(tipo: string, numero: string, ano: string): Promise<string | null> {
-  const tipoPlural: Record<string, string> = { LEY: "leyes", DECRETO: "decretos", RESOLUCION: "resoluciones" };
-  const section = tipoPlural[tipo];
+  const tipoNorm = (tipo || "").toUpperCase().trim().replace(/[\s-]+/g, "_");
+  const tipoPlural: Record<string, string> = {
+    LEY: "leyes",
+    DECRETO: "decretos",
+    RESOLUCION: "resoluciones",
+    DECRETO_LEY: "leyes"
+  };
+  const section = tipoPlural[tipoNorm];
   if (!section) return null;
 
   try {
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), 5000);
-    const r = await fetch(`https://www.anla.gov.co/eureka/normativa/${section}`, { signal: c.signal });
+    const r = await fetch(`https://www.anla.gov.co/eureka/normativa/${section}?format=feed&type=rss`, { signal: c.signal });
     clearTimeout(t);
     if (!r.ok) return null;
-    const html = await r.text();
+    const xml = await r.text();
 
-    const pattern = new RegExp(`/eureka/normativa/${section}/[^"]*-${numero}-de-${ano}[^"]*`, "i");
-    const match = html.match(pattern);
-    if (match) {
-      const url = `https://www.anla.gov.co${match[0]}`;
-      return url;
-    }
+    // ANLA a veces pone zeros-leading en el slug (ej: resolucion-0126-de-2024 para num=126).
+    const pattern = new RegExp(
+      `<link>(https://www\\.anla\\.gov\\.co/eureka/normativa/${section}/[^<]*-0*${numero}-de-${ano}[^<]*)</link>`,
+      "i"
+    );
+    const match = xml.match(pattern);
+    if (match) return match[1];
   } catch {}
   return null;
 }

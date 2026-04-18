@@ -85,11 +85,33 @@ hierarchy_level: 1=Constitución, 2=Ley, 3=Decreto-Ley, 4=Decreto, 5=Resolución
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
 
+// SA-DEUDA-7-REV (17 abr 2026): el parser captura numeración literal
+// ("ARTÍCULO PRIMERO/SEGUNDO/...") además de numeración digital. Caso real
+// observado en resoluciones MinAmbiente pre-2015 (ej. Res 610/2010).
+const NUM_LETRA = 'PRIMERO|SEGUNDO|TERCERO|CUARTO|QUINTO|SEXTO|S[ÉE]PTIMO|OCTAVO|NOVENO|D[ÉE]CIMO|UND[ÉE]CIMO|DUOD[ÉE]CIMO|[ÚU]NICO';
+
+const LETRA_A_NUM: Record<string, number> = {
+  'PRIMERO': 1, 'SEGUNDO': 2, 'TERCERO': 3, 'CUARTO': 4, 'QUINTO': 5,
+  'SEXTO': 6, 'SEPTIMO': 7, 'SÉPTIMO': 7, 'OCTAVO': 8, 'NOVENO': 9,
+  'DECIMO': 10, 'DÉCIMO': 10, 'UNDECIMO': 11, 'UNDÉCIMO': 11,
+  'DUODECIMO': 12, 'DUODÉCIMO': 12, 'UNICO': 1, 'ÚNICO': 1
+};
+
+function parseArticleNumber(raw: string): string | null {
+  const numMatch = raw.match(/^(\d{1,4}[A-Za-z]?)/);
+  if (numMatch) return numMatch[1];
+  const n = LETRA_A_NUM[raw.toUpperCase().trim()];
+  return n !== undefined ? String(n) : null;
+}
+
 interface Article { article_number: string; article_label: string; title: string | null; content: string; order_index: number; chapter: string | null; section: string | null; }
 
 function parseArticlesRegex(fullText: string): Article[] {
   const norm = fullText.replace(/\r/g, "").replace(/[\u00A0\t]+/g, " ");
-  const pattern = /(^|\n)\s*(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?(\d{1,4}[A-Za-z]?)[°º\.\s]/gi;
+  const pattern = new RegExp(
+    `(^|\\n)\\s*(Art[íÍiI]culo|ART[ÍI]CULO|Art\\.)\\s+(?:N[°º]?\\s*)?(\\d{1,4}[A-Za-z]?|${NUM_LETRA})[°º\\.\\s]`,
+    'gi'
+  );
   const matches: Array<{ idx: number; label: string; num: string }> = [];
   let m: RegExpExecArray | null;
   while ((m = pattern.exec(norm)) !== null) matches.push({ idx: m.index + m[1].length, label: `${m[2]} ${m[3]}`.trim(), num: m[3] });
@@ -99,16 +121,24 @@ function parseArticlesRegex(fullText: string): Article[] {
   let c: RegExpExecArray | null;
   while ((c = chapterPattern.exec(norm)) !== null) chapters.push({ idx: c.index, label: c[0].trim() });
   function chapterAt(pos: number): string | null { let last: string | null = null; for (const ch of chapters) { if (ch.idx < pos) last = ch.label; else break; } return last; }
+  const afterLabelRe = new RegExp(`^(Art[íÍiI]culo|ART[ÍI]CULO|Art\\.)\\s+(?:N[°º]?\\s*)?(?:\\d{1,4}[A-Za-z]?|${NUM_LETRA})[°º\\.\\s]*`, 'i');
   const articles: Article[] = [];
+  let orderIdx = 0;
   for (let i = 0; i < matches.length; i++) {
     const start = matches[i].idx;
     const end = i + 1 < matches.length ? matches[i + 1].idx : norm.length;
     const chunk = norm.slice(start, end).trim();
     const firstNl = chunk.indexOf("\n");
     const firstLine = firstNl > 0 ? chunk.slice(0, firstNl).trim() : chunk.slice(0, 200).trim();
-    const afterLabel = firstLine.replace(/^(Art[íÍiI]culo|ART[ÍÍII]CULO|Art\.)\s+(?:N[°º]?\s*)?\d{1,4}[A-Za-z]?[°º\.\s]*/i, "").trim();
+    const afterLabel = firstLine.replace(afterLabelRe, "").trim();
     const title = afterLabel.length > 0 && afterLabel.length < 160 && /[.:]$/.test(afterLabel) ? afterLabel.replace(/[.:]$/, "") : null;
-    articles.push({ article_number: matches[i].num, article_label: matches[i].label, title, content: chunk, order_index: i + 1, chapter: chapterAt(start), section: null });
+    const parsedNum = parseArticleNumber(matches[i].num);
+    if (parsedNum === null) {
+      console.warn(`[norm-ingest] Skipping article — unable to parse number from "${matches[i].num}" (label: "${matches[i].label}")`);
+      continue;
+    }
+    orderIdx += 1;
+    articles.push({ article_number: parsedNum, article_label: matches[i].label, title, content: chunk, order_index: orderIdx, chapter: chapterAt(start), section: null });
   }
   return articles;
 }
